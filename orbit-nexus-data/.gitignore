@@ -1,0 +1,15 @@
+.next
+node_modules
+.env
+.env.local
+.env.development.local
+.env.production.local
+.vercel
+coverage
+dist
+*.log
+prisma/dev.db
+tmp
+
+
+.vercel
