@@ -1,8 +1,14 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
+
+import {
+  orbitInputClassName,
+  orbitPrimaryButtonClassName
+} from "@/lib/ui/orbit-form-styles";
 
 type RecoveryKind = "PASSWORD" | "CODE";
 
@@ -40,13 +46,13 @@ export function AccessRecoveryForm() {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(payload?.message ?? "No fue posible procesar la recuperacion.");
+        setError(payload?.message ?? "No fue posible procesar la recuperación.");
         return;
       }
 
-      setMessage(payload?.message ?? "Revisa tu correo para completar la recuperacion.");
+      setMessage(payload?.message ?? "Revisa tu correo para completar la recuperación.");
     } catch {
-      setError("Ocurrio un error inesperado al procesar la recuperacion.");
+      setError("Ocurrió un error inesperado al procesar la recuperación.");
     } finally {
       setIsSubmitting(false);
     }
@@ -57,8 +63,8 @@ export function AccessRecoveryForm() {
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-white">Recupera tu acceso</h2>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Valida tu nombre y tu correo para recuperar tu contrasena temporal o tu codigo
-          unico.
+          Valida tu nombre y tu correo para recuperar tu contraseña temporal o tu código
+          único.
         </p>
       </div>
 
@@ -72,7 +78,7 @@ export function AccessRecoveryForm() {
           type="button"
           onClick={() => setKind("PASSWORD")}
         >
-          Contrasena
+          Contraseña
         </button>
         <button
           className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
@@ -83,7 +89,7 @@ export function AccessRecoveryForm() {
           type="button"
           onClick={() => setKind("CODE")}
         >
-          Codigo
+          Código
         </button>
       </div>
 
@@ -93,7 +99,7 @@ export function AccessRecoveryForm() {
         </label>
         <input
           id="recover-full-name"
-          className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+          className={orbitInputClassName}
           value={fullName}
           onChange={(event) => setFullName(event.target.value)}
         />
@@ -105,7 +111,7 @@ export function AccessRecoveryForm() {
         </label>
         <input
           id="recover-email"
-          className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+          className={orbitInputClassName}
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
@@ -124,11 +130,15 @@ export function AccessRecoveryForm() {
         </div>
       ) : null}
 
-      <button
-        className="h-12 w-full rounded-2xl bg-gradient-to-r from-[#5de0e6] to-[#004aad] px-4 font-semibold text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition hover:opacity-95"
-        type="submit"
-      >
-        {isSubmitting ? "Procesando..." : "Continuar"}
+      <button className={orbitPrimaryButtonClassName} disabled={isSubmitting} type="submit">
+        {isSubmitting ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Procesando...
+          </>
+        ) : (
+          "Continuar"
+        )}
       </button>
 
       <p className="text-center text-sm text-slate-400">
@@ -136,7 +146,7 @@ export function AccessRecoveryForm() {
           className="font-semibold text-cyan-300 hover:text-cyan-200 hover:underline"
           href={"/login" as Route}
         >
-          Volver al inicio de sesion
+          Volver al inicio de sesión
         </Link>
       </p>
     </form>

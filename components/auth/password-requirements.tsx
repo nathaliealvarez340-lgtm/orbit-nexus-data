@@ -13,7 +13,7 @@ export function PasswordRequirements({ password, className }: PasswordRequiremen
 
   return (
     <div className={cn("rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3", className)}>
-      <p className="text-sm font-medium text-slate-700">La contrasena debe incluir:</p>
+      <p className="text-sm font-medium text-slate-700">La contraseña debe incluir:</p>
 
       <ul className="mt-2 space-y-1 text-sm">
         {requirements.map((requirement) => (

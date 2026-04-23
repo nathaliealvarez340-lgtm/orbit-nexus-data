@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { KeyRound, LockKeyhole, Orbit, Radar, Shield, Sparkles, Waves } from "lucide-react";
 
 import { LiveDateTime } from "@/components/auth/live-date-time";
-import { ORBIT_BACKGROUND_VIDEO_URL } from "@/lib/ui/background-media";
+import { OrbitBackgroundVideo } from "@/components/ui/orbit-background-video";
 
 type AuthShellProps = {
   title: string;
@@ -15,7 +15,7 @@ const loginFeatures = [
   {
     icon: KeyRound,
     title: "Acceso inteligente",
-    text: "Ingreso por codigo unico con trazabilidad inmediata."
+    text: "Ingreso por código único con trazabilidad inmediata."
   },
   {
     icon: Shield,
@@ -29,8 +29,8 @@ const loginFeatures = [
   },
   {
     icon: LockKeyhole,
-    title: "Sesion confiable",
-    text: "Autenticacion clara, premium y lista para escalar."
+    title: "Sesión confiable",
+    text: "Autenticación clara, premium y lista para escalar."
   }
 ];
 
@@ -38,17 +38,17 @@ const registerFeatures = [
   {
     icon: Sparkles,
     title: "Alta guiada",
-    text: "Registro estructurado para activar usuarios autorizados sin friccion."
+    text: "Registro estructurado para activar usuarios autorizados sin fricción."
   },
   {
     icon: Shield,
-    title: "Validacion segura",
+    title: "Validación segura",
     text: "El sistema confirma identidad, rol y permisos antes de habilitar acceso."
   },
   {
     icon: Orbit,
     title: "Escalabilidad real",
-    text: "Una base disenada para crecer sin perder orden ni control."
+    text: "Una base diseñada para crecer sin perder orden ni control."
   },
   {
     icon: Waves,
@@ -75,19 +75,11 @@ export function AuthShell({
 
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-6 md:px-6 md:py-8">
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
-      >
-        <source src={ORBIT_BACKGROUND_VIDEO_URL} type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(10,15,30,0.34),rgba(3,8,20,0.86))]" />
-      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(3,11,27,0.58),rgba(7,19,40,0.74))]" />
-      <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(255,255,255,0.10)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.10)_1px,transparent_1px)] [background-size:42px_42px]" />
+      <OrbitBackgroundVideo
+        primaryOverlayClassName="bg-[radial-gradient(circle_at_center,rgba(10,15,30,0.28),rgba(3,8,20,0.82))]"
+        secondaryOverlayClassName="bg-[linear-gradient(135deg,rgba(3,11,27,0.42),rgba(7,19,40,0.64))]"
+        videoClassName="saturate-[1.06] contrast-[1.03]"
+      />
 
       <section className="main-content relative z-[2] mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div

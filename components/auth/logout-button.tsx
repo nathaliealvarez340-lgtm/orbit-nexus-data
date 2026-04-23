@@ -32,7 +32,7 @@ export function LogoutButton() {
       }
       disabled={isPending}
     >
-      {isPending ? "Cerrando sesion..." : "Cerrar sesion"}
+      {isPending ? "Cerrando sesión..." : "Cerrar sesión"}
     </Button>
   );
 }

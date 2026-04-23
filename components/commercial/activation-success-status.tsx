@@ -36,7 +36,7 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
         const payload = await response.json().catch(() => null);
 
         if (!response.ok) {
-          throw new Error(payload?.message ?? "No fue posible cargar la activacion.");
+          throw new Error(payload?.message ?? "No fue posible cargar la activación.");
         }
 
         if (!active) {
@@ -57,7 +57,7 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "No fue posible confirmar la activacion."
+            : "No fue posible confirmar la activación."
         );
       } finally {
         if (active) {
@@ -81,15 +81,15 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
     <div className="w-full rounded-[2rem] border border-white/12 bg-slate-950/80 p-8 shadow-[0_28px_80px_rgba(2,6,23,0.42)] backdrop-blur-2xl">
       <div className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">
-          Activacion comercial
+          Activación comercial
         </p>
         <h1 className="text-4xl font-semibold tracking-tight text-white">
           {status?.companyReady ? "Empresa activada correctamente" : "Estamos confirmando tu pago"}
         </h1>
         <p className="max-w-2xl text-sm leading-7 text-slate-300">
           {status?.companyReady
-            ? "Tu empresa ya existe dentro de Orbit Nexus y el codigo maestro ya esta listo para registrar a tus lideres."
-            : "El pago ya regreso correctamente. Estamos esperando la confirmacion final de Stripe para terminar la activacion automatica."}
+            ? "Tu empresa ya existe dentro de Orbit Nexus y el código maestro ya está listo para registrar a tus líderes."
+            : "El pago ya regresó correctamente. Estamos esperando la confirmación final de Stripe para terminar la activación automática."}
         </p>
       </div>
 
@@ -115,12 +115,12 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
       </div>
 
       <div className="mt-6 rounded-[1.65rem] border border-white/10 bg-gradient-to-br from-cyan-500/12 via-slate-950/70 to-blue-500/14 px-6 py-6">
-        <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">Codigo maestro</p>
+        <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">Código maestro</p>
         <p className="mt-3 text-3xl font-semibold tracking-[0.04em] text-white">
           {status?.registrationCode ?? "Generando..."}
         </p>
         <p className="mt-3 text-sm leading-7 text-slate-300">
-          Este codigo es privado y sirve para registrar lideres dentro de tu empresa. Comparte el codigo solo con usuarios previamente autorizados.
+          Este código es privado y sirve para registrar líderes dentro de tu empresa. Comparte el código solo con usuarios previamente autorizados.
         </p>
       </div>
 
@@ -132,7 +132,7 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Button asChild>
-          <a href="/login">Ir a iniciar sesion</a>
+          <a href="/login">Ir a iniciar sesión</a>
         </Button>
         {!status?.companyReady || isLoading ? (
           <Button

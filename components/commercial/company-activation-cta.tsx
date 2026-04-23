@@ -1,9 +1,18 @@
 "use client";
 
-import { ArrowRight, ChevronLeft, Sparkles, Star, TrendingUp, X, Zap } from "lucide-react";
+import {
+  ChevronLeft,
+  Loader2,
+  Sparkles,
+  Star,
+  TrendingUp,
+  X,
+  Zap
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { OrbitBackgroundVideo } from "@/components/ui/orbit-background-video";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,7 +21,11 @@ import {
   CORE_MAX_EXTRA_USERS,
   buildQuoteSummary
 } from "@/lib/commercial/plans";
-import { ORBIT_BACKGROUND_VIDEO_URL } from "@/lib/ui/background-media";
+import {
+  orbitInputClassName,
+  orbitPrimaryButtonClassName,
+  orbitSecondaryButtonClassName
+} from "@/lib/ui/orbit-form-styles";
 
 type CompanyPlan = "CORE" | "GROWTH" | "ENTERPRISE";
 type ActivationStep = "hero" | "plans" | "billing";
@@ -21,7 +34,7 @@ const planCards = [
   {
     plan: "CORE" as const,
     label: "Core",
-    highlight: "Mas elegido",
+    highlight: "Más elegido",
     subtitle: "Base operativa",
     price: "$5,200 MXN / mes",
     bullets: [
@@ -49,8 +62,8 @@ const planCards = [
   {
     plan: "ENTERPRISE" as const,
     label: "Enterprise",
-    highlight: "HECHO PARA TU OPERACION",
-    subtitle: "SOLUCION EMPRESARIAL",
+    highlight: "HECHO PARA TU OPERACIÓN",
+    subtitle: "SOLUCIÓN EMPRESARIAL",
     price: "Implementación estratégica",
     bullets: [
       "Arquitectura diseñada específicamente para tu operación",
@@ -228,13 +241,18 @@ export function CompanyActivationCta() {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(payload?.message ?? "No fue posible iniciar la activacion.");
+        const nextError =
+          response.status === 503 ||
+          String(payload?.message ?? "").toLowerCase().includes("stripe")
+            ? "Configuración de pagos pendiente. Completa Stripe para habilitar la activación."
+            : payload?.message ?? "No fue posible iniciar la activación.";
+        setError(nextError);
         return;
       }
 
       if (payload?.data?.mode === "manual-review") {
         setManualReviewMessage(
-          "Recibimos tu solicitud Enterprise. Nuestro equipo comercial te contactara para cerrar una propuesta personalizada."
+          "Recibimos tu solicitud Enterprise. Nuestro equipo comercial te contactará para cerrar una propuesta personalizada."
         );
         return;
       }
@@ -246,7 +264,7 @@ export function CompanyActivationCta() {
 
       setError("No fue posible redirigir al checkout de Stripe.");
     } catch {
-      setError("Ocurrio un error inesperado al generar la activacion.");
+      setError("Ocurrió un error inesperado al generar la activación.");
     } finally {
       setIsSubmitting(false);
     }
@@ -266,23 +284,21 @@ export function CompanyActivationCta() {
       {open ? (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="absolute inset-0">
-            <video
-              className="absolute inset-0 h-full w-full object-cover saturate-[1.08] contrast-[1.06]"
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-            >
-              <source src={ORBIT_BACKGROUND_VIDEO_URL} type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(10,15,30,0.16),rgba(3,8,20,0.76))]" />
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(3,11,27,0.34),rgba(7,19,40,0.58))]" />
-            <div className="absolute inset-0 bg-slate-950/34 backdrop-blur-[2px]" onClick={closeActivation} />
+            <OrbitBackgroundVideo
+              primaryOverlayClassName="bg-[radial-gradient(circle_at_center,rgba(10,15,30,0.14),rgba(3,8,20,0.72))]"
+              secondaryOverlayClassName="bg-[linear-gradient(135deg,rgba(3,11,27,0.26),rgba(7,19,40,0.52))]"
+              videoClassName="saturate-[1.08] contrast-[1.06]"
+            />
+            <button
+              aria-label="Cerrar activación comercial"
+              className="absolute inset-0 bg-slate-950/28 backdrop-blur-[1px]"
+              type="button"
+              onClick={closeActivation}
+            />
           </div>
 
           <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-6 md:px-6 md:py-8">
-            <div className="relative w-full overflow-hidden rounded-[2.5rem] border border-white/[0.14] bg-slate-950/34 shadow-[0_34px_110px_rgba(2,6,23,0.52)] backdrop-blur-[20px]">
+            <div className="relative w-full overflow-hidden rounded-[2.5rem] border border-white/[0.14] bg-slate-950/30 shadow-[0_34px_110px_rgba(2,6,23,0.52)] backdrop-blur-[18px]">
               <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_28%,transparent_74%,rgba(93,224,230,0.06))]" />
               <div className="absolute -right-28 top-[-120px] h-80 w-80 rounded-full bg-[#5de0e6]/10 blur-3xl" />
               <div className="absolute -left-24 bottom-[-160px] h-96 w-96 rounded-full bg-[#004aad]/14 blur-3xl" />
@@ -290,11 +306,11 @@ export function CompanyActivationCta() {
               <div className="relative z-10 flex items-center justify-between px-6 py-5 md:px-8 md:py-6">
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Activacion comercial
+                  Activación comercial
                 </div>
 
                 <button
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-slate-300 transition hover:bg-white/[0.1] hover:text-white"
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-slate-300 transition-all duration-300 ease-in-out hover:bg-white/[0.1] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/30"
                   type="button"
                   onClick={closeActivation}
                 >
@@ -378,7 +394,7 @@ export function CompanyActivationCta() {
                     <div ref={plansRef} className="space-y-8 pt-4">
                       <div className="space-y-3 text-center">
                         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
-                          Paso 2 · Seleccion de plan
+                          Paso 2 · Selección de plan
                         </p>
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white md:text-4xl">
                           Elige la capacidad operativa que mejor encaja con tu empresa.
@@ -470,16 +486,17 @@ export function CompanyActivationCta() {
                               Capacidad seleccionada
                             </p>
 
-                            {(form.plan === "CORE" || form.plan === "GROWTH") ? (
+                            {form.plan === "CORE" || form.plan === "GROWTH" ? (
                               <div className="space-y-3">
                                 <div className="flex items-center justify-between text-sm text-slate-300">
                                   <span>Usuarios extra</span>
                                   <span className="font-semibold text-white">
-                                    {form.extraUsers} · {formatCurrency(form.extraUsers * CORE_EXTRA_USER_MXN)}
+                                    {form.extraUsers} ·{" "}
+                                    {formatCurrency(form.extraUsers * CORE_EXTRA_USER_MXN)}
                                   </span>
                                 </div>
                                 <input
-                                  className="h-11 w-full rounded-2xl border border-white/12 bg-white/[0.05] px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                                  className="h-11 w-full rounded-2xl border border-white/12 bg-white/[0.05] px-4 text-white transition-all duration-300 ease-in-out hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/30"
                                   max={CORE_MAX_EXTRA_USERS}
                                   min={0}
                                   type="range"
@@ -494,7 +511,7 @@ export function CompanyActivationCta() {
                                 <p className="text-xs leading-6 text-slate-400">
                                   {form.plan === "CORE"
                                     ? "Core mantiene 20 usuarios incluidos y permite sumar hasta 10 adicionales."
-                                    : "Growth muestra la misma ampliacion operativa y permite sumar hasta 10 usuarios extra en este flujo."}
+                                    : "Growth permite reflejar hasta 10 usuarios extra dentro de este flujo comercial."}
                                 </p>
                               </div>
                             ) : (
@@ -505,15 +522,14 @@ export function CompanyActivationCta() {
                             )}
 
                             <div className="flex flex-wrap items-center gap-3 pt-3">
-                              <Button
-                                className="border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
+                              <button
+                                className={orbitSecondaryButtonClassName}
                                 type="button"
-                                variant="outline"
                                 onClick={() => setStep("hero")}
                               >
-                                <ChevronLeft className="mr-2 h-4 w-4" />
+                                <ChevronLeft className="h-4 w-4" />
                                 Volver
-                              </Button>
+                              </button>
 
                               <Button
                                 className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] hover:opacity-95"
@@ -533,7 +549,7 @@ export function CompanyActivationCta() {
                     <div ref={billingRef} className="space-y-8 pt-4">
                       <div className="space-y-3 text-center">
                         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
-                          Paso 3 · Configuracion mensual
+                          Paso 3 · Configuración mensual
                         </p>
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white md:text-4xl">
                           Configura la activación mensual
@@ -548,7 +564,7 @@ export function CompanyActivationCta() {
                               <div className="flex flex-wrap items-center justify-between gap-4">
                                 <div>
                                   <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">
-                                    Cotizacion activa
+                                    Resumen de activación
                                   </p>
                                   <p className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-white">
                                     {formatCurrency(quote.totalAmountMxn)}
@@ -597,127 +613,144 @@ export function CompanyActivationCta() {
                           </div>
 
                           <div className="rounded-[1.85rem] border border-white/10 bg-slate-950/64 px-6 py-5 text-sm leading-7 text-slate-300 backdrop-blur-[18px]">
-                            {quote.checkoutEnabled
-                              ? "Tu suscripcion mensual se procesara con Stripe Checkout y la empresa se activara automaticamente cuando Stripe confirme el pago."
-                              : "El plan Enterprise requiere validacion comercial para definir capacidad, precio y fecha de activacion."}
+                            Tu entorno se activará automáticamente después de la confirmación.
                           </div>
                         </div>
 
                         <div className="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 shadow-[0_18px_50px_rgba(2,6,23,0.18)] backdrop-blur-[18px]">
                           <form className="space-y-5" onSubmit={handleSubmit}>
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
-                                Cotiza tu plataforma
+                                Activa tu operación
                               </p>
                               <h3 className="text-2xl font-semibold tracking-[-0.03em] text-white">
-                                Configura la activacion mensual
+                                Activa tu operación
                               </h3>
+                              <p className="text-sm leading-7 text-slate-300">
+                                Estás a un paso de habilitar tu entorno con control, usuarios y
+                                trazabilidad en tiempo real.
+                              </p>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-2">
-                              <div className="space-y-2">
-                                <Label className="text-slate-200" htmlFor="activation-full-name">
-                                  Nombre completo
-                                </Label>
-                                <Input
-                                  id="activation-full-name"
-                                  className="h-11 rounded-2xl border-white/12 bg-white/[0.05] text-white placeholder:text-slate-500"
-                                  value={form.fullName}
-                                  onChange={(event) =>
-                                    setForm((current) => ({
-                                      ...current,
-                                      fullName: event.target.value
-                                    }))
-                                  }
-                                />
-                              </div>
+                            <div className="space-y-4">
+                              <div className="space-y-3">
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                                  Identidad
+                                </p>
+                                <div className="grid gap-4 md:grid-cols-2">
+                                  <div className="space-y-2">
+                                    <Label className="text-slate-200" htmlFor="activation-full-name">
+                                      Nombre completo
+                                    </Label>
+                                    <Input
+                                      id="activation-full-name"
+                                      className={orbitInputClassName}
+                                      value={form.fullName}
+                                      onChange={(event) =>
+                                        setForm((current) => ({
+                                          ...current,
+                                          fullName: event.target.value
+                                        }))
+                                      }
+                                    />
+                                  </div>
 
-                              <div className="space-y-2">
-                                <Label className="text-slate-200" htmlFor="activation-email">
-                                  Correo
-                                </Label>
-                                <Input
-                                  id="activation-email"
-                                  className="h-11 rounded-2xl border-white/12 bg-white/[0.05] text-white placeholder:text-slate-500"
-                                  value={form.email}
-                                  onChange={(event) =>
-                                    setForm((current) => ({
-                                      ...current,
-                                      email: event.target.value
-                                    }))
-                                  }
-                                />
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label className="text-slate-200" htmlFor="activation-company">
-                                Empresa
-                              </Label>
-                              <Input
-                                id="activation-company"
-                                className="h-11 rounded-2xl border-white/12 bg-white/[0.05] text-white placeholder:text-slate-500"
-                                value={form.companyName}
-                                onChange={(event) =>
-                                  setForm((current) => ({
-                                    ...current,
-                                    companyName: event.target.value
-                                  }))
-                                }
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label className="text-slate-200" htmlFor="activation-sector">
-                                Sector
-                              </Label>
-                              <Input
-                                id="activation-sector"
-                                className="h-11 rounded-2xl border-white/12 bg-white/[0.05] text-white placeholder:text-slate-500"
-                                value={form.sector}
-                                onChange={(event) =>
-                                  setForm((current) => ({
-                                    ...current,
-                                    sector: event.target.value
-                                  }))
-                                }
-                              />
-                            </div>
-
-                            <div className="grid gap-4 md:grid-cols-2">
-                              <div className="space-y-2">
-                                <Label className="text-slate-200">Usuarios incluidos</Label>
-                                <div className="flex h-11 items-center rounded-2xl border border-white/12 bg-white/[0.05] px-4 text-sm font-medium text-white">
-                                  {form.plan === "GROWTH" ? 50 : CORE_INCLUDED_USERS}
+                                  <div className="space-y-2">
+                                    <Label className="text-slate-200" htmlFor="activation-email">
+                                      Correo
+                                    </Label>
+                                    <Input
+                                      id="activation-email"
+                                      className={orbitInputClassName}
+                                      value={form.email}
+                                      onChange={(event) =>
+                                        setForm((current) => ({
+                                          ...current,
+                                          email: event.target.value
+                                        }))
+                                      }
+                                    />
+                                  </div>
                                 </div>
                               </div>
 
-                              <div className="space-y-2">
-                                <Label className="text-slate-200" htmlFor="activation-extra-users">
-                                  Usuarios extra
-                                </Label>
-                                <input
-                                  id="activation-extra-users"
-                                  className="h-11 w-full rounded-2xl border border-white/12 bg-white/[0.05] px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
-                                  disabled={form.plan === "ENTERPRISE"}
-                                  max={CORE_MAX_EXTRA_USERS}
-                                  min={0}
-                                  type="range"
-                                  value={form.plan === "ENTERPRISE" ? 0 : form.extraUsers}
-                                  onChange={(event) =>
-                                    setForm((current) => ({
-                                      ...current,
-                                      extraUsers: Number(event.target.value)
-                                    }))
-                                  }
-                                />
-                                <p className="text-xs text-slate-400">
-                                  {form.plan === "ENTERPRISE"
-                                    ? "Enterprise se cotiza de forma personalizada."
-                                    : `${form.extraUsers} usuarios extra · ${formatCurrency(
-                                        form.extraUsers * CORE_EXTRA_USER_MXN
-                                      )}`}
+                              <div className="space-y-3">
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                                  Configuración
                                 </p>
+                                <div className="space-y-2">
+                                  <Label className="text-slate-200" htmlFor="activation-company">
+                                    Empresa
+                                  </Label>
+                                  <Input
+                                    id="activation-company"
+                                    className={orbitInputClassName}
+                                    value={form.companyName}
+                                    onChange={(event) =>
+                                      setForm((current) => ({
+                                        ...current,
+                                        companyName: event.target.value
+                                      }))
+                                    }
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-slate-200" htmlFor="activation-sector">
+                                    Sector
+                                  </Label>
+                                  <Input
+                                    id="activation-sector"
+                                    className={orbitInputClassName}
+                                    value={form.sector}
+                                    onChange={(event) =>
+                                      setForm((current) => ({
+                                        ...current,
+                                        sector: event.target.value
+                                      }))
+                                    }
+                                  />
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2">
+                                  <div className="space-y-2">
+                                    <Label className="text-slate-200">Usuarios incluidos</Label>
+                                    <div className="flex h-12 items-center rounded-2xl border border-white/15 bg-white/[0.08] px-4 text-sm font-medium text-white">
+                                      {form.plan === "GROWTH" ? 50 : CORE_INCLUDED_USERS}
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <Label
+                                      className="text-slate-200"
+                                      htmlFor="activation-extra-users"
+                                    >
+                                      Usuarios extra
+                                    </Label>
+                                    <input
+                                      id="activation-extra-users"
+                                      className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.08] px-4 text-white transition-all duration-300 ease-in-out hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/30 disabled:cursor-not-allowed disabled:opacity-60"
+                                      disabled={form.plan === "ENTERPRISE"}
+                                      max={CORE_MAX_EXTRA_USERS}
+                                      min={0}
+                                      type="range"
+                                      value={form.plan === "ENTERPRISE" ? 0 : form.extraUsers}
+                                      onChange={(event) =>
+                                        setForm((current) => ({
+                                          ...current,
+                                          extraUsers: Number(event.target.value)
+                                        }))
+                                      }
+                                    />
+                                    <p className="text-xs text-slate-400">
+                                      {form.plan === "ENTERPRISE"
+                                        ? "Enterprise se cotiza de forma personalizada."
+                                        : `${form.extraUsers} usuarios extra · ${formatCurrency(
+                                            form.extraUsers * CORE_EXTRA_USER_MXN
+                                          )}`}
+                                    </p>
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
@@ -734,23 +767,31 @@ export function CompanyActivationCta() {
                             ) : null}
 
                             <div className="flex flex-wrap items-center gap-3">
-                              <Button
-                                className="border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
+                              <button
+                                className={orbitSecondaryButtonClassName}
                                 type="button"
-                                variant="outline"
                                 onClick={() => setStep("plans")}
                               >
-                                <ChevronLeft className="mr-2 h-4 w-4" />
+                                <ChevronLeft className="h-4 w-4" />
                                 Volver
-                              </Button>
+                              </button>
 
-                              <Button className="flex-1" size="lg" type="submit">
-                                {isSubmitting
-                                  ? "Preparando activacion..."
-                                  : quote.checkoutEnabled
-                                    ? "Continuar con activacion"
-                                    : "Solicitar activacion enterprise"}
-                              </Button>
+                              <button
+                                className={`${orbitPrimaryButtonClassName} flex-1`}
+                                disabled={isSubmitting}
+                                type="submit"
+                              >
+                                {isSubmitting ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Activando plataforma...
+                                  </>
+                                ) : quote.checkoutEnabled ? (
+                                  "Activar plataforma"
+                                ) : (
+                                  "Solicitar activación enterprise"
+                                )}
+                              </button>
                             </div>
                           </form>
                         </div>

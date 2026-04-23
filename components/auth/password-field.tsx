@@ -38,8 +38,8 @@ export function PasswordField({
       />
 
       <button
-        aria-label={isVisible ? "Ocultar contrasena" : "Mostrar contrasena"}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-white"
+        aria-label={isVisible ? "Ocultar contraseña" : "Mostrar contraseña"}
+        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition-all duration-300 ease-in-out hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/30"
         type="button"
         onClick={() => setIsVisible((current) => !current)}
       >
@@ -48,4 +48,3 @@ export function PasswordField({
     </div>
   );
 }
-

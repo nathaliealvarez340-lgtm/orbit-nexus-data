@@ -1,12 +1,18 @@
 "use client";
 
 import type { Route } from "next";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AdminAccessModal } from "@/components/auth/admin-access-modal";
+import { AdminAccessForm } from "@/components/auth/admin-access-modal";
 import { PasswordField } from "@/components/auth/password-field";
+import {
+  orbitInfoPanelClassName,
+  orbitInputClassName,
+  orbitPrimaryButtonClassName
+} from "@/lib/ui/orbit-form-styles";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -14,7 +20,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,7 +34,7 @@ export default function LoginForm() {
     const accessCode = code.trim();
 
     if (!accessCode || !password.trim()) {
-      setError("Completa tu codigo unico y tu contrasena.");
+      setError("Completa tu código único y tu contraseña.");
       return;
     }
 
@@ -49,17 +55,21 @@ export default function LoginForm() {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(payload?.message ?? "No fue posible iniciar sesion.");
+        setError(payload?.message ?? "No fue posible iniciar sesión.");
         return;
       }
 
       router.replace("/workspace");
       router.refresh();
     } catch {
-      setError("Ocurrio un error inesperado al iniciar sesion.");
+      setError("Ocurrió un error inesperado al iniciar sesión.");
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (isAdminMode) {
+    return <AdminAccessForm onBack={() => setIsAdminMode(false)} />;
   }
 
   return (
@@ -69,20 +79,20 @@ export default function LoginForm() {
           Accede a tu entorno operativo
         </h2>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Ingresa con tu codigo unico y contrasena para continuar.
+          Ingresa con tu código único y contraseña para continuar.
         </p>
       </div>
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-slate-200" htmlFor="accessCode">
-          Codigo unico
+          Código único
         </label>
         <input
           autoComplete="username"
-          className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+          className={orbitInputClassName}
           id="accessCode"
           name="accessCode"
-          placeholder="Ej: LDR-001"
+          placeholder="Ej. LDNT-001"
           type="text"
           value={code}
           onChange={(event) => setCode(event.target.value)}
@@ -92,23 +102,23 @@ export default function LoginForm() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-slate-200" htmlFor="password">
-            Contrasena
+            Contraseña
           </label>
 
           <Link
             className="text-xs font-semibold tracking-[0.08em] text-cyan-200 transition hover:text-cyan-100 hover:underline"
             href={"/auth/recover-access" as Route}
           >
-            Olvide...
+            Olvidé...
           </Link>
         </div>
 
         <PasswordField
           autoComplete="current-password"
-          className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+          className={`${orbitInputClassName} pr-11`}
           id="password"
           name="password"
-          placeholder="Ingresa tu contrasena"
+          placeholder="Ingresa tu contraseña"
           value={password}
           onChange={setPassword}
         />
@@ -120,12 +130,15 @@ export default function LoginForm() {
         </div>
       ) : null}
 
-      <button
-        aria-busy={isSubmitting}
-        className="h-12 w-full rounded-2xl bg-gradient-to-r from-[#5de0e6] to-[#004aad] px-4 font-semibold text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition hover:opacity-95"
-        type="submit"
-      >
-        {isSubmitting ? "Ingresando..." : "Iniciar sesion"}
+      <button className={orbitPrimaryButtonClassName} disabled={isSubmitting} type="submit">
+        {isSubmitting ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Ingresando...
+          </>
+        ) : (
+          "Iniciar sesión"
+        )}
       </button>
 
       <div className="flex items-center gap-3">
@@ -134,31 +147,30 @@ export default function LoginForm() {
         <div className="h-px flex-1 bg-white/10" />
       </div>
 
-      <div className="rounded-2xl border border-white/12 bg-white/[0.06] p-5 shadow-[0_14px_32px_rgba(2,6,23,0.16)] backdrop-blur-md">
+      <div className={orbitInfoPanelClassName}>
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-300">
           Acceso seguro
         </p>
         <p className="mt-2 text-sm leading-6 text-slate-300">
-          Tu sesion esta protegida mediante autenticacion por codigo unico y validacion por
+          Tu sesión está protegida mediante autenticación por código único y validación por
           empresa.
         </p>
       </div>
 
       <p className="text-center text-sm text-slate-400">
-        Aun no tienes acceso?{" "}
+        ¿Aún no tienes acceso?{" "}
         <Link className="font-semibold text-cyan-300 hover:text-cyan-200 hover:underline" href="/register">
-          Registrate aqui
+          Regístrate aquí
         </Link>
       </p>
 
       <button
         className="mx-auto block text-center text-xs font-semibold text-slate-400 transition hover:text-cyan-300"
         type="button"
-        onClick={() => setIsAdminModalOpen(true)}
+        onClick={() => setIsAdminMode(true)}
       >
-        Eres administrador?
+        ¿Eres administrador?
       </button>
-      <AdminAccessModal open={isAdminModalOpen} onClose={() => setIsAdminModalOpen(false)} />
     </form>
   );
 }

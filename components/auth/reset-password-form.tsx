@@ -58,7 +58,7 @@ export function ResetPasswordForm() {
     setSuccessMessage(null);
 
     if (!form.accessCode.trim() || !form.email.trim() || !form.newPassword || !form.confirmPassword) {
-      setError("Completa todos los campos para restablecer la contrasena.");
+      setError("Completa todos los campos para restablecer la contraseña.");
       return;
     }
 
@@ -68,7 +68,7 @@ export function ResetPasswordForm() {
     }
 
     if (form.newPassword !== form.confirmPassword) {
-      setError("La confirmacion de contrasena no coincide.");
+      setError("La confirmación de contraseña no coincide.");
       return;
     }
 
@@ -90,14 +90,14 @@ export function ResetPasswordForm() {
         const payload = await response.json();
 
         if (!response.ok) {
-          setError(payload?.message ?? "No fue posible actualizar la contrasena.");
+          setError(payload?.message ?? "No fue posible actualizar la contraseña.");
           return;
         }
 
-        setSuccessMessage(payload?.message ?? "La contrasena se actualizo correctamente.");
+        setSuccessMessage(payload?.message ?? "La contraseña se actualizó correctamente.");
         setForm(initialFormState);
       } catch {
-        setError("Ocurrio un error inesperado al restablecer la contrasena.");
+        setError("Ocurrió un error inesperado al restablecer la contraseña.");
       }
     });
   }
@@ -105,7 +105,7 @@ export function ResetPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
-        <Label htmlFor="accessCode">Codigo unico</Label>
+        <Label htmlFor="accessCode">Código único</Label>
         <Input
           id="accessCode"
           name="accessCode"
@@ -128,7 +128,7 @@ export function ResetPasswordForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="newPassword">Nueva contrasena</Label>
+        <Label htmlFor="newPassword">Nueva contraseña</Label>
         <Input
           id="newPassword"
           name="newPassword"
@@ -140,7 +140,7 @@ export function ResetPasswordForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirmar nueva contrasena</Label>
+        <Label htmlFor="confirmPassword">Confirmar nueva contraseña</Label>
         <Input
           id="confirmPassword"
           name="confirmPassword"
@@ -149,7 +149,7 @@ export function ResetPasswordForm() {
           onChange={(e) => updateField("confirmPassword", e.target.value)}
         />
         {form.confirmPassword && !passwordsMatch ? (
-          <p className="text-sm text-red-700">La confirmacion de contrasena no coincide.</p>
+          <p className="text-sm text-red-700">La confirmación de contraseña no coincide.</p>
         ) : null}
       </div>
 
@@ -166,13 +166,13 @@ export function ResetPasswordForm() {
       ) : null}
 
       <Button className="w-full" type="submit" disabled={isPending || !canSubmit}>
-        {isPending ? "Actualizando..." : "Restablecer contrasena"}
+        {isPending ? "Actualizando..." : "Restablecer contraseña"}
       </Button>
 
       <p className="text-sm text-muted-foreground">
-        Ya recordaste tu acceso?{" "}
+        ¿Ya recordaste tu acceso?{" "}
         <Link className="font-semibold text-primary" href="/login">
-          Volver a iniciar sesion
+          Volver a iniciar sesión
         </Link>
       </p>
     </form>

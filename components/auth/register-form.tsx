@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -12,6 +13,13 @@ import {
   PHONE_COUNTRY_OPTIONS
 } from "@/lib/phone";
 import { getPasswordValidationMessage } from "@/lib/password-policy";
+import {
+  orbitInfoPanelClassName,
+  orbitInputClassName,
+  orbitPrimaryButtonClassName,
+  orbitSecondaryButtonClassName,
+  orbitSelectClassName
+} from "@/lib/ui/orbit-form-styles";
 import type { RegistrableRoleKey } from "@/types/auth";
 
 type RegisterStep = 1 | 2;
@@ -46,8 +54,8 @@ const initialFormState: RegisterFormState = {
 const roleOptions: { value: RegistrableRoleKey; label: string; description: string }[] = [
   {
     value: "LEADER",
-    label: "Lider",
-    description: "Gestiona proyectos, consultores y la operacion de su empresa."
+    label: "Líder",
+    description: "Gestiona proyectos, consultores y la operación de su empresa."
   },
   {
     value: "CONSULTANT",
@@ -93,15 +101,15 @@ export default function RegisterForm() {
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      return "Ingresa un correo valido.";
+      return "Ingresa un correo válido.";
     }
 
     if (!isPhoneNumberComplete(form.countryCode, form.localPhone)) {
-      return "Ingresa un celular valido.";
+      return "Ingresa un celular válido.";
     }
 
     if (!form.password) {
-      return "Ingresa una contrasena.";
+      return "Ingresa una contraseña.";
     }
 
     if (passwordValidationMessage) {
@@ -117,11 +125,11 @@ export default function RegisterForm() {
     }
 
     if (form.role === "CLIENT" && !form.projectFolio.trim()) {
-      return "Ingresa el folio unico del proyecto para registrar al cliente.";
+      return "Ingresa el folio único del proyecto para registrar al cliente.";
     }
 
     if (form.role === "LEADER" && !form.companyRegistrationCode.trim()) {
-      return "Ingresa el codigo maestro de empresa para registrar al lider.";
+      return "Ingresa el código maestro de empresa para registrar al líder.";
     }
 
     return null;
@@ -189,7 +197,7 @@ export default function RegisterForm() {
       });
       setCopied(false);
     } catch {
-      setError("Ocurrio un error inesperado al registrar el usuario.");
+      setError("Ocurrió un error inesperado al registrar el usuario.");
     } finally {
       setIsSubmitting(false);
     }
@@ -214,13 +222,13 @@ export default function RegisterForm() {
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-white">Registro completado</h2>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Tu acceso fue activado correctamente. Guarda este codigo para iniciar sesion.
+          Tu acceso fue activado correctamente. Guarda este código para iniciar sesión.
         </p>
       </div>
 
         <div className="rounded-[1.7rem] border border-emerald-500/20 bg-emerald-500/10 p-5 shadow-[0_18px_42px_rgba(4,120,87,0.14)]">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
-            Codigo unico generado
+            Código único generado
           </p>
           <p className="mt-3 text-3xl font-semibold tracking-tight text-white">
             {success.code}
@@ -236,18 +244,18 @@ export default function RegisterForm() {
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
-            className="h-12 rounded-2xl border border-white/12 bg-white/[0.06] px-5 font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+            className={orbitSecondaryButtonClassName}
             type="button"
             onClick={handleCopyCode}
           >
-            {copied ? "Codigo copiado" : "Copiar codigo"}
+            {copied ? "Código copiado" : "Copiar código"}
           </button>
 
           <Link
-            className="h-12 rounded-2xl bg-gradient-to-r from-[#5de0e6] to-[#004aad] px-5 text-center font-semibold text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition hover:opacity-95"
+            className={`${orbitPrimaryButtonClassName} sm:flex-1`}
             href="/login"
           >
-            Ir a iniciar sesion
+            Ir a iniciar sesión
           </Link>
         </div>
       </div>
@@ -292,7 +300,7 @@ export default function RegisterForm() {
               Nombre completo
             </label>
             <input
-              className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+              className={orbitInputClassName}
               id="fullName"
               placeholder="Nombre y apellidos"
               type="text"
@@ -306,7 +314,7 @@ export default function RegisterForm() {
               Correo
             </label>
             <input
-              className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+              className={orbitInputClassName}
               id="email"
               placeholder="correo@empresa.com"
               type="email"
@@ -320,7 +328,7 @@ export default function RegisterForm() {
 
             <div className="flex gap-2">
               <select
-                className="h-12 rounded-2xl border border-white/15 bg-white/[0.07] px-3 text-white focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+                className={orbitSelectClassName}
                 value={form.countryCode}
                 onChange={(event) => updateField("countryCode", event.target.value)}
               >
@@ -332,7 +340,7 @@ export default function RegisterForm() {
               </select>
 
               <input
-                className="h-12 flex-1 rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+                className={`${orbitInputClassName} flex-1`}
                 placeholder="5512345678"
                 type="text"
                 value={form.localPhone}
@@ -343,16 +351,16 @@ export default function RegisterForm() {
             </div>
 
             <p className="text-xs text-slate-400">
-              Se guardara como: {normalizedPhone || `${form.countryCode}...`}
+              Se guardará como: {normalizedPhone || `${form.countryCode}...`}
             </p>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-200" htmlFor="password">
-              Contrasena
+              Contraseña
             </label>
             <PasswordField
-              className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+              className={`${orbitInputClassName} pr-11`}
               id="password"
               value={form.password}
               onChange={(value) => updateField("password", value)}
@@ -390,10 +398,10 @@ export default function RegisterForm() {
           {form.role === "CLIENT" ? (
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-200" htmlFor="projectFolio">
-                Folio unico del proyecto
+                Folio único del proyecto
               </label>
               <input
-                className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+                className={orbitInputClassName}
                 id="projectFolio"
                 placeholder="PRJ-2026-0001"
                 type="text"
@@ -409,10 +417,10 @@ export default function RegisterForm() {
                 className="text-sm font-medium text-slate-200"
                 htmlFor="companyRegistrationCode"
               >
-                Codigo maestro de empresa
+                Código maestro de empresa
               </label>
               <input
-                className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+                className={orbitInputClassName}
                 id="companyRegistrationCode"
                 placeholder="Ej. NTT-LEADER-2026"
                 type="text"
@@ -424,7 +432,7 @@ export default function RegisterForm() {
             </div>
           ) : null}
 
-          <div className="rounded-[1.35rem] border border-white/12 bg-white/[0.06] p-5 shadow-[0_14px_32px_rgba(2,6,23,0.16)] backdrop-blur-md">
+          <div className={orbitInfoPanelClassName}>
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-300">Resumen del registro</p>
             <div className="mt-3 space-y-2 text-sm text-slate-300">
               <p>
@@ -450,7 +458,7 @@ export default function RegisterForm() {
       <div className="flex flex-col gap-3 sm:flex-row">
         {step === 2 ? (
           <button
-            className="h-12 rounded-2xl border border-white/12 bg-white/[0.06] px-5 font-semibold text-slate-100 transition hover:bg-white/[0.08]"
+            className={orbitSecondaryButtonClassName}
             type="button"
             onClick={() => {
               setError(null);
@@ -462,22 +470,27 @@ export default function RegisterForm() {
         ) : null}
 
         <button
-          aria-busy={isSubmitting}
-          className="h-12 flex-1 rounded-2xl bg-gradient-to-r from-[#5de0e6] to-[#004aad] px-5 font-semibold text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition hover:opacity-95"
+          className={`${orbitPrimaryButtonClassName} flex-1`}
+          disabled={isSubmitting}
           type="submit"
         >
-          {step === 1
-            ? "Continuar al paso 2"
-            : isSubmitting
-              ? "Completando registro..."
-              : "Completar registro"}
+          {step === 1 ? (
+            "Continuar al paso 2"
+          ) : isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Completando registro...
+            </>
+          ) : (
+            "Completar registro"
+          )}
         </button>
       </div>
 
       <p className="text-center text-sm text-slate-400">
-        Ya tienes codigo de acceso?{" "}
+        ¿Ya tienes código de acceso?{" "}
         <Link className="font-semibold text-cyan-300 hover:text-cyan-200 hover:underline" href="/login">
-          Volver a iniciar sesion
+          Volver a iniciar sesión
         </Link>
       </p>
     </form>

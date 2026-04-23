@@ -14,8 +14,8 @@ export default async function RecoverAccessRoutePage() {
   return (
     <AuthShell
       mode="login"
-      title="Recupera tu acceso con una verificacion clara, segura y consistente."
-      description="Selecciona si necesitas restablecer tu contrasena temporal o recuperar tu codigo unico sin salir de la experiencia premium de Orbit Nexus."
+      title="Recupera tu acceso con una verificación clara, segura y consistente."
+      description="Selecciona si necesitas restablecer tu contraseña temporal o recuperar tu código único sin salir de la experiencia premium de Orbit Nexus."
     >
       <AccessRecoveryForm />
     </AuthShell>
