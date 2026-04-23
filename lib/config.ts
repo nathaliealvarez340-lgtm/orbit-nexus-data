@@ -8,12 +8,47 @@ function readEnv(name: string) {
   return value;
 }
 
+function isProductionLikeRuntime() {
+  return (
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL === "1" ||
+    process.env.CI === "true"
+  );
+}
+
+function normalizeOrigin(value: string, name: string) {
+  try {
+    return new URL(value).origin.replace(/\/$/, "");
+  } catch {
+    throw new Error(`Invalid URL in environment variable: ${name}`);
+  }
+}
+
 export function getJwtSecret() {
   return readEnv("JWT_SECRET");
 }
 
 export function getAppUrl() {
-  return process.env.APP_URL ?? "http://localhost:3000";
+  if (process.env.APP_URL) {
+    return normalizeOrigin(process.env.APP_URL, "APP_URL");
+  }
+
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return normalizeOrigin(
+      `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
+      "VERCEL_PROJECT_PRODUCTION_URL"
+    );
+  }
+
+  if (process.env.VERCEL_URL) {
+    return normalizeOrigin(`https://${process.env.VERCEL_URL}`, "VERCEL_URL");
+  }
+
+  if (!isProductionLikeRuntime()) {
+    return "http://localhost:3000";
+  }
+
+  throw new Error("Missing required environment variable: APP_URL");
 }
 
 export function getDefaultCompanySeed() {
@@ -37,7 +72,15 @@ export function getSuperadminSeed() {
 }
 
 export function getSuperadminMasterCode() {
-  return process.env.SUPERADMIN_MASTER_CODE ?? "N4tH4l1E27!@";
+  if (process.env.SUPERADMIN_MASTER_CODE) {
+    return process.env.SUPERADMIN_MASTER_CODE;
+  }
+
+  if (isProductionLikeRuntime()) {
+    throw new Error("Missing required environment variable: SUPERADMIN_MASTER_CODE");
+  }
+
+  return "N4tH4l1E27!@";
 }
 
 export function getUsableSeedAccounts() {
