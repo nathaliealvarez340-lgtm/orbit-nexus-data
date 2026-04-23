@@ -35,8 +35,8 @@ const planCards = [
   {
     plan: "GROWTH" as const,
     label: "Growth",
-    highlight: "Escala sin friccion",
-    subtitle: "Escala sin friccion",
+    highlight: "IDEAL PARA EQUIPOS",
+    subtitle: "Impulsa tu crecimiento",
     price: "$12,900 MXN / mes",
     bullets: [
       "Aumenta hasta 40% la eficiencia operativa entre equipos",
@@ -49,9 +49,9 @@ const planCards = [
   {
     plan: "ENTERPRISE" as const,
     label: "Enterprise",
-    highlight: "Arquitectura dedicada",
-    subtitle: "Arquitectura dedicada",
-    price: "Implementacion estrategica",
+    highlight: "HECHO PARA TU OPERACION",
+    subtitle: "SOLUCION EMPRESARIAL",
+    price: "Implementación estratégica",
     bullets: [
       "Arquitectura diseñada específicamente para tu operación",
       "Integración con sistemas internos existentes",
@@ -66,6 +66,21 @@ const planIcons = {
   CORE: Zap,
   GROWTH: TrendingUp,
   ENTERPRISE: Star
+} as const;
+
+const planAccentClasses = {
+  CORE: {
+    icon: "text-[#22D3EE] drop-shadow-[0_0_16px_rgba(34,211,238,0.28)]",
+    badge: "border border-cyan-400/25 bg-cyan-500/12 text-cyan-200"
+  },
+  GROWTH: {
+    icon: "text-[#60A5FA] drop-shadow-[0_0_16px_rgba(96,165,250,0.28)]",
+    badge: "border border-sky-400/20 bg-sky-500/10 text-sky-200"
+  },
+  ENTERPRISE: {
+    icon: "text-[#A78BFA] drop-shadow-[0_0_16px_rgba(167,139,250,0.28)]",
+    badge: "border border-violet-400/20 bg-violet-500/10 text-violet-200"
+  }
 } as const;
 
 type FormState = {
@@ -375,13 +390,14 @@ export function CompanyActivationCta() {
                           const selected = form.plan === card.plan;
                           const isCore = card.plan === "CORE";
                           const PlanIcon = planIcons[card.plan];
+                          const accents = planAccentClasses[card.plan];
 
                           return (
                             <button
                               key={card.plan}
                               className={`group relative overflow-hidden rounded-[2rem] border p-6 text-left transition-all duration-200 ${
                                 selected
-                                  ? "border-cyan-400/35 bg-[linear-gradient(135deg,rgba(9,25,48,0.92),rgba(6,31,57,0.82))] shadow-[0_26px_60px_rgba(8,145,178,0.18)]"
+                                  ? "border-sky-400/35 bg-[linear-gradient(135deg,rgba(14,165,233,0.18),rgba(99,102,241,0.2))] shadow-[0_26px_60px_rgba(99,102,241,0.18)]"
                                   : "border-white/10 bg-white/[0.05] shadow-[0_18px_50px_rgba(2,6,23,0.18)] hover:-translate-y-0.5 hover:border-white/18 hover:bg-white/[0.08]"
                               } ${isCore ? "xl:scale-[1.015]" : ""}`}
                               type="button"
@@ -396,11 +412,11 @@ export function CompanyActivationCta() {
                                 }))
                               }
                             >
-                              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),transparent_36%,transparent_72%,rgba(93,224,230,0.10))] opacity-70 transition-opacity duration-200 group-hover:opacity-100" />
+                              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(14,165,233,0.12),transparent_36%,transparent_72%,rgba(167,139,250,0.12))] opacity-70 transition-opacity duration-200 group-hover:opacity-100" />
                               <div className="relative z-10 space-y-4">
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="flex items-start gap-3">
-                                    <PlanIcon className="mt-0.5 h-4 w-4 text-cyan-300" />
+                                    <PlanIcon className={`mt-0.5 h-6 w-6 ${accents.icon}`} />
                                     <div>
                                       <p className="text-lg font-semibold text-white">{card.label}</p>
                                       <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
@@ -409,11 +425,7 @@ export function CompanyActivationCta() {
                                     </div>
                                   </div>
                                   <span
-                                    className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
-                                      isCore
-                                        ? "border border-cyan-400/25 bg-cyan-500/12 text-cyan-200"
-                                        : "border border-white/10 bg-white/[0.08] text-slate-300"
-                                    }`}
+                                    className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${accents.badge}`}
                                   >
                                     {card.highlight}
                                   </span>
