@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Sparkles, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, Sparkles, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
 import { ORBIT_BACKGROUND_VIDEO_URL } from "@/lib/ui/background-media";
 
 type CompanyPlan = "CORE" | "GROWTH" | "ENTERPRISE";
+type ActivationStep = "hero" | "plans" | "billing";
 
 const planCards = [
   {
@@ -36,7 +37,7 @@ const planCards = [
     bullets: [
       "Capacidad operativa ampliada",
       "Ideal para empresas con varias celulas",
-      "Suscripcion mensual estable"
+      "Permite sumar hasta 10 usuarios extra"
     ]
   },
   {
@@ -47,7 +48,7 @@ const planCards = [
     bullets: [
       "Mas de 50 usuarios",
       "Implementacion asistida",
-      "Requiere validacion comercial"
+      "Acompañamiento comercial para una propuesta personalizada"
     ]
   }
 ];
@@ -80,33 +81,38 @@ function formatCurrency(value: number) {
 
 export function CompanyActivationCta() {
   const [open, setOpen] = useState(false);
-  const [showPlans, setShowPlans] = useState(false);
-  const [plansVisible, setPlansVisible] = useState(false);
+  const [step, setStep] = useState<ActivationStep>("hero");
+  const [countdownComplete, setCountdownComplete] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(4);
-  const [isHeroReady, setIsHeroReady] = useState(false);
   const [form, setForm] = useState<FormState>(initialFormState);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [manualReviewMessage, setManualReviewMessage] = useState<string | null>(null);
+
   const plansRef = useRef<HTMLDivElement | null>(null);
+  const billingRef = useRef<HTMLDivElement | null>(null);
 
   const quote = useMemo(
     () =>
       buildQuoteSummary({
         plan: form.plan,
-        extraUsers: form.plan === "CORE" ? form.extraUsers : 0
+        extraUsers: form.plan === "CORE" || form.plan === "GROWTH" ? form.extraUsers : 0
       }),
     [form.extraUsers, form.plan]
   );
 
+  const selectedPlan = useMemo(
+    () => planCards.find((card) => card.plan === form.plan) ?? planCards[0],
+    [form.plan]
+  );
+
   useEffect(() => {
-    if (!open || isHeroReady) {
+    if (!open || step !== "hero" || countdownComplete) {
       return;
     }
 
     if (secondsLeft <= 0) {
-      setIsHeroReady(true);
-      setShowPlans(true);
+      setCountdownComplete(true);
       return;
     }
 
@@ -115,27 +121,27 @@ export function CompanyActivationCta() {
     }, 1000);
 
     return () => window.clearTimeout(timer);
-  }, [isHeroReady, open, secondsLeft]);
+  }, [countdownComplete, open, secondsLeft, step]);
 
   useEffect(() => {
-    if (!showPlans) {
-      setPlansVisible(false);
-      return;
+    if (step === "plans") {
+      window.setTimeout(() => {
+        plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
     }
 
-    const frame = window.requestAnimationFrame(() => {
-      setPlansVisible(true);
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [showPlans]);
+    if (step === "billing") {
+      window.setTimeout(() => {
+        billingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
+    }
+  }, [step]);
 
   function openActivation() {
     setOpen(true);
-    setShowPlans(false);
-    setPlansVisible(false);
+    setStep("hero");
+    setCountdownComplete(false);
     setSecondsLeft(4);
-    setIsHeroReady(false);
     setError(null);
     setManualReviewMessage(null);
     setIsSubmitting(false);
@@ -143,28 +149,24 @@ export function CompanyActivationCta() {
 
   function closeActivation() {
     setOpen(false);
-    setShowPlans(false);
-    setPlansVisible(false);
+    setStep("hero");
+    setCountdownComplete(false);
     setSecondsLeft(4);
-    setIsHeroReady(false);
     setError(null);
     setManualReviewMessage(null);
     setIsSubmitting(false);
   }
 
-  function handleRevealPlans() {
-    if (!isHeroReady) {
+  function handleShowPlans() {
+    if (!countdownComplete) {
       return;
     }
 
-    setShowPlans(true);
+    setStep("plans");
+  }
 
-    window.setTimeout(() => {
-      plansRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    }, 140);
+  function handleContinueFromPlans() {
+    setStep("billing");
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -190,7 +192,7 @@ export function CompanyActivationCta() {
           companyName: form.companyName,
           sector: form.sector,
           plan: form.plan,
-          extraUsers: form.plan === "CORE" ? form.extraUsers : 0
+          extraUsers: form.plan === "CORE" || form.plan === "GROWTH" ? form.extraUsers : 0
         })
       });
       const payload = await response.json().catch(() => null);
@@ -228,14 +230,14 @@ export function CompanyActivationCta() {
         type="button"
         onClick={openActivation}
       >
-                        ACTIVA TU EMPRESA
+        Activa tu empresa
       </Button>
 
       {open ? (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="absolute inset-0">
             <video
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover saturate-[1.08] contrast-[1.06]"
               autoPlay
               loop
               muted
@@ -244,14 +246,14 @@ export function CompanyActivationCta() {
             >
               <source src={ORBIT_BACKGROUND_VIDEO_URL} type="video/mp4" />
             </video>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(10,15,30,0.34),rgba(3,8,20,0.86))]" />
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(3,11,27,0.58),rgba(7,19,40,0.74))]" />
-            <div className="absolute inset-0 bg-slate-950/58 backdrop-blur-md" onClick={closeActivation} />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(10,15,30,0.16),rgba(3,8,20,0.76))]" />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(3,11,27,0.34),rgba(7,19,40,0.58))]" />
+            <div className="absolute inset-0 bg-slate-950/34 backdrop-blur-[2px]" onClick={closeActivation} />
           </div>
 
           <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-6 md:px-6 md:py-8">
-            <div className="relative w-full overflow-hidden rounded-[2.5rem] border border-white/[0.14] bg-slate-950/36 shadow-[0_34px_110px_rgba(2,6,23,0.52)] backdrop-blur-[24px]">
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.10),transparent_28%,transparent_74%,rgba(93,224,230,0.08))]" />
+            <div className="relative w-full overflow-hidden rounded-[2.5rem] border border-white/[0.14] bg-slate-950/34 shadow-[0_34px_110px_rgba(2,6,23,0.52)] backdrop-blur-[20px]">
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_28%,transparent_74%,rgba(93,224,230,0.06))]" />
               <div className="absolute -right-28 top-[-120px] h-80 w-80 rounded-full bg-[#5de0e6]/10 blur-3xl" />
               <div className="absolute -left-24 bottom-[-160px] h-96 w-96 rounded-full bg-[#004aad]/14 blur-3xl" />
 
@@ -270,104 +272,87 @@ export function CompanyActivationCta() {
                 </button>
               </div>
 
-              <section
-                className={`px-6 ${
-                  showPlans
-                    ? "max-h-[calc(100vh-104px)] overflow-y-auto pb-10 pt-2 md:px-8 md:pb-12"
-                    : "flex min-h-[720px] items-center justify-center pb-12 pt-6 md:px-10 lg:px-12"
-                }`}
-              >
-                <div
-                  className={`mx-auto ${
-                    showPlans ? "max-w-6xl space-y-10" : "max-w-5xl space-y-10 text-center"
-                  }`}
-                >
-                  <div
-                    className={`space-y-8 ${
-                      showPlans ? "mx-auto max-w-5xl pt-6 text-center" : "text-center"
-                    }`}
-                  >
-                    <div className="space-y-6">
-                      <p className="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-300">
-                        ACTIVA TU EMPRESA
-                      </p>
+              <section className="max-h-[calc(100vh-104px)] overflow-y-auto px-6 pb-10 pt-2 md:px-8 md:pb-12">
+                <div className="mx-auto max-w-6xl space-y-8">
+                  {step === "hero" ? (
+                    <div className="flex min-h-[720px] items-center justify-center">
+                      <div className="mx-auto max-w-5xl space-y-10 text-center">
+                        <div className="space-y-6">
+                          <p className="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-300">
+                            ACTIVA TU EMPRESA
+                          </p>
 
-                      <div className="relative mx-auto min-h-[154px] max-w-4xl md:min-h-[184px]">
-                        <h2
-                          className={`text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-white transition-all duration-500 md:text-5xl xl:text-6xl ${
-                            isHeroReady ? "pointer-events-none -translate-y-3 opacity-0" : "translate-y-0 opacity-100"
-                          }`}
-                        >
-                          Más control. Menos caos.
-                          <br />
-                          Tu empresa,{" "}
-                          <span className="bg-gradient-to-r from-[#5de0e6] via-[#3ab8ff] to-[#004aad] bg-clip-text text-transparent">
-                            en modo órbita
-                          </span>
-                          . 🚀
-                        </h2>
+                          <div className="relative mx-auto min-h-[154px] max-w-4xl md:min-h-[184px]">
+                            <h2
+                              className={`text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-white transition-all duration-500 md:text-5xl xl:text-6xl ${
+                                countdownComplete
+                                  ? "pointer-events-none -translate-y-3 opacity-0"
+                                  : "translate-y-0 opacity-100"
+                              }`}
+                            >
+                              Más control. Menos caos.
+                              <br />
+                              Tu empresa,{" "}
+                              <span className="bg-gradient-to-r from-[#5de0e6] via-[#3ab8ff] to-[#004aad] bg-clip-text text-transparent">
+                                en modo órbita
+                              </span>
+                              . 🚀
+                            </h2>
 
-                        <h2
-                          className={`absolute inset-0 text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-white transition-all duration-500 md:text-5xl xl:text-6xl ${
-                            isHeroReady
-                              ? "translate-y-0 opacity-100"
-                              : "pointer-events-none translate-y-3 opacity-0"
-                          }`}
-                        >
-                          Estás a un paso de operar como empresa de alto nivel.
-                        </h2>
-                      </div>
+                            <h2
+                              className={`absolute inset-0 text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-white transition-all duration-500 md:text-5xl xl:text-6xl ${
+                                countdownComplete
+                                  ? "translate-y-0 opacity-100"
+                                  : "pointer-events-none translate-y-3 opacity-0"
+                              }`}
+                            >
+                              Estás a un paso de operar como empresa de alto nivel.
+                            </h2>
+                          </div>
 
-                      <p className="mx-auto max-w-3xl text-base leading-8 text-slate-300 md:text-lg">
-                        Una sola plataforma para operar, crecer y tomar decisiones con claridad.
-                        <br className="hidden md:block" />
-                        Centraliza todo. Automatiza lo importante. Escala sin límites.
-                      </p>
-                    </div>
+                          <p className="mx-auto max-w-3xl text-base leading-8 text-slate-300 md:text-lg">
+                            Una sola plataforma para operar, crecer y tomar decisiones con claridad.
+                            <br className="hidden md:block" />
+                            Centraliza todo. Automatiza lo importante. Escala sin límites.
+                          </p>
+                        </div>
 
-                    <div className="space-y-6">
-                      <div className="space-y-3 text-center">
-                        <p className="text-sm font-medium text-slate-300">Descubre cómo en:</p>
-                        <div className="text-5xl font-semibold tracking-[0.18em] text-cyan-300 drop-shadow-[0_0_22px_rgba(93,224,230,0.32)] animate-pulse md:text-6xl">
-                          {`00:0${Math.max(secondsLeft, 0)}`}
+                        <div className="space-y-3 text-center">
+                          <p className="text-sm font-medium text-slate-300">Descubre cómo en:</p>
+                          <div className="text-5xl font-semibold tracking-[0.18em] text-cyan-300 drop-shadow-[0_0_22px_rgba(93,224,230,0.32)] animate-pulse md:text-6xl">
+                            {`00:0${Math.max(secondsLeft, 0)}`}
+                          </div>
+                        </div>
+
+                        <div>
+                          <Button
+                            aria-disabled={!countdownComplete}
+                            className={`h-12 rounded-full bg-gradient-to-r from-[#5de0e6] to-[#004aad] px-7 text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition-all duration-300 ${
+                              countdownComplete
+                                ? "scale-100 hover:scale-[1.02] hover:shadow-[0_22px_52px_rgba(0,74,173,0.42)]"
+                                : "cursor-not-allowed opacity-60"
+                            }`}
+                            disabled={!countdownComplete}
+                            size="lg"
+                            type="button"
+                            onClick={handleShowPlans}
+                          >
+                            {countdownComplete ? "Ver planes ahora →" : "Ver planes"}
+                          </Button>
                         </div>
                       </div>
-
-                      <div>
-                        <Button
-                          aria-disabled={!isHeroReady}
-                          className={`h-12 rounded-full bg-gradient-to-r from-[#5de0e6] to-[#004aad] px-7 text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition-all duration-300 ${
-                            isHeroReady
-                              ? "scale-100 hover:scale-[1.02] hover:shadow-[0_22px_52px_rgba(0,74,173,0.42)]"
-                              : "cursor-not-allowed opacity-60"
-                          }`}
-                          disabled={!isHeroReady}
-                          size="lg"
-                          type="button"
-                          onClick={handleRevealPlans}
-                        >
-                          {isHeroReady ? "Ver planes ahora →" : "Ver planes"}
-                          {isHeroReady ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
-                        </Button>
-                      </div>
                     </div>
-                  </div>
+                  ) : null}
 
-                  {showPlans ? (
-                    <div
-                      ref={plansRef}
-                      className={`space-y-8 pt-4 transition-all duration-700 ease-out ${
-                        plansVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-                      }`}
-                    >
+                  {step === "plans" ? (
+                    <div ref={plansRef} className="space-y-8 pt-4">
                       <div className="space-y-3 text-center">
                         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
-                          Planes disponibles
+                          Paso 2 · Seleccion de plan
                         </p>
-                        <p className="mx-auto max-w-3xl text-base leading-7 text-slate-300">
-                          Selecciona el plan que mejor encaja con tu operacion y cotiza la
-                          activacion mensual de Orbit Nexus sin salir de la plataforma.
-                        </p>
+                        <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white md:text-4xl">
+                          Elige la capacidad operativa que mejor encaja con tu empresa.
+                        </h2>
                       </div>
 
                       <div className="grid gap-5 xl:grid-cols-3">
@@ -388,12 +373,15 @@ export function CompanyActivationCta() {
                                 setForm((current) => ({
                                   ...current,
                                   plan: card.plan,
-                                  extraUsers: card.plan === "CORE" ? current.extraUsers : 0
+                                  extraUsers:
+                                    card.plan === "CORE" || card.plan === "GROWTH"
+                                      ? current.extraUsers
+                                      : 0
                                 }))
                               }
                             >
                               <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),transparent_36%,transparent_72%,rgba(93,224,230,0.10))] opacity-70 transition-opacity duration-200 group-hover:opacity-100" />
-                              <div className="relative z-10">
+                              <div className="relative z-10 space-y-4">
                                 <div className="flex items-center justify-between gap-3">
                                   <div>
                                     <p className="text-lg font-semibold text-white">{card.label}</p>
@@ -411,18 +399,114 @@ export function CompanyActivationCta() {
                                     {card.highlight}
                                   </span>
                                 </div>
-                                <p className="mt-5 text-3xl font-semibold tracking-[-0.03em] text-white">
+                                <p className="text-3xl font-semibold tracking-[-0.03em] text-white">
                                   {card.price}
                                 </p>
-                                <div className="mt-5 space-y-3 text-sm leading-6 text-slate-300">
-                                  {card.bullets.map((bullet) => (
-                                    <p key={bullet}>{bullet}</p>
-                                  ))}
-                                </div>
                               </div>
                             </button>
                           );
                         })}
+                      </div>
+
+                      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                        <div className="rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(9,25,48,0.88),rgba(6,31,57,0.74))] p-6 shadow-[0_26px_60px_rgba(8,145,178,0.12)] backdrop-blur-[18px]">
+                          <div className="space-y-3">
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                              Plan seleccionado
+                            </p>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <h3 className="text-3xl font-semibold tracking-[-0.03em] text-white">
+                                {selectedPlan.label}
+                              </h3>
+                              <span className="rounded-full border border-white/10 bg-white/[0.08] px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-200">
+                                {selectedPlan.price}
+                              </span>
+                            </div>
+                            <ul className="space-y-3 pt-2 text-sm leading-6 text-slate-200">
+                              {selectedPlan.bullets.map((bullet) => (
+                                <li key={bullet} className="flex items-start gap-3">
+                                  <span className="mt-2 h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                                  <span>{bullet}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 shadow-[0_18px_50px_rgba(2,6,23,0.18)] backdrop-blur-[18px]">
+                          <div className="space-y-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                              Capacidad seleccionada
+                            </p>
+
+                            {(form.plan === "CORE" || form.plan === "GROWTH") ? (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between text-sm text-slate-300">
+                                  <span>Usuarios extra</span>
+                                  <span className="font-semibold text-white">
+                                    {form.extraUsers} · {formatCurrency(form.extraUsers * CORE_EXTRA_USER_MXN)}
+                                  </span>
+                                </div>
+                                <input
+                                  className="h-11 w-full rounded-2xl border border-white/12 bg-white/[0.05] px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                                  max={CORE_MAX_EXTRA_USERS}
+                                  min={0}
+                                  type="range"
+                                  value={form.extraUsers}
+                                  onChange={(event) =>
+                                    setForm((current) => ({
+                                      ...current,
+                                      extraUsers: Number(event.target.value)
+                                    }))
+                                  }
+                                />
+                                <p className="text-xs leading-6 text-slate-400">
+                                  {form.plan === "CORE"
+                                    ? "Core mantiene 20 usuarios incluidos y permite sumar hasta 10 adicionales."
+                                    : "Growth muestra la misma ampliacion operativa y permite sumar hasta 10 usuarios extra en este flujo."}
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="text-sm leading-7 text-slate-300">
+                                Enterprise requiere acompañamiento comercial. Al continuar,
+                                prepararemos la solicitud personalizada con el flujo existente.
+                              </p>
+                            )}
+
+                            <div className="flex flex-wrap items-center gap-3 pt-3">
+                              <Button
+                                className="border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
+                                type="button"
+                                variant="outline"
+                                onClick={() => setStep("hero")}
+                              >
+                                <ChevronLeft className="mr-2 h-4 w-4" />
+                                Volver
+                              </Button>
+
+                              <Button
+                                className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] hover:opacity-95"
+                                type="button"
+                                onClick={handleContinueFromPlans}
+                              >
+                                {form.plan === "ENTERPRISE" ? "Contactar" : "Siguiente"}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {step === "billing" ? (
+                    <div ref={billingRef} className="space-y-8 pt-4">
+                      <div className="space-y-3 text-center">
+                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
+                          Paso 3 · Configuracion mensual
+                        </p>
+                        <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white md:text-4xl">
+                          Configura la activación mensual
+                        </h2>
                       </div>
 
                       <div className="grid gap-6 xl:grid-cols-[1.06fr_0.94fr]">
@@ -458,7 +542,7 @@ export function CompanyActivationCta() {
                                     Incluidos
                                   </p>
                                   <p className="mt-2 text-lg font-semibold text-white">
-                                    {CORE_INCLUDED_USERS}
+                                    {form.plan === "GROWTH" ? 50 : CORE_INCLUDED_USERS}
                                   </p>
                                 </div>
                                 <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
@@ -584,11 +668,11 @@ export function CompanyActivationCta() {
                                 <input
                                   id="activation-extra-users"
                                   className="h-11 w-full rounded-2xl border border-white/12 bg-white/[0.05] px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
-                                  disabled={form.plan !== "CORE"}
+                                  disabled={form.plan === "ENTERPRISE"}
                                   max={CORE_MAX_EXTRA_USERS}
                                   min={0}
                                   type="range"
-                                  value={form.plan === "CORE" ? form.extraUsers : 0}
+                                  value={form.plan === "ENTERPRISE" ? 0 : form.extraUsers}
                                   onChange={(event) =>
                                     setForm((current) => ({
                                       ...current,
@@ -597,13 +681,11 @@ export function CompanyActivationCta() {
                                   }
                                 />
                                 <p className="text-xs text-slate-400">
-                                  {form.plan === "CORE"
-                                    ? `${form.extraUsers} usuarios extra · ${formatCurrency(
+                                  {form.plan === "ENTERPRISE"
+                                    ? "Enterprise se cotiza de forma personalizada."
+                                    : `${form.extraUsers} usuarios extra · ${formatCurrency(
                                         form.extraUsers * CORE_EXTRA_USER_MXN
-                                      )}`
-                                    : form.plan === "GROWTH"
-                                      ? "Growth ya contempla hasta 50 usuarios."
-                                      : "Enterprise se cotiza de forma personalizada."}
+                                      )}`}
                                 </p>
                               </div>
                             </div>
@@ -620,13 +702,25 @@ export function CompanyActivationCta() {
                               </div>
                             ) : null}
 
-                            <Button className="w-full" size="lg" type="submit">
-                              {isSubmitting
-                                ? "Preparando activacion..."
-                                : quote.checkoutEnabled
-                                  ? "Continuar con activacion"
-                                  : "Solicitar activacion enterprise"}
-                            </Button>
+                            <div className="flex flex-wrap items-center gap-3">
+                              <Button
+                                className="border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.1]"
+                                type="button"
+                                variant="outline"
+                                onClick={() => setStep("plans")}
+                              >
+                                <ChevronLeft className="mr-2 h-4 w-4" />
+                                Volver
+                              </Button>
+
+                              <Button className="flex-1" size="lg" type="submit">
+                                {isSubmitting
+                                  ? "Preparando activacion..."
+                                  : quote.checkoutEnabled
+                                    ? "Continuar con activacion"
+                                    : "Solicitar activacion enterprise"}
+                              </Button>
+                            </div>
                           </form>
                         </div>
                       </div>
