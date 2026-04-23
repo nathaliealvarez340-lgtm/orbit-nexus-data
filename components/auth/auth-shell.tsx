@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { KeyRound, LockKeyhole, Orbit, Radar, Shield, Sparkles, Waves } from "lucide-react";
 
 import { LiveDateTime } from "@/components/auth/live-date-time";
+import { ORBIT_BACKGROUND_VIDEO_URL } from "@/lib/ui/background-media";
 
 type AuthShellProps = {
   title: string;
@@ -82,10 +83,7 @@ export function AuthShell({
         playsInline
         preload="metadata"
       >
-        <source
-          src="https://videos.pexels.com/video-files/32399073/13820341_1920_1080_30fps.mp4"
-          type="video/mp4"
-        />
+        <source src={ORBIT_BACKGROUND_VIDEO_URL} type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(10,15,30,0.34),rgba(3,8,20,0.86))]" />
       <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(3,11,27,0.58),rgba(7,19,40,0.74))]" />
