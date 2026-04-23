@@ -97,7 +97,7 @@ export default function LoginForm() {
 
           <Link
             className="text-xs font-semibold tracking-[0.08em] text-cyan-200 transition hover:text-cyan-100 hover:underline"
-            href={"/recover-access" as Route}
+            href={"/auth/recover-access" as Route}
           >
             Olvide...
           </Link>
