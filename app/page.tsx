@@ -56,7 +56,7 @@ export default function HomePage() {
         <section className="grid flex-1 items-center gap-8 lg:min-h-[calc(100vh-10rem)] lg:grid-cols-[1fr_1fr] lg:gap-12 xl:gap-16">
           <div className="relative w-full max-w-[560px] justify-self-center self-center px-2 py-6 md:min-h-[560px] md:px-3 md:py-7 lg:justify-self-end xl:px-4 xl:py-8">
             <div className="relative z-10 flex h-full flex-col justify-center">
-              <div className="space-y-5">
+              <div className="flex flex-col gap-[100px] md:gap-[110px] xl:gap-[120px]">
                 <h1 className="max-w-[34rem] text-[clamp(43px,4.5vw,64px)] leading-[1.1] tracking-[-0.02em]">
                   <span className="block font-black text-white">
                     Orbit <span className="text-[#5de0e6]">Nexus</span>
@@ -64,28 +64,30 @@ export default function HomePage() {
                   <HomeHeroRotator />
                 </h1>
 
-                <p className="mt-[100px] max-w-[33rem] pt-1 text-base leading-[1.6] text-slate-300 md:mt-[110px] md:pt-0 md:text-[1.05rem] xl:mt-[120px]">
-                  Centraliza usuarios, proyectos y validaciones en una sola arquitectura para
-                  operar con orden, seguridad y trazabilidad real.
-                </p>
-              </div>
+                <div>
+                  <p className="max-w-[33rem] pt-1 text-base leading-[1.6] text-slate-300 md:pt-0 md:text-[1.05rem]">
+                    Centraliza usuarios, proyectos y validaciones en una sola arquitectura para
+                    operar con orden, seguridad y trazabilidad real.
+                  </p>
 
-              <div className="flex flex-wrap gap-3 pt-6 md:pt-8">
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] hover:opacity-95"
-                >
-                  <Link href="/login">Iniciar sesión</Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="border-white/15 bg-white/[0.06] text-white hover:bg-white/[0.1]"
-                >
-                  <Link href="/register">Registrarse</Link>
-                </Button>
+                  <div className="flex flex-wrap gap-3 pt-6 md:pt-8">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] hover:opacity-95"
+                    >
+                      <Link href="/login">Iniciar sesión</Link>
+                    </Button>
+                    <Button
+                      asChild
+                      size="lg"
+                      variant="outline"
+                      className="border-white/15 bg-white/[0.06] text-white hover:bg-white/[0.1]"
+                    >
+                      <Link href="/register">Registrarse</Link>
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
