@@ -1,5 +1,6 @@
 import { RoleKey, UserStatus } from "@prisma/client";
 
+import { CORE_BASE_MXN, CORE_INCLUDED_USERS } from "../lib/commercial/plans";
 import {
   getDefaultCompanySeed,
   getDemoProjectFolio,
@@ -62,14 +63,26 @@ async function seedDefaultCompany() {
       name: company.name,
       codePrefix: company.codePrefix,
       registrationCode: company.registrationCode,
-      isActive: true
+      isActive: true,
+      subscriptionPlan: "CORE",
+      includedUsers: CORE_INCLUDED_USERS,
+      extraUsers: 0,
+      monthlyAmountMxn: CORE_BASE_MXN,
+      billingStatus: "ACTIVE",
+      activatedAt: new Date()
     },
     create: {
       name: company.name,
       slug: company.slug,
       codePrefix: company.codePrefix,
       registrationCode: company.registrationCode,
-      isActive: true
+      isActive: true,
+      subscriptionPlan: "CORE",
+      includedUsers: CORE_INCLUDED_USERS,
+      extraUsers: 0,
+      monthlyAmountMxn: CORE_BASE_MXN,
+      billingStatus: "ACTIVE",
+      activatedAt: new Date()
     }
   });
 }

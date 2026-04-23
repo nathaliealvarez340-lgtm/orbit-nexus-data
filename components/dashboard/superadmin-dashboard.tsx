@@ -415,6 +415,18 @@ export function SuperadminDashboard({
                         {company.registrationCode}
                       </span>
                     </p>
+                    <p className="text-sm text-slate-300">
+                      Contacto:{" "}
+                      <span className="font-semibold text-white">
+                        {company.contactEmail ?? "No asignado"}
+                      </span>
+                    </p>
+                    <p className="text-sm text-slate-300">
+                      Plan:{" "}
+                      <span className="font-semibold text-white">
+                        {company.subscriptionPlan ?? "Manual"}
+                      </span>
+                    </p>
                   </div>
 
                   <Button
@@ -445,6 +457,35 @@ export function SuperadminDashboard({
                   <div className="rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3">
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Proyectos activos</p>
                     <p className="mt-2 text-xl font-semibold text-white">{company.activeProjectCount}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 grid gap-3 md:grid-cols-4">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Usuarios</p>
+                    <p className="mt-2 text-xl font-semibold text-white">
+                      {company.includedUsers + company.extraUsers}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Monto mensual</p>
+                    <p className="mt-2 text-xl font-semibold text-white">
+                      {typeof company.monthlyAmountMxn === "number"
+                        ? `$${company.monthlyAmountMxn.toLocaleString("es-MX")}`
+                        : "Manual"}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Estado de cobro</p>
+                    <p className="mt-2 text-xl font-semibold text-white">{company.billingStatus}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Activada</p>
+                    <p className="mt-2 text-xl font-semibold text-white">
+                      {company.activatedAt
+                        ? new Date(company.activatedAt).toLocaleDateString("es-MX")
+                        : "Pendiente"}
+                    </p>
                   </div>
                 </div>
               </div>

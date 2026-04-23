@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CompanyActivationCta } from "@/components/commercial/company-activation-cta";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -29,6 +30,10 @@ const highlights = [
 export default function HomePage() {
   return (
     <main className="container py-10 md:py-16">
+      <div className="mb-8 flex justify-end">
+        <CompanyActivationCta />
+      </div>
+
       <section className="grid items-center gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-8">
           <div className="inline-flex rounded-full border border-blue-100 bg-white/90 px-4 py-2 text-sm font-semibold text-blue-700 shadow-soft">

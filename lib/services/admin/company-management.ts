@@ -1,4 +1,4 @@
-import { RoleKey, UserStatus } from "@prisma/client";
+import { CompanyBillingStatus, CompanyPlan, RoleKey, UserStatus } from "@prisma/client";
 
 import {
   COMPANY_ALREADY_EXISTS_MESSAGE,
@@ -17,6 +17,13 @@ type CreateCompanyInput = {
   slug?: string;
   codePrefix?: string;
   registrationCode?: string;
+  sector?: string;
+  contactName?: string;
+  contactEmail?: string;
+  subscriptionPlan?: CompanyPlan;
+  includedUsers?: number;
+  extraUsers?: number;
+  monthlyAmountMxn?: number;
 };
 
 export type CompanySummary = {
@@ -26,6 +33,15 @@ export type CompanySummary = {
   codePrefix: string;
   registrationCode: string;
   isActive: boolean;
+  sector: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
+  subscriptionPlan: CompanyPlan | null;
+  includedUsers: number;
+  extraUsers: number;
+  monthlyAmountMxn: number | null;
+  billingStatus: CompanyBillingStatus;
+  activatedAt: string | null;
   leaderCount: number;
   consultantCount: number;
   clientCount: number;
@@ -89,6 +105,15 @@ export async function getCompanySummaryList() {
       codePrefix: true,
       registrationCode: true,
       isActive: true,
+      sector: true,
+      contactName: true,
+      contactEmail: true,
+      subscriptionPlan: true,
+      includedUsers: true,
+      extraUsers: true,
+      monthlyAmountMxn: true,
+      billingStatus: true,
+      activatedAt: true,
       createdAt: true,
       _count: {
         select: {
@@ -139,6 +164,15 @@ export async function getCompanySummaryList() {
         codePrefix: company.codePrefix,
         registrationCode: company.registrationCode,
         isActive: company.isActive,
+        sector: company.sector,
+        contactName: company.contactName,
+        contactEmail: company.contactEmail,
+        subscriptionPlan: company.subscriptionPlan,
+        includedUsers: company.includedUsers,
+        extraUsers: company.extraUsers,
+        monthlyAmountMxn: company.monthlyAmountMxn,
+        billingStatus: company.billingStatus,
+        activatedAt: company.activatedAt?.toISOString() ?? null,
         leaderCount,
         consultantCount,
         clientCount,
@@ -173,7 +207,16 @@ export async function createCompany(input: CreateCompanyInput) {
       slug,
       codePrefix,
       registrationCode,
-      isActive: true
+      isActive: true,
+      sector: input.sector?.trim() || null,
+      contactName: input.contactName?.trim() || null,
+      contactEmail: input.contactEmail?.trim().toLowerCase() || null,
+      subscriptionPlan: input.subscriptionPlan ?? null,
+      includedUsers: input.includedUsers ?? 0,
+      extraUsers: input.extraUsers ?? 0,
+      monthlyAmountMxn: input.monthlyAmountMxn ?? null,
+      billingStatus: CompanyBillingStatus.ACTIVE,
+      activatedAt: new Date()
     }
   });
 
