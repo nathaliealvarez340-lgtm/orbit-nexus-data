@@ -4,7 +4,6 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { setBrowserSession } from "@/lib/auth/browser-session";
 import { PasswordField } from "@/components/auth/password-field";
 
 type AdminAccessModalProps = {
@@ -54,7 +53,6 @@ export function AdminAccessModal({ open, onClose }: AdminAccessModalProps) {
         return;
       }
 
-      setBrowserSession(payload?.data?.accessCode ?? "SUPERADMIN");
       router.replace("/workspace");
       router.refresh();
     } catch {
@@ -138,4 +136,3 @@ export function AdminAccessModal({ open, onClose }: AdminAccessModalProps) {
     </div>
   );
 }
-

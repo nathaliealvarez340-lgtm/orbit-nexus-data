@@ -3,7 +3,6 @@
 import { useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
-import { clearBrowserSession } from "@/lib/auth/browser-session";
 
 export function LogoutButton() {
   const [isPending, startTransition] = useTransition();
@@ -13,8 +12,6 @@ export function LogoutButton() {
       variant="outline"
       onClick={() =>
         startTransition(async () => {
-          clearBrowserSession();
-
           try {
             const response = await fetch("/api/auth/logout", {
               method: "POST",

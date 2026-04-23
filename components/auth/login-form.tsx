@@ -1,13 +1,12 @@
 "use client";
 
+import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AccessRecoveryModal } from "@/components/auth/access-recovery-modal";
 import { AdminAccessModal } from "@/components/auth/admin-access-modal";
 import { PasswordField } from "@/components/auth/password-field";
-import { setBrowserSession } from "@/lib/auth/browser-session";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -16,7 +15,6 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-  const [isRecoveryModalOpen, setIsRecoveryModalOpen] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -55,7 +53,6 @@ export default function LoginForm() {
         return;
       }
 
-      setBrowserSession(payload?.data?.accessCode ?? accessCode);
       router.replace("/workspace");
       router.refresh();
     } catch {
@@ -98,13 +95,12 @@ export default function LoginForm() {
             Contrasena
           </label>
 
-          <button
-            className="text-xs font-semibold text-cyan-300 hover:text-cyan-200 hover:underline"
-            type="button"
-            onClick={() => setIsRecoveryModalOpen(true)}
+          <Link
+            className="text-xs font-semibold tracking-[0.08em] text-cyan-200 transition hover:text-cyan-100 hover:underline"
+            href={"/recover-access" as Route}
           >
             Olvide...
-          </button>
+          </Link>
         </div>
 
         <PasswordField
@@ -162,11 +158,6 @@ export default function LoginForm() {
       >
         Eres administrador?
       </button>
-
-      <AccessRecoveryModal
-        open={isRecoveryModalOpen}
-        onClose={() => setIsRecoveryModalOpen(false)}
-      />
       <AdminAccessModal open={isAdminModalOpen} onClose={() => setIsAdminModalOpen(false)} />
     </form>
   );
