@@ -22,7 +22,7 @@ export function HomeHeroRotator() {
   }, [activeIndex]);
 
   return (
-    <span className="relative block min-h-[1.3em]">
+    <span className="relative mt-2 block min-h-[2.35em] leading-[1.08] sm:min-h-[2.1em] lg:min-h-[1.28em]">
       {phrases.map((phrase, index) => (
         <span
           key={phrase}

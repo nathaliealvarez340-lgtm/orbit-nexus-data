@@ -114,6 +114,20 @@ const initialFormState: FormState = {
   extraUsers: 0
 };
 
+const sectorOptions = [
+  "Tecnología / Software",
+  "Consultoría",
+  "Marketing / Publicidad",
+  "Finanzas",
+  "Educación",
+  "Salud",
+  "Retail / Comercio",
+  "Logística",
+  "Manufactura",
+  "Servicios profesionales",
+  "Otro"
+] as const;
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -297,7 +311,7 @@ export function CompanyActivationCta() {
             />
           </div>
 
-          <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-6 md:px-6 md:py-8">
+          <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-start px-4 py-6 md:px-6 md:py-8">
             <div className="relative w-full overflow-hidden rounded-[2.5rem] border border-white/[0.14] bg-slate-950/30 shadow-[0_34px_110px_rgba(2,6,23,0.52)] backdrop-blur-[18px]">
               <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_28%,transparent_74%,rgba(93,224,230,0.06))]" />
               <div className="absolute -right-28 top-[-120px] h-80 w-80 rounded-full bg-[#5de0e6]/10 blur-3xl" />
@@ -318,7 +332,7 @@ export function CompanyActivationCta() {
                 </button>
               </div>
 
-              <section className="max-h-[calc(100vh-104px)] overflow-y-auto px-6 pb-10 pt-2 md:px-8 md:pb-12">
+              <section className="px-6 pb-10 pt-2 md:px-8 md:pb-12">
                 <div className="mx-auto max-w-6xl space-y-8">
                   {step === "hero" ? (
                     <div className="flex min-h-[720px] items-center justify-center">
@@ -699,9 +713,9 @@ export function CompanyActivationCta() {
                                   <Label className="text-slate-200" htmlFor="activation-sector">
                                     Sector
                                   </Label>
-                                  <Input
+                                  <select
                                     id="activation-sector"
-                                    className={orbitInputClassName}
+                                    className="h-12 w-full rounded-2xl border border-white/15 bg-slate-950/92 px-4 py-3 text-white transition-all duration-300 ease-in-out hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/40 focus:border-[#60A5FA]/45"
                                     value={form.sector}
                                     onChange={(event) =>
                                       setForm((current) => ({
@@ -709,7 +723,16 @@ export function CompanyActivationCta() {
                                         sector: event.target.value
                                       }))
                                     }
-                                  />
+                                  >
+                                    <option value="" disabled>
+                                      Selecciona un sector
+                                    </option>
+                                    {sectorOptions.map((sector) => (
+                                      <option key={sector} value={sector}>
+                                        {sector}
+                                      </option>
+                                    ))}
+                                  </select>
                                 </div>
 
                                 <div className="grid gap-4 md:grid-cols-2">

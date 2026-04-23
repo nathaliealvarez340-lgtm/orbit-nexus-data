@@ -48,27 +48,27 @@ export default function HomePage() {
         videoClassName="saturate-[1.05] contrast-[1.03]"
       />
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-3rem)] max-w-7xl flex-col gap-8">
+      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-3rem)] max-w-[1500px] flex-col gap-8">
         <div className="flex justify-end">
           <CompanyActivationCta />
         </div>
 
         <section className="grid flex-1 items-center gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="relative overflow-hidden rounded-[2.4rem] border border-white/[0.16] bg-slate-950/42 p-8 shadow-[0_30px_90px_rgba(0,0,0,0.26)] backdrop-blur-[24px] md:p-10">
+          <div className="relative min-h-[540px] overflow-hidden rounded-[2.4rem] border border-white/[0.16] bg-slate-950/42 p-10 shadow-[0_30px_90px_rgba(0,0,0,0.26)] backdrop-blur-[24px] md:min-h-[620px] md:p-12 xl:p-14">
             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),transparent_30%,transparent_72%,rgba(93,224,230,0.08))]" />
             <div className="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <div className="absolute right-[-120px] top-[-120px] h-80 w-80 rounded-full bg-[#5de0e6]/10 blur-3xl" />
 
-            <div className="relative z-10 max-w-4xl space-y-8">
-              <div className="space-y-6">
-                <h1 className="max-w-4xl text-5xl leading-[1.02] md:text-6xl lg:text-7xl">
+            <div className="relative z-10 flex h-full max-w-[58rem] flex-col justify-center space-y-10">
+              <div className="space-y-7">
+                <h1 className="max-w-[56rem] text-5xl leading-[1.08] md:text-6xl lg:text-7xl">
                   <span className="block font-black text-white">
                     Orbit <span className="text-[#5de0e6]">Nexus</span>
                   </span>
                   <HomeHeroRotator />
                 </h1>
 
-                <p className="max-w-2xl text-lg leading-8 text-slate-300 md:text-xl">
+                <p className="max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
                   Centraliza usuarios, proyectos y validaciones en una sola arquitectura para
                   operar con orden, seguridad y trazabilidad real.
                 </p>
