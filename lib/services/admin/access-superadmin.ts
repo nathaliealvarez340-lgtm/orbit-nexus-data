@@ -42,8 +42,7 @@ export async function accessSuperadmin(input: AccessSuperadminInput) {
       email: expectedEmail,
       phone: seed.phone,
       status: "ACTIVE",
-      registeredAt: new Date(),
-      disabledAt: null
+      registeredAt: new Date()
     },
     create: {
       roleId: role.id,
@@ -69,4 +68,3 @@ export async function accessSuperadmin(input: AccessSuperadminInput) {
     role: user.role.key
   } as const;
 }
-
