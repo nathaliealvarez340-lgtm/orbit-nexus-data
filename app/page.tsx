@@ -64,7 +64,7 @@ export default function HomePage() {
                   <HomeHeroRotator />
                 </h1>
 
-                <p className="max-w-[33rem] pt-1 text-base leading-[1.6] text-slate-300 md:pt-0 md:text-[1.05rem]">
+                <p className="mt-[100px] max-w-[33rem] pt-1 text-base leading-[1.6] text-slate-300 md:mt-[110px] md:pt-0 md:text-[1.05rem] xl:mt-[120px]">
                   Centraliza usuarios, proyectos y validaciones en una sola arquitectura para
                   operar con orden, seguridad y trazabilidad real.
                 </p>
