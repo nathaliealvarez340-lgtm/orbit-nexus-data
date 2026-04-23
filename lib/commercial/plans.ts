@@ -1,4 +1,4 @@
-import { CompanyPlan } from "@prisma/client";
+type CompanyPlan = "CORE" | "GROWTH" | "ENTERPRISE";
 
 export const CORE_INCLUDED_USERS = 20;
 export const CORE_BASE_MXN = 5200;
