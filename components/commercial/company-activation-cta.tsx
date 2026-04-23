@@ -24,9 +24,11 @@ const planCards = [
     highlight: "Mas elegido",
     price: "$5,200 MXN / mes",
     bullets: [
-      "Incluye hasta 20 usuarios sin costo adicional",
-      "Expande tu equipo por $299 por usuario",
-      "Maximo 10 usuarios extra"
+      "Reduce hasta 30% el desorden operativo en las primeras semanas",
+      "Centraliza 100% de accesos y usuarios en una sola plataforma",
+      "Visibilidad completa de actividad en tiempo real",
+      "Implementación funcional en menos de 7 días",
+      "Base lista para escalar sin rediseñar procesos"
     ]
   },
   {
@@ -35,9 +37,11 @@ const planCards = [
     highlight: "Hasta 50 usuarios",
     price: "$12,900 MXN / mes",
     bullets: [
-      "Capacidad operativa ampliada",
-      "Ideal para empresas con varias celulas",
-      "Permite sumar hasta 10 usuarios extra"
+      "Aumenta hasta 40% la eficiencia operativa entre equipos",
+      "Coordinación centralizada de múltiples áreas en tiempo real",
+      "Reduce cuellos de botella en procesos críticos",
+      "Automatiza flujos clave para crecer sin fricción",
+      "Soporta operaciones de hasta 50 usuarios activos sin pérdida de control"
     ]
   },
   {
@@ -46,9 +50,11 @@ const planCards = [
     highlight: "Precio personalizado",
     price: "Cotizacion guiada",
     bullets: [
-      "Mas de 50 usuarios",
-      "Implementacion asistida",
-      "Acompañamiento comercial para una propuesta personalizada"
+      "Arquitectura diseñada específicamente para tu operación",
+      "Integración con sistemas internos existentes",
+      "Control avanzado sobre procesos críticos de negocio",
+      "Soporte dedicado en implementación y evolución",
+      "Escalabilidad sin límites estructurales"
     ]
   }
 ];
