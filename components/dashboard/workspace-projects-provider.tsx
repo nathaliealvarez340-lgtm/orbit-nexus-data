@@ -38,6 +38,7 @@ type WorkspaceProjectsContextValue = {
   isHydrated: boolean;
   createProject: (input: CreateProjectInput, leaderName: string) => DashboardProjectRecord;
   createConsultant: (input: CreateConsultantInput) => DashboardConsultantRecord;
+  removeConsultant: (email: string) => void;
   getProject: (slug: string) => DashboardProjectRecord | undefined;
   getScopedConsultants: (companyId: string | null) => DashboardConsultantRecord[];
   assignConsultant: (
@@ -218,6 +219,15 @@ export function WorkspaceProjectsProvider({
         });
 
         return nextConsultant;
+      },
+      removeConsultant(email) {
+        const normalizedEmail = email.trim().toLowerCase();
+
+        setConsultants((currentConsultants) =>
+          currentConsultants.filter(
+            (consultant) => consultant.email?.trim().toLowerCase() !== normalizedEmail
+          )
+        );
       },
       getProject(slug) {
         return getProjectBySlug(slug, projects, tenantId);

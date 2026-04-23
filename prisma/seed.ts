@@ -60,11 +60,15 @@ async function seedDefaultCompany() {
     where: { slug: company.slug },
     update: {
       name: company.name,
+      codePrefix: company.codePrefix,
+      registrationCode: company.registrationCode,
       isActive: true
     },
     create: {
       name: company.name,
       slug: company.slug,
+      codePrefix: company.codePrefix,
+      registrationCode: company.registrationCode,
       isActive: true
     }
   });
@@ -120,34 +124,56 @@ async function seedAuthorizedDirectoryUsers(params: {
   for (const user of users) {
     const normalizedFullName = normalizeName(user.fullName);
     const normalizedEmail = user.email.trim().toLowerCase();
-
-    await prisma.user.upsert({
+    const existingUser = await prisma.user.findUnique({
       where: {
         companyId_roleId_email: {
           companyId,
           roleId: role.id,
           email: normalizedEmail
         }
+      }
+    });
+
+    if (!existingUser) {
+      await prisma.user.create({
+        data: {
+          companyId,
+          roleId: role.id,
+          fullName: user.fullName.trim(),
+          normalizedFullName,
+          email: normalizedEmail,
+          phone: user.phone?.trim() || null,
+          importedFromDirectory: true,
+          directorySyncedAt: new Date(),
+          status: UserStatus.PENDING_REGISTRATION
+        }
+      });
+      continue;
+    }
+
+    await prisma.user.update({
+      where: {
+        id: existingUser.id
       },
-      update: {
+      data: {
         fullName: user.fullName.trim(),
         normalizedFullName,
         email: normalizedEmail,
         phone: user.phone?.trim() || null,
         importedFromDirectory: true,
-        status: UserStatus.PENDING_REGISTRATION,
-        companyId,
-        roleId: role.id
-      },
-      create: {
+        directorySyncedAt: new Date(),
         companyId,
         roleId: role.id,
-        fullName: user.fullName.trim(),
-        normalizedFullName,
-        email: normalizedEmail,
-        phone: user.phone?.trim() || null,
-        importedFromDirectory: true,
-        status: UserStatus.PENDING_REGISTRATION
+        ...(existingUser.status === UserStatus.PENDING_REGISTRATION
+          ? {
+              status: UserStatus.PENDING_REGISTRATION,
+              accessCode: null,
+              passwordHash: null,
+              registeredAt: null,
+              disabledAt: null,
+              createdByLeaderId: null
+            }
+          : {})
       }
     });
   }
@@ -155,12 +181,13 @@ async function seedAuthorizedDirectoryUsers(params: {
 
 async function seedUsableDirectoryAccount(params: {
   companyId: string;
+  companyCodePrefix: string;
   roleKey: Exclude<RoleKey, "SUPERADMIN" | "CLIENT">;
   user: AuthorizedDirectoryUser;
   requestedAccessCode: string;
   password: string;
 }) {
-  const { companyId, roleKey, user, requestedAccessCode, password } = params;
+  const { companyId, companyCodePrefix, roleKey, user, requestedAccessCode, password } = params;
   const role = await prisma.role.findUniqueOrThrow({
     where: { key: roleKey }
   });
@@ -182,7 +209,7 @@ async function seedUsableDirectoryAccount(params: {
 
   if (
     existingUser.status === UserStatus.ACTIVE &&
-    existingUser.accessCode &&
+    existingUser.accessCode === requestedAccessCode &&
     existingUser.passwordHash
   ) {
     return;
@@ -191,21 +218,17 @@ async function seedUsableDirectoryAccount(params: {
   const passwordHash = await hashPassword(password);
   let accessCode = requestedAccessCode;
 
-  if (existingUser.accessCode) {
-    accessCode = existingUser.accessCode;
-  } else {
-    const userWithRequestedAccessCode = await prisma.user.findUnique({
-      where: {
-        accessCode: requestedAccessCode
-      },
-      select: {
-        id: true
-      }
-    });
-
-    if (userWithRequestedAccessCode && userWithRequestedAccessCode.id !== existingUser.id) {
-      accessCode = await generateUniqueAccessCode(prisma, roleKey);
+  const userWithRequestedAccessCode = await prisma.user.findUnique({
+    where: {
+      accessCode: requestedAccessCode
+    },
+    select: {
+      id: true
     }
+  });
+
+  if (userWithRequestedAccessCode && userWithRequestedAccessCode.id !== existingUser.id) {
+    accessCode = await generateUniqueAccessCode(prisma, roleKey, companyCodePrefix);
   }
 
   await prisma.user.update({
@@ -223,6 +246,7 @@ async function seedUsableDirectoryAccount(params: {
       accessCode,
       passwordHash,
       status: UserStatus.ACTIVE,
+      disabledAt: null,
       registeredAt: existingUser.registeredAt ?? new Date()
     }
   });
@@ -242,6 +266,8 @@ async function seedDemoProject(companyId: string) {
       name: "Proyecto demo de onboarding",
       description: "Proyecto base para validar el registro de clientes en Fase 1.",
       durationLabel: "4 semanas",
+      clientContactName: "Direccion Operativa NTT DATA",
+      clientContactEmail: "cliente.demo@orbitnexus.local",
       status: "READY_FOR_MATCHING"
     },
     create: {
@@ -250,6 +276,8 @@ async function seedDemoProject(companyId: string) {
       description: "Proyecto base para validar el registro de clientes en Fase 1.",
       durationLabel: "4 semanas",
       folio: getDemoProjectFolio(),
+      clientContactName: "Direccion Operativa NTT DATA",
+      clientContactEmail: "cliente.demo@orbitnexus.local",
       priority: "MEDIUM",
       status: "READY_FOR_MATCHING"
     }
@@ -280,6 +308,7 @@ async function main() {
   if (leaderDirectoryUsers[0]) {
     await seedUsableDirectoryAccount({
       companyId: company.id,
+      companyCodePrefix: company.codePrefix,
       roleKey: "LEADER",
       user: leaderDirectoryUsers[0],
       requestedAccessCode: usableSeedAccounts.leader.accessCode,
@@ -290,6 +319,7 @@ async function main() {
   if (consultantDirectoryUsers[0]) {
     await seedUsableDirectoryAccount({
       companyId: company.id,
+      companyCodePrefix: company.codePrefix,
       roleKey: "CONSULTANT",
       user: consultantDirectoryUsers[0],
       requestedAccessCode: usableSeedAccounts.consultant.accessCode,

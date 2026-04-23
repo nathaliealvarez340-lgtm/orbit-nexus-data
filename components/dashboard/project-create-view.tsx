@@ -28,6 +28,7 @@ type ProjectCreateFormState = {
   name: string;
   description: string;
   client: string;
+  clientEmail: string;
   consultantsRequired: string;
   startDate: string;
   endDate: string;
@@ -39,6 +40,7 @@ const initialFormState: ProjectCreateFormState = {
   name: "",
   description: "",
   client: "",
+  clientEmail: "",
   consultantsRequired: "1",
   startDate: "",
   endDate: "",
@@ -84,6 +86,7 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
       !form.name.trim() ||
       !form.description.trim() ||
       !form.client.trim() ||
+      !form.clientEmail.trim() ||
       !form.startDate ||
       !form.endDate ||
       !form.consultantsRequired
@@ -104,25 +107,63 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
       return;
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.clientEmail.trim())) {
+      setError("Ingresa un correo valido para el cliente.");
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
 
-    const nextProject = createProject(
-      {
-        name: form.name,
-        description: form.description,
-        client: form.client,
-        consultantsRequired,
-        startDate: form.startDate,
-        endDate: form.endDate,
-        priority: form.priority,
-        projectType: form.projectType,
-        attachments
-      },
-      session.fullName
-    );
+    void (async () => {
+      try {
+        const response = await fetch("/api/leader/projects", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: form.name.trim(),
+            description: form.description.trim(),
+            clientName: form.client.trim(),
+            clientEmail: form.clientEmail.trim(),
+            startDate: form.startDate,
+            endDate: form.endDate,
+            priority: form.priority
+          })
+        });
 
-    router.push(nextProject.href as Route);
+        const payload = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          setError(payload?.message ?? "No fue posible crear el proyecto.");
+          return;
+        }
+
+        const nextProject = createProject(
+          {
+            name: form.name,
+            description: form.description,
+            client: form.client,
+            clientEmail: form.clientEmail,
+            consultantsRequired,
+            startDate: form.startDate,
+            endDate: form.endDate,
+            priority: form.priority,
+            projectType: form.projectType,
+            attachments,
+            folio: payload?.data?.folio
+          },
+          session.fullName
+        );
+
+        router.push(nextProject.href as Route);
+      } catch {
+        setError("Ocurrio un error inesperado al crear el proyecto.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    })();
   }
 
   if (session.role !== "LEADER") {
@@ -222,6 +263,22 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
                   value={form.client}
                   onChange={(event) => {
                     updateField("client", event.target.value);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-slate-200" htmlFor="project-client-email">
+                  Correo del cliente
+                </Label>
+                <Input
+                  id="project-client-email"
+                  className="h-11 rounded-2xl border-white/10 bg-white/[0.04] text-white placeholder:text-slate-500"
+                  placeholder="cliente@empresa.com"
+                  type="email"
+                  value={form.clientEmail}
+                  onChange={(event) => {
+                    updateField("clientEmail", event.target.value);
                   }}
                 />
               </div>

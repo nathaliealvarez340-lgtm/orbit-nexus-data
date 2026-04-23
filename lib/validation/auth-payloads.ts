@@ -44,7 +44,8 @@ export const registerPayloadSchema = z
     phone: z.string().trim().min(1, "phone es obligatorio."),
     password: z.string().min(1, "password es obligatorio."),
     role: z.string().trim().min(1, "role es obligatorio."),
-    projectFolio: z.string().trim().optional()
+    projectFolio: z.string().trim().optional(),
+    companyRegistrationCode: z.string().trim().optional()
   })
   .superRefine((value, ctx) => {
     appendPasswordIssues(value.password, ctx, ["password"]);
@@ -66,6 +67,14 @@ export const registerPayloadSchema = z
         message: "projectFolio es obligatorio para Cliente."
       });
     }
+
+    if (role === "LEADER" && !value.companyRegistrationCode) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["companyRegistrationCode"],
+        message: "companyRegistrationCode es obligatorio para Lider."
+      });
+    }
   })
   .transform((value) => ({
     fullName: value.fullName,
@@ -73,7 +82,8 @@ export const registerPayloadSchema = z
     phone: value.phone,
     password: value.password,
     role: normalizeRegistrableRoleInput(value.role)!,
-    projectFolio: value.projectFolio
+    projectFolio: value.projectFolio,
+    companyRegistrationCode: value.companyRegistrationCode
   }));
 
 export const resetPasswordPayloadSchema = z
@@ -102,7 +112,8 @@ export const registerServiceSchema = z
     phone: z.string().trim().min(8, "Ingresa un celular valido."),
     password: z.string().min(1, "La contrasena es obligatoria."),
     role: z.enum(REGISTRABLE_ROLE_KEYS),
-    projectFolio: z.string().trim().optional()
+    projectFolio: z.string().trim().optional(),
+    companyRegistrationCode: z.string().trim().optional()
   })
   .superRefine((value, ctx) => {
     appendPasswordIssues(value.password, ctx, ["password"]);
@@ -114,4 +125,48 @@ export const registerServiceSchema = z
         message: "El folio unico del proyecto es obligatorio para clientes."
       });
     }
+
+    if (value.role === "LEADER" && !value.companyRegistrationCode) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["companyRegistrationCode"],
+        message: "El codigo maestro de empresa es obligatorio para lideres."
+      });
+    }
   });
+
+export const adminAccessPayloadSchema = z.object({
+  fullName: z.string().trim().min(3, "Ingresa tu nombre completo."),
+  email: z.string().trim().email("Ingresa un correo valido."),
+  masterCode: z.string().trim().min(1, "El codigo maestro es obligatorio.")
+});
+
+export const recoverAccessPayloadSchema = z.object({
+  fullName: z.string().trim().min(3, "Ingresa tu nombre completo."),
+  email: z.string().trim().email("Ingresa un correo valido."),
+  kind: z.enum(["PASSWORD", "CODE"])
+});
+
+export const createCompanyPayloadSchema = z.object({
+  name: z.string().trim().min(2, "El nombre de la empresa es obligatorio."),
+  slug: z.string().trim().optional(),
+  codePrefix: z.string().trim().optional(),
+  registrationCode: z.string().trim().optional()
+});
+
+export const createConsultantAuthorizationSchema = z.object({
+  fullName: z.string().trim().min(3, "Ingresa el nombre completo del consultor."),
+  email: z.string().trim().email("Ingresa un correo valido."),
+  phone: z.string().trim().optional(),
+  specializationSummary: z.string().trim().optional()
+});
+
+export const createProjectPayloadSchema = z.object({
+  name: z.string().trim().min(3, "Ingresa el nombre del proyecto."),
+  description: z.string().trim().min(10, "Describe brevemente el proyecto."),
+  clientName: z.string().trim().min(3, "Ingresa el nombre del cliente."),
+  clientEmail: z.string().trim().email("Ingresa un correo valido del cliente."),
+  startDate: z.string().trim().min(1, "La fecha inicial es obligatoria."),
+  endDate: z.string().trim().min(1, "La fecha final es obligatoria."),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"])
+});

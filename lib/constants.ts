@@ -16,15 +16,6 @@ export const ROLE_DESCRIPTIONS: Record<RegistrableRoleKey, string> = {
   CLIENT: "Da seguimiento al proyecto, revisa avances y valida entregables."
 };
 
-export const ACCESS_CODE_PREFIXES: Record<
-  Extract<AppRoleKey, "LEADER" | "CONSULTANT" | "CLIENT">,
-  string
-> = {
-  LEADER: "LDR",
-  CONSULTANT: "CDN",
-  CLIENT: "CLT"
-};
-
 export const UNAUTHORIZED_DIRECTORY_MESSAGE =
   "Tu nombre no aparece en la base autorizada para este tipo de usuario. Verifica la informacion o contacta al administrador de la plataforma.";
 
@@ -48,3 +39,36 @@ export const AUTH_DISABLED_USER_MESSAGE =
 
 export const TENANT_ACCESS_DENIED_MESSAGE =
   "No tienes permisos para acceder a la informacion de esta empresa.";
+
+export const INVALID_COMPANY_REGISTRATION_CODE_MESSAGE =
+  "El codigo maestro de la empresa no es valido. Verificalo antes de continuar.";
+
+export const UNAUTHORIZED_LEADER_REGISTRATION_MESSAGE =
+  "Tu correo no esta autorizado como lider para esta empresa.";
+
+export const UNAUTHORIZED_CONSULTANT_REGISTRATION_MESSAGE =
+  "Tu correo no esta autorizado como consultor para esta empresa.";
+
+export const CONSULTANT_ALREADY_EXISTS_MESSAGE =
+  "Ya existe un consultor con ese correo dentro de tu empresa.";
+
+export const CONSULTANT_PENDING_EXISTS_MESSAGE =
+  "Ese consultor ya fue autorizado y aun no completa su registro.";
+
+export const CLIENT_EMAIL_MISMATCH_MESSAGE =
+  "El correo no coincide con el contacto autorizado para este proyecto.";
+
+export const ADMIN_INVALID_ACCESS_MESSAGE =
+  "Los datos de administracion no son validos.";
+
+export const COMPANY_ALREADY_EXISTS_MESSAGE =
+  "Ya existe una empresa con ese nombre, slug o prefijo.";
+
+export const COMPANY_NOT_FOUND_MESSAGE =
+  "No encontramos la empresa solicitada.";
+
+export const PASSWORD_RECOVERY_SUCCESS_MESSAGE =
+  "Te enviamos instrucciones seguras para recuperar el acceso.";
+
+export const ACCESS_CODE_RECOVERY_SUCCESS_MESSAGE =
+  "Te enviamos tu codigo unico al correo registrado.";

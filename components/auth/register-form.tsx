@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { PasswordField } from "@/components/auth/password-field";
 import { PasswordRequirements } from "@/components/auth/password-requirements";
 import {
   buildInternationalPhone,
@@ -23,6 +24,7 @@ type RegisterFormState = {
   password: string;
   role: RegistrableRoleKey | "";
   projectFolio: string;
+  companyRegistrationCode: string;
 };
 
 type RegistrationSuccessState = {
@@ -37,7 +39,8 @@ const initialFormState: RegisterFormState = {
   localPhone: "",
   password: "",
   role: "",
-  projectFolio: ""
+  projectFolio: "",
+  companyRegistrationCode: ""
 };
 
 const roleOptions: { value: RegistrableRoleKey; label: string; description: string }[] = [
@@ -117,6 +120,10 @@ export default function RegisterForm() {
       return "Ingresa el folio unico del proyecto para registrar al cliente.";
     }
 
+    if (form.role === "LEADER" && !form.companyRegistrationCode.trim()) {
+      return "Ingresa el codigo maestro de empresa para registrar al lider.";
+    }
+
     return null;
   }
 
@@ -163,7 +170,9 @@ export default function RegisterForm() {
           phone: normalizedPhone,
           password: form.password,
           role: form.role,
-          projectFolio: form.role === "CLIENT" ? form.projectFolio.trim() : undefined
+          projectFolio: form.role === "CLIENT" ? form.projectFolio.trim() : undefined,
+          companyRegistrationCode:
+            form.role === "LEADER" ? form.companyRegistrationCode.trim() : undefined
         })
       });
 
@@ -342,12 +351,11 @@ export default function RegisterForm() {
             <label className="text-sm font-medium text-slate-200" htmlFor="password">
               Contrasena
             </label>
-            <input
+            <PasswordField
               className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
               id="password"
-              type="password"
               value={form.password}
-              onChange={(event) => updateField("password", event.target.value)}
+              onChange={(value) => updateField("password", value)}
             />
             <PasswordRequirements password={form.password} />
           </div>
@@ -391,6 +399,27 @@ export default function RegisterForm() {
                 type="text"
                 value={form.projectFolio}
                 onChange={(event) => updateField("projectFolio", event.target.value)}
+              />
+            </div>
+          ) : null}
+
+          {form.role === "LEADER" ? (
+            <div className="space-y-2">
+              <label
+                className="text-sm font-medium text-slate-200"
+                htmlFor="companyRegistrationCode"
+              >
+                Codigo maestro de empresa
+              </label>
+              <input
+                className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
+                id="companyRegistrationCode"
+                placeholder="Ej. NTT-LEADER-2026"
+                type="text"
+                value={form.companyRegistrationCode}
+                onChange={(event) =>
+                  updateField("companyRegistrationCode", event.target.value)
+                }
               />
             </div>
           ) : null}

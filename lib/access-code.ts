@@ -1,11 +1,21 @@
 import type { Prisma, RoleKey } from "@prisma/client";
 
-import { ACCESS_CODE_PREFIXES } from "@/lib/constants";
+import { normalizeCompanyCodePrefix } from "@/lib/company-code";
 
 type RoleWithGeneratedAccessCode = Extract<RoleKey, "LEADER" | "CONSULTANT" | "CLIENT">;
 type AccessCodeClient = {
   user: Pick<Prisma.TransactionClient["user"], "findMany" | "findUnique">;
 };
+
+const ROLE_ACCESS_CODE_PREFIX: Record<RoleWithGeneratedAccessCode, string> = {
+  LEADER: "L",
+  CONSULTANT: "C",
+  CLIENT: "U"
+};
+
+function buildAccessCodePrefix(role: RoleWithGeneratedAccessCode, companyCodePrefix: string) {
+  return `${ROLE_ACCESS_CODE_PREFIX[role]}D${normalizeCompanyCodePrefix(companyCodePrefix)}`;
+}
 
 function parseSequence(accessCode: string, prefix: string) {
   const rawValue = accessCode.replace(`${prefix}-`, "");
@@ -16,9 +26,10 @@ function parseSequence(accessCode: string, prefix: string) {
 
 export async function generateUniqueAccessCode(
   tx: AccessCodeClient,
-  role: RoleWithGeneratedAccessCode
+  role: RoleWithGeneratedAccessCode,
+  companyCodePrefix: string
 ) {
-  const prefix = ACCESS_CODE_PREFIXES[role];
+  const prefix = buildAccessCodePrefix(role, companyCodePrefix);
   const usersWithPrefix = await tx.user.findMany({
     where: {
       accessCode: {
@@ -57,3 +68,4 @@ export async function generateUniqueAccessCode(
     nextSequence += 1;
   }
 }
+

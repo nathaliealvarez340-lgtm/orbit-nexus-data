@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AccessRecoveryModal } from "@/components/auth/access-recovery-modal";
+import { AdminAccessModal } from "@/components/auth/admin-access-modal";
+import { PasswordField } from "@/components/auth/password-field";
 import { setBrowserSession } from "@/lib/auth/browser-session";
 
 export default function LoginForm() {
@@ -12,6 +15,8 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isRecoveryModalOpen, setIsRecoveryModalOpen] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,23 +98,23 @@ export default function LoginForm() {
             Contrasena
           </label>
 
-          <Link
+          <button
             className="text-xs font-semibold text-cyan-300 hover:text-cyan-200 hover:underline"
-            href="/forgot-password"
+            type="button"
+            onClick={() => setIsRecoveryModalOpen(true)}
           >
-            Olvidaste tu contrasena?
-          </Link>
+            Olvide...
+          </button>
         </div>
 
-        <input
+        <PasswordField
           autoComplete="current-password"
           className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.07] px-4 py-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5de0e6]/40"
           id="password"
           name="password"
           placeholder="Ingresa tu contrasena"
-          type="password"
           value={password}
-          onChange={(event) => setPassword(event.target.value)}
+          onChange={setPassword}
         />
       </div>
 
@@ -149,6 +154,20 @@ export default function LoginForm() {
           Registrate aqui
         </Link>
       </p>
+
+      <button
+        className="mx-auto block text-center text-xs font-semibold text-slate-400 transition hover:text-cyan-300"
+        type="button"
+        onClick={() => setIsAdminModalOpen(true)}
+      >
+        Eres administrador?
+      </button>
+
+      <AccessRecoveryModal
+        open={isRecoveryModalOpen}
+        onClose={() => setIsRecoveryModalOpen(false)}
+      />
+      <AdminAccessModal open={isAdminModalOpen} onClose={() => setIsAdminModalOpen(false)} />
     </form>
   );
 }

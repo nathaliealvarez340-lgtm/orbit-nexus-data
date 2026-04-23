@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { LeaderNotifications } from "@/components/dashboard/leader-notifications";
 import { OperationsPanel } from "@/components/dashboard/operations-panel";
@@ -20,6 +20,18 @@ import type { SessionUser } from "@/types/auth";
 
 type ConsultantRegisterViewProps = {
   session: SessionUser;
+};
+
+type AuthorizedConsultantSummary = {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string | null;
+  specializationSummary: string | null;
+  status: "PENDING_REGISTRATION" | "ACTIVE" | "DISABLED";
+  accessCode: string | null;
+  createdAt: string;
+  disabledAt: string | null;
 };
 
 type ConsultantRegisterFormState = {
@@ -49,14 +61,63 @@ const initialFormState: ConsultantRegisterFormState = {
 };
 
 export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps) {
-  const { consultants, createConsultant, projects } = useWorkspaceProjects();
+  const { consultants, createConsultant, projects, removeConsultant } = useWorkspaceProjects();
   const [form, setForm] = useState(initialFormState);
   const [error, setError] = useState<string | null>(null);
-  const [createdName, setCreatedName] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [directoryConsultants, setDirectoryConsultants] = useState<AuthorizedConsultantSummary[]>(
+    []
+  );
+  const [isLoadingConsultants, setIsLoadingConsultants] = useState(true);
+  const [deletingConsultantId, setDeletingConsultantId] = useState<string | null>(null);
 
   const leaderData = useMemo(() => getLeaderDashboardMock(session, projects), [projects, session]);
   const searchItems = useMemo(() => getLeaderDashboardSearchItems(leaderData), [leaderData]);
+
+  useEffect(() => {
+    if (session.role !== "LEADER") {
+      return;
+    }
+
+    let ignore = false;
+
+    async function loadConsultants() {
+      setIsLoadingConsultants(true);
+
+      try {
+        const response = await fetch("/api/leader/consultants", {
+          cache: "no-store"
+        });
+        const payload = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          if (!ignore) {
+            setError(payload?.message ?? "No fue posible cargar los consultores de tu empresa.");
+          }
+          return;
+        }
+
+        if (!ignore) {
+          setDirectoryConsultants(payload?.data ?? []);
+        }
+      } catch {
+        if (!ignore) {
+          setError("Ocurrio un error inesperado al cargar los consultores.");
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoadingConsultants(false);
+        }
+      }
+    }
+
+    loadConsultants();
+
+    return () => {
+      ignore = true;
+    };
+  }, [session.role]);
 
   function updateField<Key extends keyof ConsultantRegisterFormState>(
     field: Key,
@@ -64,9 +125,10 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
   ) {
     setForm((current) => ({ ...current, [field]: value }));
     setError(null);
+    setSuccess(null);
   }
 
-  function buildInput(): CreateConsultantInput | null {
+  function buildLocalConsultantInput(): CreateConsultantInput | null {
     const normalizedName = form.fullName.trim();
     const normalizedEmail = form.email.trim().toLowerCase();
     const parsedSkills = form.skills
@@ -96,24 +158,6 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
       return null;
     }
 
-    if (
-      deliveryCompliance < 1 ||
-      deliveryCompliance > 100 ||
-      qualityScore < 1 ||
-      qualityScore > 100 ||
-      responseTimeMinutes < 1
-    ) {
-      setError("Valida los rangos de KPIs antes de registrar al consultor.");
-      return null;
-    }
-
-    if (
-      consultants.some((consultant) => consultant.email?.toLowerCase() === normalizedEmail)
-    ) {
-      setError("Ya existe un consultor registrado con ese correo.");
-      return null;
-    }
-
     return {
       fullName: normalizedName,
       email: normalizedEmail,
@@ -134,29 +178,100 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
     };
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (isSubmitting) {
       return;
     }
 
-    if (session.role !== "LEADER") {
-      setError("Solo el portal LEADER puede registrar consultores.");
-      return;
-    }
-
-    const input = buildInput();
+    const input = buildLocalConsultantInput();
 
     if (!input) {
       return;
     }
 
     setIsSubmitting(true);
-    createConsultant(input);
-    setCreatedName(input.fullName);
-    setForm(initialFormState);
-    setIsSubmitting(false);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch("/api/leader/consultants", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fullName: input.fullName,
+          email: input.email,
+          specializationSummary:
+            form.note.trim() || `${input.specialty} | ${input.professionalStatus}`
+        })
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setError(payload?.message ?? "No fue posible autorizar al consultor.");
+        return;
+      }
+
+      createConsultant(input);
+      setDirectoryConsultants((current) => [payload.data, ...current]);
+      setSuccess(
+        `${input.fullName} quedo autorizado en la empresa y podra activar su cuenta desde register.`
+      );
+      setForm(initialFormState);
+    } catch {
+      setError("Ocurrio un error inesperado al autorizar al consultor.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleDeleteConsultant(consultant: AuthorizedConsultantSummary) {
+    setError(null);
+    setSuccess(null);
+    setDeletingConsultantId(consultant.id);
+
+    try {
+      const response = await fetch(`/api/leader/consultants/${consultant.id}`, {
+        method: "DELETE"
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setError(payload?.message ?? "No fue posible actualizar el consultor.");
+        return;
+      }
+
+      if (payload?.data?.strategy === "hard-delete") {
+        setDirectoryConsultants((current) =>
+          current.filter((currentConsultant) => currentConsultant.id !== consultant.id)
+        );
+        removeConsultant(consultant.email);
+        setSuccess(`${consultant.fullName} fue eliminado antes de completar su registro.`);
+        return;
+      }
+
+      setDirectoryConsultants((current) =>
+        current.map((currentConsultant) =>
+          currentConsultant.id === consultant.id
+            ? {
+                ...currentConsultant,
+                status: "DISABLED",
+                disabledAt: new Date().toISOString()
+              }
+            : currentConsultant
+        )
+      );
+      removeConsultant(consultant.email);
+      setSuccess(`${consultant.fullName} fue deshabilitado de forma segura.`);
+    } catch {
+      setError("Ocurrio un error inesperado al actualizar el consultor.");
+    } finally {
+      setDeletingConsultantId(null);
+    }
   }
 
   if (session.role !== "LEADER") {
@@ -188,7 +303,7 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
       session={session}
       portalLabel="LEADER"
       portalTitle="Alta de consultores"
-      subtitle="Registra nuevos consultores internos con skills, disponibilidad y KPIs iniciales para dejarlos listos para matching y asignacion."
+      subtitle="Autoriza consultores internos con datos operativos iniciales y mantenlos visibles para matching, asignacion y seguimiento."
       navItems={[
         { label: "Resumen", href: "/workspace" },
         { label: "Equipo", href: "/workspace#leader-activity", badge: String(consultants.length) },
@@ -201,11 +316,11 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
       headerActions={<LeaderNotifications notifications={leaderData.notifications} />}
       searchItems={searchItems}
     >
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <OperationsPanel
-          description="Completa solo la informacion operativa que despues alimenta matching, visibilidad y asignacion."
+          description="La autorizacion deja al consultor en estado pendiente para que despues complete su registro y reciba accessCode automaticamente."
           eyebrow="Registro interno"
-          title="Nuevo consultor"
+          title="Autorizar consultor"
         >
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid gap-5 md:grid-cols-2">
@@ -304,7 +419,7 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
 
               <div className="space-y-2">
                 <Label className="text-slate-200" htmlFor="consultant-kpi-delivery">
-                  Cumplimiento inicial
+                  KPI cumplimiento
                 </Label>
                 <Input
                   id="consultant-kpi-delivery"
@@ -320,7 +435,7 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
 
               <div className="space-y-2">
                 <Label className="text-slate-200" htmlFor="consultant-kpi-response">
-                  Tiempo de respuesta
+                  Respuesta (min)
                 </Label>
                 <Input
                   id="consultant-kpi-response"
@@ -333,7 +448,7 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label className="text-slate-200" htmlFor="consultant-kpi-quality">
                   Score de calidad
                 </Label>
@@ -369,15 +484,15 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
               </div>
             ) : null}
 
-            {createdName ? (
+            {success ? (
               <div className="rounded-[1.25rem] border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-                {createdName} ya forma parte de la base interna y esta listo para ser considerado en asignaciones.
+                {success}
               </div>
             ) : null}
 
             <div className="flex flex-wrap gap-3">
               <Button type="submit">
-                {isSubmitting ? "Registrando consultor..." : "Registrar consultor"}
+                {isSubmitting ? "Autorizando consultor..." : "Autorizar consultor"}
               </Button>
               <Button
                 asChild
@@ -391,38 +506,55 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
         </OperationsPanel>
 
         <OperationsPanel
-          description="Esta alta no toca auth ni el flujo de Fase 1. Solo deja el perfil listo para matching, KPIs y asignacion interna."
-          eyebrow="Lectura operativa"
-          title="Que sucede al registrar"
+          description="Los pendientes se pueden eliminar fisicamente. Los activos se deshabilitan para no perder trazabilidad ni relaciones historicas."
+          eyebrow="Base autorizada"
+          title="Consultores de la empresa"
         >
-          <div className="space-y-4 text-sm leading-6 text-slate-400">
-            <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Matching listo
+          <div className="space-y-4">
+            {isLoadingConsultants ? (
+              <p className="text-sm text-slate-400">Cargando consultores autorizados...</p>
+            ) : directoryConsultants.length ? (
+              directoryConsultants.map((consultant) => (
+                <div
+                  key={consultant.id}
+                  className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] px-4 py-4"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="space-y-2">
+                      <p className="text-base font-semibold text-white">{consultant.fullName}</p>
+                      <p className="text-sm text-slate-300">{consultant.email}</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-cyan-300">
+                        {consultant.status === "PENDING_REGISTRATION"
+                          ? "Pendiente"
+                          : consultant.status === "ACTIVE"
+                            ? consultant.accessCode ?? "Activo"
+                            : "Deshabilitado"}
+                      </p>
+                      {consultant.specializationSummary ? (
+                        <p className="text-sm text-slate-400">{consultant.specializationSummary}</p>
+                      ) : null}
+                    </div>
+
+                    <Button
+                      className="bg-white/[0.06] text-slate-100 hover:bg-white/[0.1]"
+                      type="button"
+                      variant="secondary"
+                      onClick={() => handleDeleteConsultant(consultant)}
+                    >
+                      {deletingConsultantId === consultant.id ? "Actualizando..." : "Eliminar"}
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-slate-400">
+                Aun no hay consultores autorizados en esta empresa.
               </p>
-              <p className="mt-2 text-white">
-                Skills, disponibilidad, carga y KPIs quedan listos para scoring interno.
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Visible para liderazgo
-              </p>
-              <p className="mt-2 text-white">
-                El consultor aparece en la base interna del tenant y en pantallas de asignacion.
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Tenant-ready
-              </p>
-              <p className="mt-2 text-white">
-                El registro se guarda dentro de la empresa actual y no se mezcla con otros tenants.
-              </p>
-            </div>
+            )}
           </div>
         </OperationsPanel>
       </section>
     </OperationsShell>
   );
 }
+

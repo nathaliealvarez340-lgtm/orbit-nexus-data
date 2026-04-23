@@ -39,15 +39,12 @@ export async function POST(request: Request) {
     }
 
     if (error instanceof ServiceError) {
-      const status =
-        error.statusCode === 404 ? 403 : error.statusCode;
-
       return NextResponse.json(
         {
           success: false,
           message: error.message
         },
-        { status }
+        { status: error.statusCode }
       );
     }
 

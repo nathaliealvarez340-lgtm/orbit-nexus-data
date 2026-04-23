@@ -254,12 +254,14 @@ export type CreateProjectInput = {
   name: string;
   description: string;
   client: string;
+  clientEmail?: string;
   consultantsRequired: number;
   startDate: string;
   endDate: string;
   priority: DashboardProjectPriority;
   projectType?: string;
   attachments: string[];
+  folio?: string;
 };
 
 export type CreateConsultantInput = {
@@ -1702,7 +1704,7 @@ export function createProjectRecord(
     sequence += 1;
   }
 
-  const folio = getNextProjectFolio(projects, input.startDate);
+  const folio = input.folio?.trim() || getNextProjectFolio(projects, input.startDate);
 
   return {
     id: `project-${slug}`,
