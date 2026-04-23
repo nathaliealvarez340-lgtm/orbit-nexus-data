@@ -1,6 +1,5 @@
 "use client";
 
-import { CompanyPlan } from "@prisma/client";
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -15,6 +14,8 @@ import {
   GROWTH_MONTHLY_MXN,
   buildQuoteSummary
 } from "@/lib/commercial/plans";
+
+type CompanyPlan = "CORE" | "GROWTH" | "ENTERPRISE";
 
 const planCards = [
   {
