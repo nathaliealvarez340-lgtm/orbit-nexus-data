@@ -220,14 +220,6 @@ async function seedUsableDirectoryAccount(params: {
     return;
   }
 
-  if (
-    existingUser.status === UserStatus.ACTIVE &&
-    existingUser.accessCode === requestedAccessCode &&
-    existingUser.passwordHash
-  ) {
-    return;
-  }
-
   const passwordHash = await hashPassword(password);
   let accessCode = requestedAccessCode;
 

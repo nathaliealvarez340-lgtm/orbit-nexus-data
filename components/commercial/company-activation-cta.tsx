@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ChevronLeft, Sparkles, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, Sparkles, Star, TrendingUp, X, Zap } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ const planCards = [
     plan: "CORE" as const,
     label: "Core",
     highlight: "Mas elegido",
+    subtitle: "Base operativa",
     price: "$5,200 MXN / mes",
     bullets: [
       "Reduce hasta 30% el desorden operativo en las primeras semanas",
@@ -34,7 +35,8 @@ const planCards = [
   {
     plan: "GROWTH" as const,
     label: "Growth",
-    highlight: "Hasta 50 usuarios",
+    highlight: "Escala sin friccion",
+    subtitle: "Escala sin friccion",
     price: "$12,900 MXN / mes",
     bullets: [
       "Aumenta hasta 40% la eficiencia operativa entre equipos",
@@ -47,8 +49,9 @@ const planCards = [
   {
     plan: "ENTERPRISE" as const,
     label: "Enterprise",
-    highlight: "Precio personalizado",
-    price: "Cotizacion guiada",
+    highlight: "Arquitectura dedicada",
+    subtitle: "Arquitectura dedicada",
+    price: "Implementacion estrategica",
     bullets: [
       "Arquitectura diseñada específicamente para tu operación",
       "Integración con sistemas internos existentes",
@@ -58,6 +61,12 @@ const planCards = [
     ]
   }
 ];
+
+const planIcons = {
+  CORE: Zap,
+  GROWTH: TrendingUp,
+  ENTERPRISE: Star
+} as const;
 
 type FormState = {
   fullName: string;
@@ -365,6 +374,7 @@ export function CompanyActivationCta() {
                         {planCards.map((card) => {
                           const selected = form.plan === card.plan;
                           const isCore = card.plan === "CORE";
+                          const PlanIcon = planIcons[card.plan];
 
                           return (
                             <button
@@ -389,11 +399,14 @@ export function CompanyActivationCta() {
                               <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),transparent_36%,transparent_72%,rgba(93,224,230,0.10))] opacity-70 transition-opacity duration-200 group-hover:opacity-100" />
                               <div className="relative z-10 space-y-4">
                                 <div className="flex items-center justify-between gap-3">
-                                  <div>
-                                    <p className="text-lg font-semibold text-white">{card.label}</p>
-                                    <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
-                                      {isCore ? "Core operativo" : card.highlight}
-                                    </p>
+                                  <div className="flex items-start gap-3">
+                                    <PlanIcon className="mt-0.5 h-4 w-4 text-cyan-300" />
+                                    <div>
+                                      <p className="text-lg font-semibold text-white">{card.label}</p>
+                                      <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
+                                        {card.subtitle}
+                                      </p>
+                                    </div>
                                   </div>
                                   <span
                                     className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${

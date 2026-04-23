@@ -92,6 +92,10 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      <div className="pointer-events-none fixed inset-x-0 bottom-3 z-[80] text-center text-xs text-[#2563EB]/80 md:text-sm">
+        © 2026 Orbit Nexus by MAIA. All rights reserved.
+      </div>
     </main>
   );
 }
