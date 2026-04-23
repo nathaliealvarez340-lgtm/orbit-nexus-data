@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, Sparkles, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,10 +81,14 @@ function formatCurrency(value: number) {
 export function CompanyActivationCta() {
   const [open, setOpen] = useState(false);
   const [showPlans, setShowPlans] = useState(false);
+  const [plansVisible, setPlansVisible] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(4);
+  const [isHeroReady, setIsHeroReady] = useState(false);
   const [form, setForm] = useState<FormState>(initialFormState);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [manualReviewMessage, setManualReviewMessage] = useState<string | null>(null);
+  const plansRef = useRef<HTMLDivElement | null>(null);
 
   const quote = useMemo(
     () =>
@@ -95,17 +99,72 @@ export function CompanyActivationCta() {
     [form.extraUsers, form.plan]
   );
 
+  useEffect(() => {
+    if (!open || isHeroReady) {
+      return;
+    }
+
+    if (secondsLeft <= 0) {
+      setIsHeroReady(true);
+      setShowPlans(true);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setSecondsLeft((current) => current - 1);
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [isHeroReady, open, secondsLeft]);
+
+  useEffect(() => {
+    if (!showPlans) {
+      setPlansVisible(false);
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setPlansVisible(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [showPlans]);
+
   function openActivation() {
     setOpen(true);
     setShowPlans(false);
+    setPlansVisible(false);
+    setSecondsLeft(4);
+    setIsHeroReady(false);
+    setError(null);
+    setManualReviewMessage(null);
+    setIsSubmitting(false);
   }
 
   function closeActivation() {
     setOpen(false);
     setShowPlans(false);
+    setPlansVisible(false);
+    setSecondsLeft(4);
+    setIsHeroReady(false);
     setError(null);
     setManualReviewMessage(null);
     setIsSubmitting(false);
+  }
+
+  function handleRevealPlans() {
+    if (!isHeroReady) {
+      return;
+    }
+
+    setShowPlans(true);
+
+    window.setTimeout(() => {
+      plansRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }, 140);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -169,7 +228,7 @@ export function CompanyActivationCta() {
         type="button"
         onClick={openActivation}
       >
-        Activa tu empresa
+                        ACTIVA TU EMPRESA
       </Button>
 
       {open ? (
@@ -193,16 +252,13 @@ export function CompanyActivationCta() {
           <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-6 md:px-6 md:py-8">
             <div className="relative w-full overflow-hidden rounded-[2.5rem] border border-white/[0.14] bg-slate-950/36 shadow-[0_34px_110px_rgba(2,6,23,0.52)] backdrop-blur-[24px]">
               <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.10),transparent_28%,transparent_74%,rgba(93,224,230,0.08))]" />
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
               <div className="absolute -right-28 top-[-120px] h-80 w-80 rounded-full bg-[#5de0e6]/10 blur-3xl" />
               <div className="absolute -left-24 bottom-[-160px] h-96 w-96 rounded-full bg-[#004aad]/14 blur-3xl" />
 
               <div className="relative z-10 flex items-center justify-between px-6 py-5 md:px-8 md:py-6">
-                <div className="flex items-center gap-3 text-slate-300">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Activacion comercial
-                  </div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Activacion comercial
                 </div>
 
                 <button
@@ -223,52 +279,87 @@ export function CompanyActivationCta() {
               >
                 <div
                   className={`mx-auto ${
-                    showPlans ? "max-w-6xl space-y-8" : "max-w-4xl space-y-8 text-center"
+                    showPlans ? "max-w-6xl space-y-10" : "max-w-5xl space-y-10 text-center"
                   }`}
                 >
-                  <div className={`space-y-8 ${showPlans ? "pt-4 text-center" : ""}`}>
-                    <div className="space-y-5">
+                  <div
+                    className={`space-y-8 ${
+                      showPlans ? "mx-auto max-w-5xl pt-6 text-center" : "text-center"
+                    }`}
+                  >
+                    <div className="space-y-6">
                       <p className="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-300">
-                        Activa tu empresa
+                        ACTIVA TU EMPRESA
                       </p>
-                      <h2 className="text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-white md:text-5xl xl:text-6xl">
-                        Convierte la complejidad operativa en una ventaja competitiva.
-                      </h2>
+
+                      <div className="relative mx-auto min-h-[154px] max-w-4xl md:min-h-[184px]">
+                        <h2
+                          className={`text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-white transition-all duration-500 md:text-5xl xl:text-6xl ${
+                            isHeroReady ? "pointer-events-none -translate-y-3 opacity-0" : "translate-y-0 opacity-100"
+                          }`}
+                        >
+                          Más control. Menos caos.
+                          <br />
+                          Tu empresa,{" "}
+                          <span className="bg-gradient-to-r from-[#5de0e6] via-[#3ab8ff] to-[#004aad] bg-clip-text text-transparent">
+                            en modo órbita
+                          </span>
+                          . 🚀
+                        </h2>
+
+                        <h2
+                          className={`absolute inset-0 text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-white transition-all duration-500 md:text-5xl xl:text-6xl ${
+                            isHeroReady
+                              ? "translate-y-0 opacity-100"
+                              : "pointer-events-none translate-y-3 opacity-0"
+                          }`}
+                        >
+                          Estás a un paso de operar como empresa de alto nivel.
+                        </h2>
+                      </div>
+
                       <p className="mx-auto max-w-3xl text-base leading-8 text-slate-300 md:text-lg">
-                        Orbit Nexus centraliza acceso, operacion y trazabilidad en una sola
-                        arquitectura empresarial.
+                        Una sola plataforma para operar, crecer y tomar decisiones con claridad.
+                        <br className="hidden md:block" />
+                        Centraliza todo. Automatiza lo importante. Escala sin límites.
                       </p>
                     </div>
 
-                    {!showPlans ? (
-                      <div className="pt-3">
+                    <div className="space-y-6">
+                      <div className="space-y-3 text-center">
+                        <p className="text-sm font-medium text-slate-300">Descubre cómo en:</p>
+                        <div className="text-5xl font-semibold tracking-[0.18em] text-cyan-300 drop-shadow-[0_0_22px_rgba(93,224,230,0.32)] animate-pulse md:text-6xl">
+                          {`00:0${Math.max(secondsLeft, 0)}`}
+                        </div>
+                      </div>
+
+                      <div>
                         <Button
-                          className="h-12 rounded-full bg-gradient-to-r from-[#5de0e6] to-[#004aad] px-7 text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] hover:opacity-95"
+                          aria-disabled={!isHeroReady}
+                          className={`h-12 rounded-full bg-gradient-to-r from-[#5de0e6] to-[#004aad] px-7 text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition-all duration-300 ${
+                            isHeroReady
+                              ? "scale-100 hover:scale-[1.02] hover:shadow-[0_22px_52px_rgba(0,74,173,0.42)]"
+                              : "cursor-not-allowed opacity-60"
+                          }`}
+                          disabled={!isHeroReady}
                           size="lg"
                           type="button"
-                          onClick={() => setShowPlans(true)}
+                          onClick={handleRevealPlans}
                         >
-                          Ver planes
-                          <ArrowRight className="ml-2 h-4 w-4" />
+                          {isHeroReady ? "Ver planes ahora →" : "Ver planes"}
+                          {isHeroReady ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
                         </Button>
                       </div>
-                    ) : null}
-
-                    <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-center gap-3 text-xs uppercase tracking-[0.22em] text-slate-400">
-                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">
-                        Suscripcion mensual
-                      </span>
-                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">
-                        Activacion por empresa
-                      </span>
-                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">
-                        Escalable por capacidad
-                      </span>
                     </div>
                   </div>
 
                   {showPlans ? (
-                    <div className="space-y-8 pt-4">
+                    <div
+                      ref={plansRef}
+                      className={`space-y-8 pt-4 transition-all duration-700 ease-out ${
+                        plansVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+                      }`}
+                    >
                       <div className="space-y-3 text-center">
                         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
                           Planes disponibles
