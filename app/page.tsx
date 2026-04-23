@@ -54,12 +54,10 @@ export default function HomePage() {
         </div>
 
         <section className="grid flex-1 items-center gap-8 lg:min-h-[calc(100vh-10rem)] lg:grid-cols-[1fr_1fr] lg:gap-12 xl:gap-16">
-          <div className="relative w-full max-w-[560px] justify-self-center self-center overflow-hidden rounded-[2.4rem] border border-white/[0.16] bg-slate-950/42 p-8 shadow-[0_30px_90px_rgba(0,0,0,0.26)] backdrop-blur-[24px] md:min-h-[560px] md:p-10 lg:justify-self-end xl:p-10">
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_34%,transparent_76%,rgba(93,224,230,0.06))]" />
-
+          <div className="relative w-full max-w-[560px] justify-self-center self-center px-2 py-6 md:min-h-[560px] md:px-3 md:py-7 lg:justify-self-end xl:px-4 xl:py-8">
             <div className="relative z-10 flex h-full flex-col justify-center">
               <div className="space-y-5">
-                <h1 className="max-w-[34rem] text-[clamp(48px,5vw,72px)] leading-[1.08] tracking-[-0.02em]">
+                <h1 className="max-w-[34rem] text-[clamp(43px,4.5vw,64px)] leading-[1.1] tracking-[-0.02em]">
                   <span className="block font-black text-white">
                     Orbit <span className="text-[#5de0e6]">Nexus</span>
                   </span>
