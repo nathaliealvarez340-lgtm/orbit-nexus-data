@@ -151,7 +151,15 @@ export const createCompanyPayloadSchema = z.object({
   name: z.string().trim().min(2, "El nombre de la empresa es obligatorio."),
   slug: z.string().trim().optional(),
   codePrefix: z.string().trim().optional(),
-  registrationCode: z.string().trim().optional()
+  registrationCode: z.string().trim().optional(),
+  sector: z.string().trim().optional(),
+  contactName: z.string().trim().optional(),
+  contactEmail: z.string().trim().email("Ingresa un correo valido.").optional().or(z.literal("")),
+  subscriptionPlan: z.enum(["CORE", "GROWTH", "ENTERPRISE"]).optional(),
+  includedUsers: z.number().int().min(0).optional(),
+  extraUsers: z.number().int().min(0).max(10).optional(),
+  monthlyAmountMxn: z.number().int().min(0).optional(),
+  initialStatus: z.enum(["ACTIVE", "PENDING"]).optional()
 });
 
 export const createConsultantAuthorizationSchema = z.object({

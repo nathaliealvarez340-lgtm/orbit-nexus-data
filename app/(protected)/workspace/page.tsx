@@ -8,14 +8,21 @@ import {
   getClientDashboardMock,
   getConsultantDashboardMock
 } from "@/lib/dashboard/mock-data";
-import { getCompanySummaryList } from "@/lib/services/admin/company-management";
+import { getSuperadminDashboardData } from "@/lib/services/admin/company-management";
 
 export default async function WorkspacePage() {
   const session = await requireSession();
 
   if (session.role === "SUPERADMIN") {
-    const companies = await getCompanySummaryList();
-    return <SuperadminDashboard session={session} companies={companies} />;
+    const { companies, overview, activationRequests } = await getSuperadminDashboardData();
+    return (
+      <SuperadminDashboard
+        session={session}
+        companies={companies}
+        overview={overview}
+        activationRequests={activationRequests}
+      />
+    );
   }
 
   if (session.role === "LEADER") {

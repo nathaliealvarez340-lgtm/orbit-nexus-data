@@ -12,6 +12,10 @@ type CreateAuthorizedLeaderInput = {
   phone?: string | null;
 };
 
+export type RemoveAuthorizedLeaderResult = {
+  mode: "deleted" | "disabled";
+};
+
 async function getLeaderRoleId() {
   const role = await prisma.role.findUniqueOrThrow({
     where: {
@@ -130,4 +134,54 @@ export async function createAuthorizedLeader(input: CreateAuthorizedLeaderInput)
       disabledAt: true
     }
   });
+}
+
+export async function removeAuthorizedLeader(companyId: string, leaderId: string) {
+  const leaderRoleId = await getLeaderRoleId();
+
+  const leader = await prisma.user.findFirst({
+    where: {
+      id: leaderId,
+      companyId,
+      roleId: leaderRoleId
+    },
+    select: {
+      id: true,
+      status: true
+    }
+  });
+
+  if (!leader) {
+    throw new ServiceError("El lider autorizado no existe en esta empresa.", 404);
+  }
+
+  if (leader.status === UserStatus.PENDING_REGISTRATION) {
+    await prisma.user.delete({
+      where: {
+        id: leader.id
+      }
+    });
+
+    return {
+      mode: "deleted"
+    } satisfies RemoveAuthorizedLeaderResult;
+  }
+
+  if (leader.status === UserStatus.ACTIVE) {
+    await prisma.user.update({
+      where: {
+        id: leader.id
+      },
+      data: {
+        status: UserStatus.DISABLED,
+        disabledAt: new Date()
+      }
+    });
+
+    return {
+      mode: "disabled"
+    } satisfies RemoveAuthorizedLeaderResult;
+  }
+
+  throw new ServiceError("El lider ya se encuentra deshabilitado.", 409);
 }

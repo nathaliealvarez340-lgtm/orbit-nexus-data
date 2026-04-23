@@ -24,6 +24,7 @@ type CreateCompanyInput = {
   includedUsers?: number;
   extraUsers?: number;
   monthlyAmountMxn?: number;
+  initialStatus?: "ACTIVE" | "PENDING";
 };
 
 export type CompanySummary = {
@@ -49,6 +50,124 @@ export type CompanySummary = {
   activeProjectCount: number;
   createdAt: string;
 };
+
+export type ActivationRequestSummary = {
+  id: string;
+  companyName: string;
+  contactEmail: string;
+  plan: CompanyPlan;
+  totalAmountMxn: number;
+  status: CompanyBillingStatus;
+  createdAt: string;
+  activatedCompanyId: string | null;
+  activatedCompanyName: string | null;
+  registrationCode: string | null;
+};
+
+export type SuperadminOverview = {
+  totalCompanies: number;
+  activeCompanies: number;
+  pendingCompanies: number;
+  activeSubscriptions: number;
+  enterpriseReviews: number;
+  authorizedLeaders: number;
+  authorizedConsultants: number;
+};
+
+export async function getRecentActivationRequests(limit = 6) {
+  const requests = await prisma.companyActivationRequest.findMany({
+    orderBy: [{ createdAt: "desc" }],
+    take: limit,
+    select: {
+      id: true,
+      companyName: true,
+      email: true,
+      plan: true,
+      totalAmountMxn: true,
+      status: true,
+      createdAt: true,
+      registrationCode: true,
+      company: {
+        select: {
+          id: true,
+          name: true
+        }
+      }
+    }
+  });
+
+  return requests.map(
+    (request) =>
+      ({
+        id: request.id,
+        companyName: request.companyName,
+        contactEmail: request.email,
+        plan: request.plan,
+        totalAmountMxn: request.totalAmountMxn,
+        status: request.status,
+        createdAt: request.createdAt.toISOString(),
+        activatedCompanyId: request.company?.id ?? null,
+        activatedCompanyName: request.company?.name ?? null,
+        registrationCode: request.registrationCode ?? null
+      }) satisfies ActivationRequestSummary
+  );
+}
+
+export async function getSuperadminOverview(companies?: CompanySummary[]) {
+  const companySummaries = companies ?? (await getCompanySummaryList());
+
+  const [authorizedLeaders, authorizedConsultants, enterpriseReviews] = await Promise.all([
+    prisma.user.count({
+      where: {
+        role: { key: RoleKey.LEADER },
+        companyId: { not: null },
+        status: {
+          in: [UserStatus.PENDING_REGISTRATION, UserStatus.ACTIVE]
+        }
+      }
+    }),
+    prisma.user.count({
+      where: {
+        role: { key: RoleKey.CONSULTANT },
+        companyId: { not: null },
+        status: {
+          in: [UserStatus.PENDING_REGISTRATION, UserStatus.ACTIVE]
+        }
+      }
+    }),
+    prisma.companyActivationRequest.count({
+      where: {
+        status: CompanyBillingStatus.ENTERPRISE_REVIEW
+      }
+    })
+  ]);
+
+  return {
+    totalCompanies: companySummaries.length,
+    activeCompanies: companySummaries.filter((company) => company.isActive).length,
+    pendingCompanies: companySummaries.filter((company) => !company.isActive).length,
+    activeSubscriptions: companySummaries.filter(
+      (company) => company.billingStatus === CompanyBillingStatus.ACTIVE
+    ).length,
+    enterpriseReviews,
+    authorizedLeaders,
+    authorizedConsultants
+  } satisfies SuperadminOverview;
+}
+
+export async function getSuperadminDashboardData() {
+  const companies = await getCompanySummaryList();
+  const [overview, activationRequests] = await Promise.all([
+    getSuperadminOverview(companies),
+    getRecentActivationRequests()
+  ]);
+
+  return {
+    companies,
+    overview,
+    activationRequests
+  };
+}
 
 function normalizeSlug(value: string) {
   return value
@@ -207,7 +326,7 @@ export async function createCompany(input: CreateCompanyInput) {
       slug,
       codePrefix,
       registrationCode,
-      isActive: true,
+      isActive: input.initialStatus !== "PENDING",
       sector: input.sector?.trim() || null,
       contactName: input.contactName?.trim() || null,
       contactEmail: input.contactEmail?.trim().toLowerCase() || null,
@@ -215,8 +334,11 @@ export async function createCompany(input: CreateCompanyInput) {
       includedUsers: input.includedUsers ?? 0,
       extraUsers: input.extraUsers ?? 0,
       monthlyAmountMxn: input.monthlyAmountMxn ?? null,
-      billingStatus: CompanyBillingStatus.ACTIVE,
-      activatedAt: new Date()
+      billingStatus:
+        input.initialStatus === "PENDING"
+          ? CompanyBillingStatus.PENDING
+          : CompanyBillingStatus.ACTIVE,
+      activatedAt: input.initialStatus === "PENDING" ? null : new Date()
     }
   });
 
