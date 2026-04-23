@@ -53,28 +53,28 @@ export default function HomePage() {
           <CompanyActivationCta />
         </div>
 
-        <section className="grid flex-1 items-center gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="relative min-h-[540px] overflow-hidden rounded-[2.4rem] border border-white/[0.16] bg-slate-950/42 p-10 shadow-[0_30px_90px_rgba(0,0,0,0.26)] backdrop-blur-[24px] md:min-h-[620px] md:p-12 xl:p-14">
+        <section className="grid flex-1 items-center gap-8 lg:grid-cols-[0.96fr_1.04fr] xl:gap-10">
+          <div className="relative min-h-[520px] overflow-hidden rounded-[2.4rem] border border-white/[0.16] bg-slate-950/42 p-8 shadow-[0_30px_90px_rgba(0,0,0,0.26)] backdrop-blur-[24px] md:min-h-[580px] md:p-10 xl:p-12">
             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),transparent_30%,transparent_72%,rgba(93,224,230,0.08))]" />
             <div className="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-white/70 to-transparent" />
             <div className="absolute right-[-120px] top-[-120px] h-80 w-80 rounded-full bg-[#5de0e6]/10 blur-3xl" />
 
-            <div className="relative z-10 flex h-full max-w-[58rem] flex-col justify-center space-y-10">
-              <div className="space-y-7">
-                <h1 className="max-w-[56rem] text-5xl leading-[1.08] md:text-6xl lg:text-7xl">
+            <div className="relative z-10 flex h-full max-w-[43rem] flex-col justify-center space-y-8">
+              <div className="space-y-5">
+                <h1 className="max-w-[40rem] text-[3.35rem] leading-[1.14] md:text-[4.35rem] lg:text-[5.15rem]">
                   <span className="block font-black text-white">
                     Orbit <span className="text-[#5de0e6]">Nexus</span>
                   </span>
                   <HomeHeroRotator />
                 </h1>
 
-                <p className="max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
+                <p className="max-w-xl text-[0.98rem] leading-7 text-slate-300 md:text-base">
                   Centraliza usuarios, proyectos y validaciones en una sola arquitectura para
                   operar con orden, seguridad y trazabilidad real.
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3 pt-2 md:pt-4">
                 <Button
                   asChild
                   size="lg"
@@ -94,7 +94,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-4 lg:max-w-[39rem] lg:justify-self-end">
             {highlights.map((item) => {
               const Icon = item.icon;
 
