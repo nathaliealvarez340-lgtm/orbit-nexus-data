@@ -9,6 +9,8 @@ type RecommendationCardProps = {
 };
 
 export function RecommendationCard({ recommendation }: RecommendationCardProps) {
+  const secondaryHref = recommendation.secondaryAction?.href;
+
   return (
     <Card className="border-blue-100 bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       <CardContent className="space-y-5 p-6">
@@ -34,11 +36,15 @@ export function RecommendationCard({ recommendation }: RecommendationCardProps) 
           </Button>
 
           {recommendation.secondaryAction ? (
-            <Button asChild variant="outline">
-             <Link href={recommendation.primaryAction.href as any}>
+            secondaryHref ? (
+              <Button asChild variant="outline">
+                <Link href={secondaryHref as any}>{recommendation.secondaryAction.label}</Link>
+              </Button>
+            ) : (
+              <Button disabled variant="outline">
                 {recommendation.secondaryAction.label}
-              </Link>
-            </Button>
+              </Button>
+            )
           ) : null}
         </div>
       </CardContent>

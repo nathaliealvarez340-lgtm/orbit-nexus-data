@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 
 import { CompanyActivationCta } from "@/components/commercial/company-activation-cta";
-import { HomeHeroRotator } from "@/components/home/home-hero-rotator";
 import { Button } from "@/components/ui/button";
 import { OrbitBackgroundVideo } from "@/components/ui/orbit-background-video";
 
@@ -56,37 +55,37 @@ export default function HomePage() {
         <section className="grid flex-1 items-center gap-8 lg:min-h-[calc(100vh-10rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
           <div className="relative min-w-0 w-full max-w-[560px] justify-self-center self-center px-2 py-6 md:min-h-[560px] md:px-3 md:py-7 lg:justify-self-end xl:px-4 xl:py-8">
             <div className="relative z-10 flex h-full flex-col justify-center">
-              <div className="flex flex-col gap-[100px] md:gap-[110px] xl:gap-[120px]">
-                <h1 className="max-w-[34rem] text-[clamp(43px,4.5vw,64px)] leading-[1.1] tracking-[-0.02em]">
+              <div className="max-w-[34rem] space-y-6 md:space-y-7">
+                <h1 className="text-[clamp(42px,4.6vw,64px)] leading-[1.08] tracking-[-0.03em] text-white">
                   <span className="block font-black text-white">
                     Orbit <span className="text-[#5de0e6]">Nexus</span>
                   </span>
-                  <HomeHeroRotator />
+                  <span className="mt-3 block font-semibold text-white">
+                    convierte complejidad en control.
+                  </span>
                 </h1>
 
-                <div>
-                  <p className="max-w-[33rem] pt-1 text-base leading-[1.6] text-slate-300 md:pt-0 md:text-[1.05rem]">
-                    Centraliza usuarios, proyectos y validaciones en una sola arquitectura para
-                    operar con orden, seguridad y trazabilidad real.
-                  </p>
+                <p className="max-w-[33rem] text-base leading-[1.7] text-slate-300 md:text-[1.05rem]">
+                  Centraliza proyectos, usuarios y validaciones en una sola arquitectura operativa
+                  con seguridad, trazabilidad y visión en tiempo real.
+                </p>
 
-                  <div className="flex flex-wrap gap-3 pt-6 md:pt-8">
-                    <Button
-                      asChild
-                      size="lg"
-                      className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] hover:opacity-95"
-                    >
-                      <Link href="/login">Iniciar sesión</Link>
-                    </Button>
-                    <Button
-                      asChild
-                      size="lg"
-                      variant="outline"
-                      className="border-white/15 bg-white/[0.06] text-white hover:bg-white/[0.1]"
-                    >
-                      <Link href="/register">Registrarse</Link>
-                    </Button>
-                  </div>
+                <div className="flex flex-wrap gap-3 pt-2 md:pt-3">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-[0_22px_50px_rgba(0,74,173,0.42)]"
+                  >
+                    <Link href="/login">Iniciar sesión</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="border-white/15 bg-white/[0.06] text-white transition-all duration-300 ease-in-out hover:border-white/25 hover:bg-white/[0.1] hover:shadow-[0_14px_36px_rgba(15,23,42,0.22)]"
+                  >
+                    <Link href="/register">Registrarse</Link>
+                  </Button>
                 </div>
               </div>
             </div>

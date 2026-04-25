@@ -16,8 +16,6 @@ import { OrbitBackgroundVideo } from "@/components/ui/orbit-background-video";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  CORE_EXTRA_USER_MXN,
-  CORE_INCLUDED_USERS,
   CORE_MAX_EXTRA_USERS,
   buildQuoteSummary
 } from "@/lib/commercial/plans";
@@ -30,47 +28,61 @@ import {
 type CompanyPlan = "CORE" | "GROWTH" | "ENTERPRISE";
 type ActivationStep = "hero" | "plans" | "billing";
 
+const DISPLAY_CORE_BASE_MXN = 830;
+const DISPLAY_CORE_EXTRA_USER_MXN = 279;
+const DISPLAY_CORE_INCLUDED_USERS = 15;
+const DISPLAY_GROWTH_BASE_MXN = 2390;
+const DISPLAY_GROWTH_INCLUDED_USERS = 40;
+
 const planCards = [
   {
     plan: "CORE" as const,
     label: "Core",
-    highlight: "Más elegido",
+    highlight: "Base operativa",
     subtitle: "Base operativa",
-    price: "$5,200 MXN / mes",
+    price: "$830 MXN al mes",
+    secondaryPrice: "≈ $49 USD",
+    microcopy: "Ideal para estructurar operaciones sin complejidad",
     bullets: [
       "Reduce hasta 30% el desorden operativo en las primeras semanas",
-      "Centraliza 100% de accesos y usuarios en una sola plataforma",
+      "Centraliza 100% de accesos, usuarios y proyectos en una sola plataforma",
       "Visibilidad completa de actividad en tiempo real",
       "Implementación funcional en menos de 7 días",
-      "Base lista para escalar sin rediseñar procesos"
+      "Base estructurada lista para escalar sin rediseñar procesos"
     ]
   },
   {
     plan: "GROWTH" as const,
     label: "Growth",
-    highlight: "IDEAL PARA EQUIPOS",
+    highlight: "Más elegido",
     subtitle: "Impulsa tu crecimiento",
-    price: "$12,900 MXN / mes",
+    price: "$2,390 MXN al mes",
+    secondaryPrice: "≈ $139 USD",
+    microcopy: "Para equipos que buscan eficiencia real y control operativo",
     bullets: [
       "Aumenta hasta 40% la eficiencia operativa entre equipos",
+      "Automatiza asignación de tareas según disponibilidad y carga de trabajo",
+      "Reduce cuellos de botella en procesos críticos hasta en 25%",
       "Coordinación centralizada de múltiples áreas en tiempo real",
-      "Reduce cuellos de botella en procesos críticos",
-      "Automatiza flujos clave para crecer sin fricción",
+      "Alertas inteligentes para prevenir retrasos antes de que escalen",
       "Soporta operaciones de hasta 50 usuarios activos sin pérdida de control"
     ]
   },
   {
     plan: "ENTERPRISE" as const,
-    label: "Enterprise",
-    highlight: "HECHO PARA TU OPERACIÓN",
-    subtitle: "SOLUCIÓN EMPRESARIAL",
-    price: "Implementación estratégica",
+    label: "Implementación estratégica",
+    highlight: "Solución empresarial",
+    subtitle: "Solución empresarial",
+    price: "Cotización personalizada",
+    secondaryPrice: "Implementaciones desde $499 USD al mes",
+    microcopy: "Para operaciones que requieren precisión, escalabilidad y control total",
     bullets: [
+      "Incrementa la eficiencia global de la operación hasta en 60%",
+      "Reasignación automática de recursos ante riesgos o bajo rendimiento",
+      "Integración con sistemas internos (ERP, CRM, herramientas propias)",
+      "Dashboard ejecutivo con métricas clave en tiempo real",
       "Arquitectura diseñada específicamente para tu operación",
-      "Integración con sistemas internos existentes",
-      "Control avanzado sobre procesos críticos de negocio",
-      "Soporte dedicado en implementación y evolución",
-      "Escalabilidad sin límites estructurales"
+      "Soporte dedicado en implementación, evolución y escalabilidad"
     ]
   }
 ];
@@ -157,6 +169,38 @@ export function CompanyActivationCta() {
       }),
     [form.extraUsers, form.plan]
   );
+
+  const displayQuote = useMemo(() => {
+    if (form.plan === "CORE") {
+      const extraAmountMxn = form.extraUsers * DISPLAY_CORE_EXTRA_USER_MXN;
+      return {
+        baseAmountMxn: DISPLAY_CORE_BASE_MXN,
+        extraAmountMxn,
+        totalAmountMxn: DISPLAY_CORE_BASE_MXN + extraAmountMxn,
+        includedUsers: DISPLAY_CORE_INCLUDED_USERS,
+        totalUsers: DISPLAY_CORE_INCLUDED_USERS + form.extraUsers
+      };
+    }
+
+    if (form.plan === "GROWTH") {
+      const extraAmountMxn = form.extraUsers * DISPLAY_CORE_EXTRA_USER_MXN;
+      return {
+        baseAmountMxn: DISPLAY_GROWTH_BASE_MXN,
+        extraAmountMxn,
+        totalAmountMxn: DISPLAY_GROWTH_BASE_MXN + extraAmountMxn,
+        includedUsers: DISPLAY_GROWTH_INCLUDED_USERS,
+        totalUsers: DISPLAY_GROWTH_INCLUDED_USERS + form.extraUsers
+      };
+    }
+
+    return {
+      baseAmountMxn: null,
+      extraAmountMxn: null,
+      totalAmountMxn: null,
+      includedUsers: null,
+      totalUsers: null
+    };
+  }, [form.extraUsers, form.plan]);
 
   const selectedPlan = useMemo(
     () => planCards.find((card) => card.plan === form.plan) ?? planCards[0],
@@ -463,6 +507,9 @@ export function CompanyActivationCta() {
                                 <p className="text-3xl font-semibold tracking-[-0.03em] text-white">
                                   {card.price}
                                 </p>
+                                <p className="text-sm leading-6 text-slate-300">
+                                  {card.secondaryPrice}
+                                </p>
                               </div>
                             </button>
                           );
@@ -483,6 +530,12 @@ export function CompanyActivationCta() {
                                 {selectedPlan.price}
                               </span>
                             </div>
+                            <p className="text-sm leading-7 text-slate-300">
+                              {selectedPlan.secondaryPrice}
+                            </p>
+                            <p className="text-sm leading-7 text-slate-300/90">
+                              {selectedPlan.microcopy}
+                            </p>
                             <ul className="space-y-3 pt-2 text-sm leading-6 text-slate-200">
                               {selectedPlan.bullets.map((bullet) => (
                                 <li key={bullet} className="flex items-start gap-3">
@@ -506,7 +559,7 @@ export function CompanyActivationCta() {
                                   <span>Usuarios extra</span>
                                   <span className="font-semibold text-white">
                                     {form.extraUsers} ·{" "}
-                                    {formatCurrency(form.extraUsers * CORE_EXTRA_USER_MXN)}
+                                    {formatCurrency(form.extraUsers * DISPLAY_CORE_EXTRA_USER_MXN)}
                                   </span>
                                 </div>
                                 <input
@@ -524,8 +577,8 @@ export function CompanyActivationCta() {
                                 />
                                 <p className="text-xs leading-6 text-slate-400">
                                   {form.plan === "CORE"
-                                    ? "Core mantiene 20 usuarios incluidos y permite sumar hasta 10 adicionales."
-                                    : "Growth permite reflejar hasta 10 usuarios extra dentro de este flujo comercial."}
+                                    ? "Core incluye hasta 15 usuarios y permite sumar hasta 10 adicionales."
+                                    : "Growth incluye hasta 40 usuarios y permite sumar hasta 10 adicionales."}
                                 </p>
                               </div>
                             ) : (
@@ -580,19 +633,37 @@ export function CompanyActivationCta() {
                                   <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">
                                     Resumen de activación
                                   </p>
-                                  <p className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-white">
-                                    {formatCurrency(quote.totalAmountMxn)}
-                                    <span className="ml-2 text-sm font-medium text-slate-400">
-                                      / mes
-                                    </span>
-                                  </p>
+                                  {form.plan === "ENTERPRISE" ? (
+                                    <div className="mt-2 space-y-2">
+                                      <p className="text-3xl font-semibold tracking-[-0.03em] text-white">
+                                        Cotización personalizada
+                                      </p>
+                                      <p className="text-sm font-medium text-slate-400">
+                                        Implementaciones desde $499 USD al mes
+                                      </p>
+                                    </div>
+                                  ) : (
+                                    <div className="mt-2 space-y-2">
+                                      <p className="text-3xl font-semibold tracking-[-0.03em] text-white">
+                                        {formatCurrency(displayQuote.totalAmountMxn ?? 0)}
+                                        <span className="ml-2 text-sm font-medium text-slate-400">
+                                          MXN al mes
+                                        </span>
+                                      </p>
+                                      <p className="text-sm font-medium text-slate-400">
+                                        {form.plan === "CORE" ? "≈ $49 USD" : "≈ $139 USD"}
+                                      </p>
+                                    </div>
+                                  )}
                                 </div>
                                 <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/72 px-5 py-4 text-right">
                                   <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
                                     Usuarios
                                   </p>
                                   <p className="mt-2 text-xl font-semibold text-white">
-                                    {quote.totalUsers}
+                                    {form.plan === "ENTERPRISE"
+                                      ? "A medida"
+                                      : displayQuote.totalUsers}
                                   </p>
                                 </div>
                               </div>
@@ -603,7 +674,9 @@ export function CompanyActivationCta() {
                                     Incluidos
                                   </p>
                                   <p className="mt-2 text-lg font-semibold text-white">
-                                    {form.plan === "GROWTH" ? 50 : CORE_INCLUDED_USERS}
+                                    {form.plan === "ENTERPRISE"
+                                      ? "A medida"
+                                      : displayQuote.includedUsers}
                                   </p>
                                 </div>
                                 <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
@@ -611,7 +684,11 @@ export function CompanyActivationCta() {
                                     Extras
                                   </p>
                                   <p className="mt-2 text-lg font-semibold text-white">
-                                    {quote.extraUsers} · {formatCurrency(quote.extraAmountMxn)}
+                                    {form.plan === "ENTERPRISE"
+                                      ? "Personalizado"
+                                      : `${form.extraUsers} · ${formatCurrency(
+                                          displayQuote.extraAmountMxn ?? 0
+                                        )}`}
                                   </p>
                                 </div>
                                 <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
@@ -619,7 +696,9 @@ export function CompanyActivationCta() {
                                     Base
                                   </p>
                                   <p className="mt-2 text-lg font-semibold text-white">
-                                    {formatCurrency(quote.baseAmountMxn)}
+                                    {form.plan === "ENTERPRISE"
+                                      ? "A medida"
+                                      : formatCurrency(displayQuote.baseAmountMxn ?? 0)}
                                   </p>
                                 </div>
                               </div>
@@ -739,7 +818,11 @@ export function CompanyActivationCta() {
                                   <div className="space-y-2">
                                     <Label className="text-slate-200">Usuarios incluidos</Label>
                                     <div className="flex h-12 items-center rounded-2xl border border-white/15 bg-white/[0.08] px-4 text-sm font-medium text-white">
-                                      {form.plan === "GROWTH" ? 50 : CORE_INCLUDED_USERS}
+                                      {form.plan === "ENTERPRISE"
+                                        ? "A medida"
+                                        : form.plan === "GROWTH"
+                                          ? DISPLAY_GROWTH_INCLUDED_USERS
+                                          : DISPLAY_CORE_INCLUDED_USERS}
                                     </div>
                                   </div>
 
@@ -769,7 +852,7 @@ export function CompanyActivationCta() {
                                       {form.plan === "ENTERPRISE"
                                         ? "Enterprise se cotiza de forma personalizada."
                                         : `${form.extraUsers} usuarios extra · ${formatCurrency(
-                                            form.extraUsers * CORE_EXTRA_USER_MXN
+                                            form.extraUsers * DISPLAY_CORE_EXTRA_USER_MXN
                                           )}`}
                                     </p>
                                   </div>
