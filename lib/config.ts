@@ -16,6 +16,10 @@ function isProductionLikeRuntime() {
   );
 }
 
+function isVercelPreviewRuntime() {
+  return process.env.VERCEL === "1" && process.env.VERCEL_ENV !== "production";
+}
+
 function normalizeOrigin(value: string, name: string) {
   try {
     return new URL(value).origin.replace(/\/$/, "");
@@ -33,14 +37,18 @@ export function getAppUrl() {
     return normalizeOrigin(process.env.APP_URL, "APP_URL");
   }
 
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return normalizeOrigin(process.env.NEXT_PUBLIC_APP_URL, "NEXT_PUBLIC_APP_URL");
+  }
+
+  if (isVercelPreviewRuntime() && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
     return normalizeOrigin(
       `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
       "VERCEL_PROJECT_PRODUCTION_URL"
     );
   }
 
-  if (process.env.VERCEL_URL) {
+  if (isVercelPreviewRuntime() && process.env.VERCEL_URL) {
     return normalizeOrigin(`https://${process.env.VERCEL_URL}`, "VERCEL_URL");
   }
 

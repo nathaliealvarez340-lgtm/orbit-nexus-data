@@ -76,7 +76,7 @@ export function LeaderNotifications({ notifications }: LeaderNotificationsProps)
                 }}
               />
 
-              <aside className="absolute right-4 top-4 z-[221] h-[calc(100vh-2rem)] w-full max-w-[25rem] overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950 shadow-[0_36px_120px_rgba(2,6,23,0.62)]">
+              <aside className="absolute left-4 right-4 top-4 z-[221] flex max-h-[calc(100vh-2rem)] w-auto flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950 shadow-[0_36px_120px_rgba(2,6,23,0.62)] md:left-auto md:w-full md:max-w-[25rem]">
                 <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-slate-950 px-5 py-5">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
@@ -102,7 +102,7 @@ export function LeaderNotifications({ notifications }: LeaderNotificationsProps)
                 </div>
 
                 {notifications.length ? (
-                  <div className="h-[calc(100%-7rem)] overflow-y-auto px-4 py-4">
+                  <div className="max-h-[calc(100vh-10rem)] overflow-y-auto px-4 py-4 md:flex-1 md:max-h-none">
                     <div className="space-y-3">
                       {notifications.map((notification) => (
                         <button

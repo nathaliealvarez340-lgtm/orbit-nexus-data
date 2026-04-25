@@ -53,8 +53,8 @@ export default function HomePage() {
           <CompanyActivationCta />
         </div>
 
-        <section className="grid flex-1 items-center gap-8 lg:min-h-[calc(100vh-10rem)] lg:grid-cols-[1fr_1fr] lg:gap-12 xl:gap-16">
-          <div className="relative w-full max-w-[560px] justify-self-center self-center px-2 py-6 md:min-h-[560px] md:px-3 md:py-7 lg:justify-self-end xl:px-4 xl:py-8">
+        <section className="grid flex-1 items-center gap-8 lg:min-h-[calc(100vh-10rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
+          <div className="relative min-w-0 w-full max-w-[560px] justify-self-center self-center px-2 py-6 md:min-h-[560px] md:px-3 md:py-7 lg:justify-self-end xl:px-4 xl:py-8">
             <div className="relative z-10 flex h-full flex-col justify-center">
               <div className="flex flex-col gap-[100px] md:gap-[110px] xl:gap-[120px]">
                 <h1 className="max-w-[34rem] text-[clamp(43px,4.5vw,64px)] leading-[1.1] tracking-[-0.02em]">
@@ -92,7 +92,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid w-full gap-[0.8rem] self-center lg:max-w-[590px] lg:justify-self-start">
+          <div className="grid min-w-0 w-full gap-[0.8rem] self-center lg:max-w-[590px] lg:justify-self-start">
             {highlights.map((item) => {
               const Icon = item.icon;
 

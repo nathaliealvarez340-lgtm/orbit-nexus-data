@@ -52,8 +52,10 @@ for (const file of envFiles) {
 }
 
 const strict = process.argv.includes("--strict");
+const isVercelProduction = process.env.VERCEL_ENV === "production";
 const isProductionLike =
   strict || process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+const requirePublicProductionUrl = strict || isVercelProduction;
 
 const errors = [];
 const warnings = [];
@@ -93,10 +95,11 @@ const databaseUrl = requireValue("DATABASE_URL");
 const jwtSecret = requireValue("JWT_SECRET");
 const superadminMasterCode = readValue("SUPERADMIN_MASTER_CODE");
 const explicitAppUrl = readValue("APP_URL");
+const publicClientAppUrl = readValue("NEXT_PUBLIC_APP_URL");
 const vercelProjectProductionUrl = readValue("VERCEL_PROJECT_PRODUCTION_URL");
 const vercelUrl = readValue("VERCEL_URL");
 
-let resolvedAppUrl = explicitAppUrl;
+let resolvedAppUrl = explicitAppUrl || publicClientAppUrl;
 
 if (!resolvedAppUrl && vercelProjectProductionUrl) {
   resolvedAppUrl = `https://${vercelProjectProductionUrl}`;
@@ -112,10 +115,35 @@ if (!resolvedAppUrl && !isProductionLike) {
 
 if (!resolvedAppUrl) {
   errors.push(
-    "Missing APP_URL (or a Vercel deployment URL fallback). Set APP_URL to your public origin, for example https://orbitne.com."
+    "Missing APP_URL / NEXT_PUBLIC_APP_URL (or a Vercel deployment URL fallback). Set your public origin, for example https://orbitne.com."
   );
 } else {
   validateUrl("APP_URL", resolvedAppUrl, { httpsOnly: isProductionLike });
+}
+
+if (explicitAppUrl && publicClientAppUrl) {
+  try {
+    const serverOrigin = new URL(explicitAppUrl).origin;
+    const clientOrigin = new URL(publicClientAppUrl).origin;
+
+    if (serverOrigin !== clientOrigin) {
+      errors.push("APP_URL and NEXT_PUBLIC_APP_URL must resolve to the same origin.");
+    }
+  } catch {
+    // URL validation is already handled above.
+  }
+}
+
+if (requirePublicProductionUrl && !resolvedAppUrl) {
+  errors.push(
+    "A public app URL is required for production deployments. Set APP_URL or NEXT_PUBLIC_APP_URL explicitly to https://orbitne.com."
+  );
+}
+
+if (isProductionLike && !publicClientAppUrl) {
+  warnings.push(
+    "NEXT_PUBLIC_APP_URL is not configured. Add NEXT_PUBLIC_APP_URL=https://orbitne.com to keep client-side public origin references explicit."
+  );
 }
 
 if (databaseUrl && databaseUrl.startsWith("file:") && isProductionLike) {

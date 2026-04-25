@@ -106,9 +106,9 @@ export function WorkspaceAssistant({ session }: WorkspaceAssistantProps) {
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-[180]">
+      <div className="fixed bottom-6 left-4 right-4 z-[180] sm:left-auto sm:right-6">
         <Button
-          className="h-12 rounded-2xl border border-cyan-400/20 bg-slate-950/88 px-4 text-cyan-200 shadow-[0_20px_55px_rgba(2,6,23,0.42)] hover:bg-slate-900"
+          className="h-12 w-full rounded-2xl border border-cyan-400/20 bg-slate-950/88 px-4 text-cyan-200 shadow-[0_20px_55px_rgba(2,6,23,0.42)] hover:bg-slate-900 sm:w-auto"
           type="button"
           variant="outline"
           onClick={() => setIsOpen((current) => !current)}
@@ -119,7 +119,7 @@ export function WorkspaceAssistant({ session }: WorkspaceAssistantProps) {
       </div>
 
       {isOpen ? (
-        <aside className="fixed bottom-24 right-6 z-[185] flex h-[40rem] w-[30rem] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-[1.8rem] border border-white/10 bg-slate-950/96 shadow-[0_34px_120px_rgba(2,6,23,0.6)] backdrop-blur-xl">
+        <aside className="fixed bottom-24 left-3 right-3 z-[185] flex h-[min(40rem,calc(100vh-7.5rem))] w-auto max-w-none flex-col overflow-hidden rounded-[1.8rem] border border-white/10 bg-slate-950/96 shadow-[0_34px_120px_rgba(2,6,23,0.6)] backdrop-blur-xl sm:left-auto sm:right-6 sm:w-[30rem] sm:max-w-[calc(100vw-1.5rem)]">
           <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">

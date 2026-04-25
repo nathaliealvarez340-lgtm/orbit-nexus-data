@@ -30,6 +30,11 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
     background-image:
