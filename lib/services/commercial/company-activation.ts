@@ -308,6 +308,7 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
         contactEmail: email,
         sector,
         plan: input.plan,
+        monthlyAmount: String(quote.baseAmountMxn),
         includedUsers: String(quote.includedUsers),
         extraUsers: String(quote.extraUsers),
         totalAmountMxn: String(quote.totalAmountMxn),

@@ -18,6 +18,11 @@ import { OrbitBackgroundVideo } from "@/components/ui/orbit-background-video";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  CORE_BASE_MXN,
+  CORE_EXTRA_USER_MXN,
+  CORE_INCLUDED_USERS,
+  GROWTH_MAX_USERS,
+  GROWTH_MONTHLY_MXN,
   CORE_MAX_EXTRA_USERS,
   buildQuoteSummary
 } from "@/lib/commercial/plans";
@@ -30,11 +35,12 @@ import {
 type CompanyPlan = "CORE" | "GROWTH" | "ENTERPRISE";
 type ActivationStep = "hero" | "plans" | "billing";
 
-const DISPLAY_CORE_BASE_MXN = 830;
-const DISPLAY_CORE_EXTRA_USER_MXN = 279;
-const DISPLAY_CORE_INCLUDED_USERS = 15;
-const DISPLAY_GROWTH_BASE_MXN = 2390;
-const DISPLAY_GROWTH_INCLUDED_USERS = 40;
+const DISPLAY_CORE_BASE_MXN = CORE_BASE_MXN;
+const DISPLAY_CORE_EXTRA_USER_MXN = CORE_EXTRA_USER_MXN;
+const DISPLAY_CORE_INCLUDED_USERS = CORE_INCLUDED_USERS;
+const DISPLAY_GROWTH_BASE_MXN = GROWTH_MONTHLY_MXN;
+const DISPLAY_GROWTH_INCLUDED_USERS = GROWTH_MAX_USERS;
+const FALLBACK_EXCHANGE_RATE = 18;
 
 const planCards = [
   {
@@ -42,8 +48,8 @@ const planCards = [
     label: "Core",
     highlight: "Base operativa",
     subtitle: "Base operativa",
-    price: "$830 MXN al mes",
-    secondaryPrice: "≈ $49 USD",
+    price: "$1,799 MXN al mes",
+    secondaryPrice: "≈ $100 USD estimado",
     microcopy: "Ideal para estructurar operaciones sin complejidad",
     bullets: [
       "Reduce hasta 30% el desorden operativo en las primeras semanas",
@@ -58,8 +64,8 @@ const planCards = [
     label: "Growth",
     highlight: "Más elegido",
     subtitle: "Impulsa tu crecimiento",
-    price: "$2,390 MXN al mes",
-    secondaryPrice: "≈ $139 USD",
+    price: "$3,999 MXN al mes",
+    secondaryPrice: "≈ $222 USD estimado",
     microcopy: "Para equipos que buscan eficiencia real y control operativo",
     bullets: [
       "Aumenta hasta 40% la eficiencia operativa entre equipos",
@@ -76,7 +82,7 @@ const planCards = [
     highlight: "Solución empresarial",
     subtitle: "Solución empresarial",
     price: "Cotización personalizada",
-    secondaryPrice: "Implementaciones desde $499 USD al mes",
+    secondaryPrice: "Implementaciones desde $549 USD al mes",
     microcopy: "Para operaciones que requieren precisión, escalabilidad y control total",
     bullets: [
       "Incrementa la eficiencia global de la operación hasta en 60%",
@@ -162,12 +168,22 @@ const sectorOptionsList = [
 const activationSupportHref =
   "mailto:soporte@orbitne.com?subject=Soporte%20activacion%20Orbit%20Nexus";
 
+type ExchangeRateState = {
+  rate: number;
+  source: string;
+  updatedAt: string | null;
+};
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: "MXN",
     maximumFractionDigits: 0
   }).format(value);
+}
+
+function formatEstimatedUsd(amountMxn: number, rate: number) {
+  return `≈ $${Math.round(amountMxn / rate)} USD estimado`;
 }
 
 export function CompanyActivationCta() {
@@ -181,6 +197,12 @@ export function CompanyActivationCta() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSectorMenuOpen, setIsSectorMenuOpen] = useState(false);
   const [manualReviewMessage, setManualReviewMessage] = useState<string | null>(null);
+  const [exchangeRate, setExchangeRate] = useState<ExchangeRateState>({
+    rate: FALLBACK_EXCHANGE_RATE,
+    source: "fallback",
+    updatedAt: null
+  });
+  const [hasLoadedExchangeRate, setHasLoadedExchangeRate] = useState(false);
 
   const plansRef = useRef<HTMLDivElement | null>(null);
   const billingRef = useRef<HTMLDivElement | null>(null);
@@ -231,6 +253,62 @@ export function CompanyActivationCta() {
     () => planCards.find((card) => card.plan === form.plan) ?? planCards[0],
     [form.plan]
   );
+
+  function getPlanUsdReference(plan: CompanyPlan) {
+    if (plan === "ENTERPRISE") {
+      return "Implementaciones desde $549 USD al mes";
+    }
+
+    const monthlyAmount = plan === "CORE" ? DISPLAY_CORE_BASE_MXN : DISPLAY_GROWTH_BASE_MXN;
+    return formatEstimatedUsd(monthlyAmount, exchangeRate.rate);
+  }
+
+  useEffect(() => {
+    if (!open || hasLoadedExchangeRate) {
+      return;
+    }
+
+    let active = true;
+
+    async function loadExchangeRate() {
+      try {
+        const response = await fetch("/api/currency/mxn-usd", {
+          method: "GET",
+          headers: {
+            Accept: "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Exchange rate request failed with status ${response.status}`);
+        }
+
+        const payload = (await response.json()) as ExchangeRateState;
+
+        if (!active || !payload.rate || !Number.isFinite(payload.rate)) {
+          return;
+        }
+
+        setExchangeRate({
+          rate: payload.rate,
+          source: payload.source,
+          updatedAt: payload.updatedAt
+        });
+      } catch (exchangeRateError) {
+        console.warn("[activation/pricing] Falling back to static MXN/USD reference", exchangeRateError);
+      } finally {
+        if (active) {
+          setHasLoadedExchangeRate(true);
+        }
+      }
+    }
+
+    void loadExchangeRate();
+
+    return () => {
+      active = false;
+    };
+  }, [hasLoadedExchangeRate, open]);
 
   useEffect(() => {
     if (!open || step !== "hero" || countdownComplete) {
@@ -397,7 +475,7 @@ export function CompanyActivationCta() {
           includedUsers: quote.includedUsers,
           totalUsers: quote.totalUsers,
           extraUsers: form.plan === "CORE" || form.plan === "GROWTH" ? form.extraUsers : 0,
-          monthlyAmount: quote.totalAmountMxn
+          monthlyAmount: quote.baseAmountMxn
         })
       });
       const payload = await response.json().catch(() => null);
@@ -620,7 +698,7 @@ export function CompanyActivationCta() {
                                   {card.price}
                                 </p>
                                 <p className="text-sm leading-6 text-slate-300">
-                                  {card.secondaryPrice}
+                                  {getPlanUsdReference(card.plan)}
                                 </p>
                               </div>
                             </button>
@@ -643,7 +721,7 @@ export function CompanyActivationCta() {
                               </span>
                             </div>
                             <p className="text-sm leading-7 text-slate-300">
-                              {selectedPlan.secondaryPrice}
+                              {getPlanUsdReference(selectedPlan.plan)}
                             </p>
                             <p className="text-sm leading-7 text-slate-300/90">
                               {selectedPlan.microcopy}
@@ -751,7 +829,7 @@ export function CompanyActivationCta() {
                                         Cotización personalizada
                                       </p>
                                       <p className="text-sm font-medium text-slate-400">
-                                        Implementaciones desde $499 USD al mes
+                                        Implementaciones desde $549 USD al mes
                                       </p>
                                     </div>
                                   ) : (
@@ -763,7 +841,10 @@ export function CompanyActivationCta() {
                                         </span>
                                       </p>
                                       <p className="text-sm font-medium text-slate-400">
-                                        {form.plan === "CORE" ? "≈ $49 USD" : "≈ $139 USD"}
+                                        {formatEstimatedUsd(
+                                          displayQuote.totalAmountMxn ?? 0,
+                                          exchangeRate.rate
+                                        )}
                                       </p>
                                     </div>
                                   )}

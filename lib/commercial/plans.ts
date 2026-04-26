@@ -1,11 +1,11 @@
 type CompanyPlan = "CORE" | "GROWTH" | "ENTERPRISE";
 
 export const CORE_INCLUDED_USERS = 15;
-export const CORE_BASE_MXN = 830;
+export const CORE_BASE_MXN = 1799;
 export const CORE_EXTRA_USER_MXN = 279;
 export const CORE_MAX_EXTRA_USERS = 10;
 export const GROWTH_MAX_USERS = 40;
-export const GROWTH_MONTHLY_MXN = 2390;
+export const GROWTH_MONTHLY_MXN = 3999;
 
 export type QuoteInput = {
   plan: CompanyPlan;
