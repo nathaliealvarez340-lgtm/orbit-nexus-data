@@ -2,9 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 function loadEnvFile(filePath) {
-  if (!fs.existsSync(filePath)) {
-    return;
-  }
+  if (!fs.existsSync(filePath)) return;
 
   const content = fs.readFileSync(filePath, "utf8");
   const lines = content.split(/\r?\n/);
@@ -12,15 +10,10 @@ function loadEnvFile(filePath) {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    if (!trimmed || trimmed.startsWith("#")) {
-      continue;
-    }
+    if (!trimmed || trimmed.startsWith("#")) continue;
 
     const separatorIndex = trimmed.indexOf("=");
-
-    if (separatorIndex === -1) {
-      continue;
-    }
+    if (separatorIndex === -1) continue;
 
     const key = trimmed.slice(0, separatorIndex).trim();
     let value = trimmed.slice(separatorIndex + 1).trim();
@@ -75,10 +68,15 @@ function readValue(name) {
   return process.env[name]?.trim() ?? "";
 }
 
+function readBooleanFlag(name, defaultValue = false) {
+  const value = readValue(name).toLowerCase();
+
+  if (!value) return defaultValue;
+  return ["1", "true", "yes", "on"].includes(value);
+}
+
 function validateUrl(name, value, { httpsOnly = false } = {}) {
-  if (!value) {
-    return;
-  }
+  if (!value) return;
 
   try {
     const url = new URL(value);
@@ -94,10 +92,14 @@ function validateUrl(name, value, { httpsOnly = false } = {}) {
 const databaseUrl = requireValue("DATABASE_URL");
 const jwtSecret = requireValue("JWT_SECRET");
 const superadminMasterCode = readValue("SUPERADMIN_MASTER_CODE");
+
 const explicitAppUrl = readValue("APP_URL");
 const publicClientAppUrl = readValue("NEXT_PUBLIC_APP_URL");
 const vercelProjectProductionUrl = readValue("VERCEL_PROJECT_PRODUCTION_URL");
 const vercelUrl = readValue("VERCEL_URL");
+
+const emailEnabled = readBooleanFlag("FEATURE_EMAIL_ENABLED", false);
+const resendApiKey = readValue("RESEND_API_KEY");
 
 let resolvedAppUrl = explicitAppUrl || publicClientAppUrl;
 
@@ -161,6 +163,7 @@ if (isProductionLike && !superadminMasterCode) {
 const stripeSecret = readValue("STRIPE_SECRET_KEY");
 const stripePublic = readValue("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY");
 const stripeWebhook = readValue("STRIPE_WEBHOOK_SECRET");
+
 const stripeValues = [stripeSecret, stripePublic, stripeWebhook];
 const hasSomeStripe = stripeValues.some(Boolean);
 const hasAllStripe = stripeValues.every(Boolean);
@@ -177,7 +180,17 @@ if (!hasAllStripe) {
   );
 }
 
-if (!readValue("RESEND_API_KEY")) {
+if (emailEnabled && !resendApiKey) {
+  errors.push(
+    "FEATURE_EMAIL_ENABLED is true, but RESEND_API_KEY is missing. Add RESEND_API_KEY or set FEATURE_EMAIL_ENABLED=false."
+  );
+}
+
+if (!emailEnabled) {
+  warnings.push(
+    "FEATURE_EMAIL_ENABLED is false. Access recovery emails are disabled and will be skipped."
+  );
+} else if (!resendApiKey) {
   warnings.push(
     "RESEND_API_KEY is not configured. Access recovery emails will not send from production until you add it."
   );
@@ -185,6 +198,7 @@ if (!readValue("RESEND_API_KEY")) {
 
 if (errors.length > 0) {
   console.error("\n[orbit-nexus] Environment validation failed:\n");
+
   for (const error of errors) {
     console.error(`- ${error}`);
   }
@@ -201,6 +215,7 @@ if (errors.length > 0) {
 
 if (warnings.length > 0) {
   console.warn("\n[orbit-nexus] Environment validation warnings:\n");
+
   for (const warning of warnings) {
     console.warn(`- ${warning}`);
   }
