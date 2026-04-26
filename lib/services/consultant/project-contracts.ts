@@ -55,9 +55,11 @@ export async function signProjectContract(input: SignProjectContractInput) {
     throw new ServiceError("No encontramos la empresa asociada a esta sesion.", 403);
   }
 
+  const companyId = input.companyId;
+
   const existing = await prisma.contractAcceptance.findFirst({
     where: {
-      companyId: input.companyId,
+      companyId,
       projectSlug: input.projectSlug,
       consultantUserId: input.consultantUserId
     },
@@ -82,7 +84,7 @@ export async function signProjectContract(input: SignProjectContractInput) {
 
   const company = await prisma.company.findUnique({
     where: {
-      id: input.companyId
+      id: companyId
     },
     select: {
       id: true,
@@ -93,7 +95,7 @@ export async function signProjectContract(input: SignProjectContractInput) {
   const project = await prisma.project.findFirst({
     where: {
       id: input.projectExternalId,
-      companyId: input.companyId
+      companyId
     },
     select: {
       id: true,
@@ -105,7 +107,7 @@ export async function signProjectContract(input: SignProjectContractInput) {
   const assignment = project
     ? await prisma.projectAssignment.findFirst({
         where: {
-          companyId: input.companyId,
+          companyId,
           projectId: project.id,
           consultantId: input.consultantUserId
         },
@@ -130,7 +132,7 @@ export async function signProjectContract(input: SignProjectContractInput) {
   const acceptance = await prisma.$transaction(async (tx) => {
     const createdAcceptance = await tx.contractAcceptance.create({
       data: {
-        companyId: input.companyId,
+        companyId,
         projectId: project?.id ?? null,
         projectExternalId: input.projectExternalId,
         projectSlug: input.projectSlug,
@@ -150,7 +152,7 @@ export async function signProjectContract(input: SignProjectContractInput) {
     if (project?.id && assignment?.id) {
       await tx.projectAssignment.updateMany({
         where: {
-          companyId: input.companyId,
+          companyId,
           projectId: project.id,
           consultantId: input.consultantUserId
         },
@@ -163,7 +165,7 @@ export async function signProjectContract(input: SignProjectContractInput) {
 
     const leaders = await tx.user.findMany({
       where: {
-        companyId: input.companyId,
+        companyId,
         role: {
           key: RoleKey.LEADER
         },
@@ -177,7 +179,7 @@ export async function signProjectContract(input: SignProjectContractInput) {
     if (leaders.length) {
       await tx.notification.createMany({
         data: leaders.map((leader) => ({
-          companyId: input.companyId!,
+          companyId,
           userId: leader.id,
           projectId: project?.id ?? null,
           type: NotificationType.PROJECT,
