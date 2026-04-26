@@ -6,6 +6,7 @@ import { ChatSummaryCard } from "@/components/dashboard/leader-chat-summary-card
 import { LeaderKpiRow } from "@/components/dashboard/leader-kpi-row";
 import { LeaderNotifications } from "@/components/dashboard/leader-notifications";
 import { LeaderProjectGrid } from "@/components/dashboard/leader-project-grid";
+import { NexusIntelligenceFeed } from "@/components/dashboard/nexus-intelligence-feed";
 import {
   LeaderActivityPanel,
   LeaderQuickActionsPanel,
@@ -15,6 +16,7 @@ import { OperationsPanel } from "@/components/dashboard/operations-panel";
 import { OperationsShell } from "@/components/dashboard/operations-shell";
 import { useWorkspaceChat } from "@/components/dashboard/workspace-chat-provider";
 import { useWorkspaceProjects } from "@/components/dashboard/workspace-projects-provider";
+import { leaderIntelligenceFeedItems } from "@/lib/data/intelligence-feed";
 import {
   getLeaderDashboardMock,
   getLeaderDashboardSearchItems
@@ -146,6 +148,8 @@ export function LeaderDashboard({ session }: LeaderDashboardProps) {
               />
             </div>
           </section>
+
+          <NexusIntelligenceFeed items={leaderIntelligenceFeedItems} />
 
           <section
             className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:items-stretch"

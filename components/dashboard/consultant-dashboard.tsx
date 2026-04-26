@@ -9,12 +9,14 @@ import { ConsultantChatStrip } from "@/components/dashboard/consultant-chat-stri
 import { ConsultantExecutiveHeader } from "@/components/dashboard/consultant-executive-header";
 import { ConsultantExecutionRail } from "@/components/dashboard/consultant-execution-rail";
 import { ConsultantProjectGrid } from "@/components/dashboard/consultant-project-grid";
+import { NexusIntelligenceFeed } from "@/components/dashboard/nexus-intelligence-feed";
 import { OperationsFeed } from "@/components/dashboard/operations-feed";
 import { OperationsPanel } from "@/components/dashboard/operations-panel";
 import { OperationsShell } from "@/components/dashboard/operations-shell";
 import { OperationsStatCard } from "@/components/dashboard/operations-stat-card";
 import { useWorkspaceChat } from "@/components/dashboard/workspace-chat-provider";
 import { Button } from "@/components/ui/button";
+import { consultantIntelligenceFeedItems } from "@/lib/data/intelligence-feed";
 import {
   getConsultantDashboardSearchItems,
   type ConsultantDashboardMock
@@ -93,6 +95,8 @@ export function ConsultantDashboard({ session, data }: ConsultantDashboardProps)
         priorityDeliverable={priorityDeliverable}
         session={session}
       />
+
+      <NexusIntelligenceFeed items={consultantIntelligenceFeedItems} />
 
       <div id="consultant-overview" className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {data.metrics.map((metric) => (
