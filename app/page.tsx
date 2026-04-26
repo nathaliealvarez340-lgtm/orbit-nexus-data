@@ -55,37 +55,38 @@ export default function HomePage() {
         <section className="grid flex-1 items-center gap-8 lg:min-h-[calc(100vh-10rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
           <div className="relative min-w-0 w-full max-w-[560px] justify-self-center self-center px-2 py-6 md:min-h-[560px] md:px-3 md:py-7 lg:justify-self-end xl:px-4 xl:py-8">
             <div className="relative z-10 flex h-full flex-col justify-center">
-              <div className="max-w-[34rem] space-y-6 md:space-y-7">
-                <h1 className="text-[clamp(42px,4.6vw,64px)] leading-[1.08] tracking-[-0.03em] text-white">
-                  <span className="block font-black text-white">
+              <div className="max-w-[32rem] space-y-8 md:space-y-10">
+                <h1 className="max-w-[30rem] text-[clamp(38px,4.4vw,60px)] leading-[1.1] tracking-[-0.03em] text-white">
+                  <span className="block font-black text-white leading-[1.04]">
                     Orbit <span className="text-[#5de0e6]">Nexus</span>
                   </span>
-                  <span className="mt-3 block font-semibold text-white">
+                  <span className="mt-4 block font-semibold leading-[1.1] text-white">
                     convierte complejidad en control.
                   </span>
                 </h1>
 
-                <p className="max-w-[33rem] text-base leading-[1.7] text-slate-300 md:text-[1.05rem]">
-                  Centraliza proyectos, usuarios y validaciones en una sola arquitectura operativa
-                  con seguridad, trazabilidad y visión en tiempo real.
-                </p>
+                <div className="space-y-6 md:space-y-7">
+                  <p className="max-w-[30rem] text-base leading-7 text-slate-300 md:text-[1.05rem] md:leading-8">
+                    Centraliza usuarios, accesos y operación en una arquitectura segura, escalable y lista para crecer.
+                  </p>
 
-                <div className="flex flex-wrap gap-3 pt-2 md:pt-3">
-                  <Button
-                    asChild
-                    size="lg"
-                    className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-[0_22px_50px_rgba(0,74,173,0.42)]"
-                  >
-                    <Link href="/login">Iniciar sesión</Link>
-                  </Button>
-                  <Button
-                    asChild
-                    size="lg"
-                    variant="outline"
-                    className="border-white/15 bg-white/[0.06] text-white transition-all duration-300 ease-in-out hover:border-white/25 hover:bg-white/[0.1] hover:shadow-[0_14px_36px_rgba(15,23,42,0.22)]"
-                  >
-                    <Link href="/register">Registrarse</Link>
-                  </Button>
+                  <div className="flex flex-wrap gap-3 pt-1 md:pt-2">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-[0_22px_50px_rgba(0,74,173,0.42)]"
+                    >
+                      <Link href="/login">Iniciar sesión</Link>
+                    </Button>
+                    <Button
+                      asChild
+                      size="lg"
+                      variant="outline"
+                      className="border-white/15 bg-white/[0.06] text-white transition-all duration-300 ease-in-out hover:border-white/25 hover:bg-white/[0.1] hover:shadow-[0_14px_36px_rgba(15,23,42,0.22)]"
+                    >
+                      <Link href="/register">Registrarse</Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
