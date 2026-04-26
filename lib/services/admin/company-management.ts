@@ -10,7 +10,12 @@ import {
   normalizeCompanyCodePrefix
 } from "@/lib/company-code";
 import { prisma } from "@/lib/prisma";
+import { getSupportTicketList, type SupportTicketSummary } from "@/lib/services/nexus/support-tickets";
 import { ServiceError } from "@/lib/services/service-error";
+import {
+  getPricingSettings,
+  type PricingSettingsSummary
+} from "@/lib/services/admin/platform-settings";
 
 type CreateCompanyInput = {
   name: string;
@@ -72,6 +77,12 @@ export type SuperadminOverview = {
   enterpriseReviews: number;
   authorizedLeaders: number;
   authorizedConsultants: number;
+  totalProjects: number;
+  completedProjects: number;
+  activeConsultants: number;
+  openReports: number;
+  estimatedMonthlyRevenueMxn: number;
+  totalUsers: number;
 };
 
 export async function getRecentActivationRequests(limit = 6) {
@@ -116,7 +127,16 @@ export async function getRecentActivationRequests(limit = 6) {
 export async function getSuperadminOverview(companies?: CompanySummary[]) {
   const companySummaries = companies ?? (await getCompanySummaryList());
 
-  const [authorizedLeaders, authorizedConsultants, enterpriseReviews] = await Promise.all([
+  const [
+    authorizedLeaders,
+    authorizedConsultants,
+    enterpriseReviews,
+    totalProjects,
+    completedProjects,
+    activeConsultants,
+    openReports,
+    totalUsers
+  ] = await Promise.all([
     prisma.user.count({
       where: {
         role: { key: RoleKey.LEADER },
@@ -139,8 +159,39 @@ export async function getSuperadminOverview(companies?: CompanySummary[]) {
       where: {
         status: CompanyBillingStatus.ENTERPRISE_REVIEW
       }
+    }),
+    prisma.project.count(),
+    prisma.project.count({
+      where: {
+        status: "COMPLETED"
+      }
+    }),
+    prisma.user.count({
+      where: {
+        role: { key: RoleKey.CONSULTANT },
+        status: UserStatus.ACTIVE
+      }
+    }),
+    prisma.supportTicket.count({
+      where: {
+        status: {
+          in: ["OPEN", "IN_PROGRESS"]
+        }
+      }
+    }),
+    prisma.user.count({
+      where: {
+        status: {
+          in: [UserStatus.PENDING_REGISTRATION, UserStatus.ACTIVE]
+        }
+      }
     })
   ]);
+
+  const estimatedMonthlyRevenueMxn = companySummaries.reduce(
+    (total, company) => total + (company.monthlyAmountMxn ?? 0),
+    0
+  );
 
   return {
     totalCompanies: companySummaries.length,
@@ -151,21 +202,31 @@ export async function getSuperadminOverview(companies?: CompanySummary[]) {
     ).length,
     enterpriseReviews,
     authorizedLeaders,
-    authorizedConsultants
+    authorizedConsultants,
+    totalProjects,
+    completedProjects,
+    activeConsultants,
+    openReports,
+    estimatedMonthlyRevenueMxn,
+    totalUsers
   } satisfies SuperadminOverview;
 }
 
 export async function getSuperadminDashboardData() {
   const companies = await getCompanySummaryList();
-  const [overview, activationRequests] = await Promise.all([
+  const [overview, activationRequests, supportTickets, pricingSettings] = await Promise.all([
     getSuperadminOverview(companies),
-    getRecentActivationRequests()
+    getRecentActivationRequests(),
+    getSupportTicketList(),
+    getPricingSettings()
   ]);
 
   return {
     companies,
     overview,
-    activationRequests
+    activationRequests,
+    supportTickets,
+    pricingSettings
   };
 }
 

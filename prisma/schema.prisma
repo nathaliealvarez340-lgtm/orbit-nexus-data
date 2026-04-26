@@ -140,6 +140,29 @@ enum MeetingStatus {
   CANCELLED
 }
 
+enum ContractAcceptanceStatus {
+  CONTRACT_SIGNED
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum SupportTicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SupportTicketSource {
+  NEXUS_CHAT
+  CONTACT
+  SYSTEM
+}
+
 enum RejectionReason {
   CAPACITY
   TIMELINE_CONFLICT
@@ -189,6 +212,8 @@ model Company {
   projectStatusHistory        ProjectStatusHistory[]
   loginActivities             LoginActivity[]
   activationRequests          CompanyActivationRequest[]
+  contractAcceptances         ContractAcceptance[]
+  supportTickets              SupportTicket[]
   createdAt                   DateTime                     @default(now())
   updatedAt                   DateTime                     @updatedAt
 
@@ -705,4 +730,69 @@ model LoginActivity {
   @@index([companyId, occurredAt])
   @@index([accessCodeAttempt])
   @@map("login_activity")
+}
+
+model ContractAcceptance {
+  id                String                   @id @default(cuid())
+  companyId         String?
+  projectId         String?
+  projectExternalId String
+  projectSlug       String
+  projectName       String
+  assignmentId      String?
+  consultantUserId  String?
+  consultantName    String
+  leaderUserId      String?
+  leaderName        String?
+  companyName       String?
+  contractVersion   String                   @default("v1")
+  contractTitle     String
+  contractBody      String
+  status            ContractAcceptanceStatus @default(CONTRACT_SIGNED)
+  signedAt          DateTime                 @default(now())
+  company           Company?                 @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([companyId, signedAt])
+  @@index([projectSlug, consultantUserId])
+  @@map("contract_acceptances")
+}
+
+model SupportTicket {
+  id             String                @id @default(cuid())
+  companyId      String?
+  source         SupportTicketSource   @default(NEXUS_CHAT)
+  status         SupportTicketStatus   @default(OPEN)
+  priority       SupportTicketPriority @default(MEDIUM)
+  userId         String?
+  userRole       RoleKey
+  userName       String
+  title          String
+  message        String
+  contextLabel   String
+  routePath      String
+  assistantReply String?
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  company        Company?              @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([companyId, createdAt])
+  @@index([status, priority, createdAt])
+  @@map("support_tickets")
+}
+
+model PricingSetting {
+  id                   String   @id @default(cuid())
+  coreMonthlyMxn       Int
+  growthMonthlyMxn     Int
+  extraUserMonthlyMxn  Int
+  enterpriseStartingUsd Int
+  updatedByName        String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("pricing_settings")
 }

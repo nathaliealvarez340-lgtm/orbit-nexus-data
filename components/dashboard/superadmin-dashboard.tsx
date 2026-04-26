@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, RotateCw, ShieldCheck, Trash2 } from "lucide-react";
+import { Copy, Mail, RotateCw, ShieldCheck, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { OperationsPanel } from "@/components/dashboard/operations-panel";
@@ -13,6 +13,8 @@ import type {
   CompanySummary,
   SuperadminOverview
 } from "@/lib/services/admin/company-management";
+import type { PricingSettingsSummary } from "@/lib/services/admin/platform-settings";
+import type { SupportTicketSummary } from "@/lib/services/nexus/support-tickets";
 import type { SessionUser } from "@/types/auth";
 
 type SuperadminDashboardProps = {
@@ -20,6 +22,8 @@ type SuperadminDashboardProps = {
   companies: CompanySummary[];
   overview: SuperadminOverview;
   activationRequests: ActivationRequestSummary[];
+  supportTickets: SupportTicketSummary[];
+  pricingSettings: PricingSettingsSummary;
 };
 
 type CompanyFormState = {
@@ -54,6 +58,13 @@ type LeaderAuthorizationFormState = {
   fullName: string;
   email: string;
   phone: string;
+};
+
+type PricingSettingsFormState = {
+  coreMonthlyMxn: string;
+  growthMonthlyMxn: string;
+  extraUserMonthlyMxn: string;
+  enterpriseStartingUsd: string;
 };
 
 const initialFormState: CompanyFormState = {
@@ -98,11 +109,15 @@ export function SuperadminDashboard({
   session,
   companies: initialCompanies,
   overview: initialOverview,
-  activationRequests: initialActivationRequests
+  activationRequests: initialActivationRequests,
+  supportTickets: initialSupportTickets,
+  pricingSettings: initialPricingSettings
 }: SuperadminDashboardProps) {
   const [companies, setCompanies] = useState(initialCompanies);
   const [overview, setOverview] = useState(initialOverview);
   const [activationRequests] = useState(initialActivationRequests);
+  const [supportTickets, setSupportTickets] = useState(initialSupportTickets);
+  const [pricingSettings, setPricingSettings] = useState(initialPricingSettings);
   const [form, setForm] = useState(initialFormState);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -117,6 +132,14 @@ export function SuperadminDashboard({
   const [isLoadingLeaders, setIsLoadingLeaders] = useState(false);
   const [isAuthorizingLeader, setIsAuthorizingLeader] = useState(false);
   const [removingLeaderId, setRemovingLeaderId] = useState<string | null>(null);
+  const [pricingForm, setPricingForm] = useState<PricingSettingsFormState>({
+    coreMonthlyMxn: String(initialPricingSettings.coreMonthlyMxn),
+    growthMonthlyMxn: String(initialPricingSettings.growthMonthlyMxn),
+    extraUserMonthlyMxn: String(initialPricingSettings.extraUserMonthlyMxn),
+    enterpriseStartingUsd: String(initialPricingSettings.enterpriseStartingUsd)
+  });
+  const [isSavingPricing, setIsSavingPricing] = useState(false);
+  const [updatingTicketId, setUpdatingTicketId] = useState<string | null>(null);
 
   const searchItems = useMemo(
     () =>
@@ -173,6 +196,31 @@ export function SuperadminDashboard({
       label: "Consultores autorizados",
       value: String(overview.authorizedConsultants),
       detail: "Consultores activos o pendientes a nivel plataforma."
+    },
+    {
+      label: "Proyectos activos",
+      value: String(Math.max(overview.totalProjects - overview.completedProjects, 0)),
+      detail: "Frentes operativos vigentes visibles en toda la plataforma."
+    },
+    {
+      label: "Proyectos terminados",
+      value: String(overview.completedProjects),
+      detail: "Proyectos ya movidos a historial operativo."
+    },
+    {
+      label: "Reportes abiertos",
+      value: String(overview.openReports),
+      detail: "Issues y mensajes detectados desde Nexus o seguimiento manual."
+    },
+    {
+      label: "Ingresos estimados",
+      value: formatCurrency(overview.estimatedMonthlyRevenueMxn),
+      detail: "Lectura comercial mensual estimada por empresas activas."
+    },
+    {
+      label: "Usuarios totales",
+      value: String(overview.totalUsers),
+      detail: "Usuarios activos o pendientes dentro de la plataforma."
     }
   ];
 
@@ -429,6 +477,95 @@ export function SuperadminDashboard({
       setError("Ocurrio un error inesperado al actualizar el lider.");
     } finally {
       setRemovingLeaderId(null);
+    }
+  }
+
+  async function handleSavePricing(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (isSavingPricing) {
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+    setIsSavingPricing(true);
+
+    try {
+      const response = await fetch("/api/admin/pricing-settings", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          coreMonthlyMxn: Number(pricingForm.coreMonthlyMxn),
+          growthMonthlyMxn: Number(pricingForm.growthMonthlyMxn),
+          extraUserMonthlyMxn: Number(pricingForm.extraUserMonthlyMxn),
+          enterpriseStartingUsd: Number(pricingForm.enterpriseStartingUsd)
+        })
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setError(payload?.message ?? "No fue posible guardar los precios globales.");
+        return;
+      }
+
+      setPricingSettings(payload.data);
+      setPricingForm({
+        coreMonthlyMxn: String(payload.data.coreMonthlyMxn),
+        growthMonthlyMxn: String(payload.data.growthMonthlyMxn),
+        extraUserMonthlyMxn: String(payload.data.extraUserMonthlyMxn),
+        enterpriseStartingUsd: String(payload.data.enterpriseStartingUsd)
+      });
+      setSuccess(payload?.message ?? "Precios globales actualizados correctamente.");
+    } catch {
+      setError("Ocurrio un error inesperado al guardar los precios globales.");
+    } finally {
+      setIsSavingPricing(false);
+    }
+  }
+
+  async function handleUpdateTicketStatus(ticketId: string, status: "OPEN" | "IN_PROGRESS" | "RESOLVED") {
+    if (updatingTicketId) {
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+    setUpdatingTicketId(ticketId);
+
+    try {
+      const response = await fetch(`/api/admin/support-tickets/${ticketId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status })
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setError(payload?.message ?? "No fue posible actualizar el reporte.");
+        return;
+      }
+
+      setSupportTickets((current) =>
+        current.map((ticket) => (ticket.id === ticketId ? payload.data : ticket))
+      );
+      setOverview((current) => ({
+        ...current,
+        openReports:
+          status === "RESOLVED"
+            ? Math.max(current.openReports - 1, 0)
+            : current.openReports
+      }));
+      setSuccess(payload?.message ?? "Reporte actualizado correctamente.");
+    } catch {
+      setError("Ocurrio un error inesperado al actualizar el reporte.");
+    } finally {
+      setUpdatingTicketId(null);
     }
   }
 

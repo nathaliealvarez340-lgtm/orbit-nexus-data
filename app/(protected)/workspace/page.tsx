@@ -14,13 +14,16 @@ export default async function WorkspacePage() {
   const session = await requireSession();
 
   if (session.role === "SUPERADMIN") {
-    const { companies, overview, activationRequests } = await getSuperadminDashboardData();
+    const { companies, overview, activationRequests, supportTickets, pricingSettings } =
+      await getSuperadminDashboardData();
     return (
       <SuperadminDashboard
         session={session}
         companies={companies}
         overview={overview}
         activationRequests={activationRequests}
+        supportTickets={supportTickets}
+        pricingSettings={pricingSettings}
       />
     );
   }
