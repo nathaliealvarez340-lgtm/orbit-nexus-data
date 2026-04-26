@@ -159,6 +159,9 @@ const sectorOptionsList = [
   "Otro"
 ] as const;
 
+const activationSupportHref =
+  "mailto:soporte@orbitne.com?subject=Soporte%20activacion%20Orbit%20Nexus";
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -401,11 +404,17 @@ export function CompanyActivationCta() {
 
       if (!response.ok) {
         const nextError =
-          typeof payload?.message === "string" && payload.message.trim().length > 0
-            ? payload.message
+          response.status === 400
+            ? payload?.message === "Selecciona el sector de tu empresa."
+              ? payload.message
+              : "Faltan datos para iniciar el checkout."
             : response.status === 503
-              ? "Configuración de pagos pendiente. Completa Stripe para habilitar la activación."
-              : "No fue posible iniciar la activación.";
+              ? payload?.message ?? "Stripe no está configurado correctamente. Revisa STRIPE_SECRET_KEY."
+              : response.status === 502
+                ? payload?.message ?? "Stripe no pudo iniciar el checkout. Revisa logs del servidor."
+                : typeof payload?.message === "string" && payload.message.trim().length > 0
+                  ? payload.message
+                  : "No fue posible iniciar la activación.";
         setError(nextError);
         return;
       }
@@ -1081,8 +1090,16 @@ export function CompanyActivationCta() {
                             </div>
 
                             {error ? (
-                              <div className="rounded-[1.25rem] border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-                                {error}
+                              <div className="space-y-3">
+                                <div className="rounded-[1.25rem] border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                                  {error}
+                                </div>
+                                <a
+                                  className="inline-flex text-sm font-medium text-cyan-300 transition-colors duration-200 hover:text-cyan-200"
+                                  href={activationSupportHref}
+                                >
+                                  ¿Necesitas ayuda? Contactar soporte
+                                </a>
                               </div>
                             ) : null}
 

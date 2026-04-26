@@ -6,9 +6,8 @@ import {
 } from "@prisma/client";
 
 import { buildQuoteSummary, getPlanDisplayName } from "@/lib/commercial/plans";
-import { deriveCompanyCodePrefix, generateCompanyRegistrationCode } from "@/lib/company-code";
-import { getAppUrl } from "@/lib/config";
-import { normalizeEmail, normalizeName } from "@/lib/normalization";
+import { generateCompanyRegistrationCode } from "@/lib/company-code";
+import { normalizeEmail } from "@/lib/normalization";
 import { prisma } from "@/lib/prisma";
 import { ServiceError } from "@/lib/services/service-error";
 import { getStripe } from "@/lib/stripe";
@@ -29,6 +28,9 @@ type ActivationRequestRecord = Prisma.CompanyActivationRequestGetPayload<{
   };
 }>;
 
+const COMPANY_IDENTIFIER_RETRY_LIMIT = 5;
+const CHECKOUT_APP_URL_FALLBACK = "https://orbitne.com";
+
 function slugify(value: string) {
   return value
     .normalize("NFD")
@@ -39,87 +41,117 @@ function slugify(value: string) {
     .trim();
 }
 
-async function buildUniqueSlug(client: Prisma.TransactionClient | PrismaClient, name: string) {
+async function buildUniqueSlug(
+  client: Prisma.TransactionClient | PrismaClient,
+  name: string,
+  excludeActivationRequestId?: string
+) {
   const baseSlug = slugify(name) || "tenant";
-  let candidate = baseSlug;
-  let suffix = 1;
+  for (let attempt = 0; attempt < COMPANY_IDENTIFIER_RETRY_LIMIT; attempt += 1) {
+    const candidate = attempt === 0 ? baseSlug : `${baseSlug}-${attempt}`;
+    const [existingCompany, existingActivation] = await Promise.all([
+      client.company.findUnique({
+        where: { slug: candidate },
+        select: { id: true }
+      }),
+      client.companyActivationRequest.findFirst({
+        where: {
+          companySlug: candidate,
+          companyId: null,
+          ...(excludeActivationRequestId
+            ? {
+                NOT: {
+                  id: excludeActivationRequestId
+                }
+              }
+            : {})
+        },
+        select: { id: true }
+      })
+    ]);
 
-  while (
-    (await client.company.findUnique({
-      where: { slug: candidate },
-      select: { id: true }
-    })) ||
-    (await client.companyActivationRequest.findFirst({
-      where: {
-        companySlug: candidate,
-        companyId: null
-      },
-      select: { id: true }
-    }))
-  ) {
-    suffix += 1;
-    candidate = `${baseSlug}-${suffix}`;
+    if (!existingCompany && !existingActivation) {
+      if (attempt > 0) {
+        console.info("[billing/checkout] Resolved slug collision", {
+          companyName: name,
+          finalSlug: candidate,
+          attempts: attempt + 1
+        });
+      }
+
+      return candidate;
+    }
+
+    console.warn("[billing/checkout] Slug collision detected", {
+      companyName: name,
+      candidate,
+      attempt: attempt + 1
+    });
   }
 
-  return candidate;
+  throw new ServiceError(
+    "No fue posible generar un identificador interno para la empresa. Intenta nuevamente.",
+    409
+  );
 }
 
 async function buildUniqueCodePrefix(
   client: Prisma.TransactionClient | PrismaClient,
-  companyName: string
+  baseIdentifier: string,
+  excludeActivationRequestId?: string
 ) {
-  const normalizedName = companyName
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/[^A-Za-z]/g, "")
-    .toUpperCase();
-  const letters = normalizedName.split("").filter(Boolean);
-  const fallbackPrefix = deriveCompanyCodePrefix(companyName);
-  const candidates = new Set<string>();
+  const basePrefix = slugify(baseIdentifier).replace(/[^a-z0-9-]/g, "") || "tenant";
 
-  if (fallbackPrefix) {
-    candidates.add(fallbackPrefix);
-  }
+  for (let attempt = 0; attempt < COMPANY_IDENTIFIER_RETRY_LIMIT; attempt += 1) {
+    const candidate = attempt === 0 ? basePrefix : `${basePrefix}-${attempt}`;
+    const [existingCompany, existingActivation] = await Promise.all([
+      client.company.findUnique({
+        where: {
+          codePrefix: candidate
+        },
+        select: {
+          id: true
+        }
+      }),
+      client.companyActivationRequest.findFirst({
+        where: {
+          companyCodePrefix: candidate,
+          companyId: null,
+          ...(excludeActivationRequestId
+            ? {
+                NOT: {
+                  id: excludeActivationRequestId
+                }
+              }
+            : {})
+        },
+        select: {
+          id: true
+        }
+      })
+    ]);
 
-  for (let firstIndex = 0; firstIndex < letters.length; firstIndex += 1) {
-    for (let secondIndex = firstIndex + 1; secondIndex < letters.length; secondIndex += 1) {
-      candidates.add(`${letters[firstIndex]}${letters[secondIndex]}`);
-    }
-  }
-
-  candidates.add("NX");
-
-  for (const candidate of candidates) {
-    const existsInCompany = await client.company.findUnique({
-      where: {
-        codePrefix: candidate
-      },
-      select: {
-        id: true
+    if (!existingCompany && !existingActivation) {
+      if (attempt > 0) {
+        console.info("[billing/checkout] Resolved codePrefix collision", {
+          baseIdentifier,
+          finalCodePrefix: candidate,
+          attempts: attempt + 1
+        });
       }
-    });
 
-    if (existsInCompany) {
-      continue;
-    }
-
-    const existsInActivation = await client.companyActivationRequest.findFirst({
-      where: {
-        companyCodePrefix: candidate,
-        companyId: null
-      },
-      select: {
-        id: true
-      }
-    });
-
-    if (!existsInActivation) {
       return candidate;
     }
+
+    console.warn("[billing/checkout] codePrefix collision detected", {
+      baseIdentifier,
+      candidate,
+      attempt: attempt + 1
+    });
   }
 
   throw new ServiceError(
-    "No fue posible reservar un prefijo unico para la empresa. Intenta nuevamente.",
+    "No fue posible generar un prefijo interno para la empresa. Intenta nuevamente.",
     409
   );
 }
@@ -162,6 +194,22 @@ function buildProductDescription(input: {
   return "Plan Enterprise con activacion guiada y precio personalizado.";
 }
 
+function resolveCheckoutAppUrl() {
+  const rawValue =
+    process.env.APP_URL?.trim() ||
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    CHECKOUT_APP_URL_FALLBACK;
+
+  try {
+    return new URL(rawValue).origin.replace(/\/$/, "");
+  } catch {
+    throw new ServiceError(
+      "La configuracion de la plataforma esta incompleta. Define APP_URL o NEXT_PUBLIC_APP_URL.",
+      503
+    );
+  }
+}
+
 export async function startCompanyActivation(input: StartCompanyActivationInput) {
   const fullName = input.fullName.trim();
   const email = normalizeEmail(input.email);
@@ -178,7 +226,7 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
 
   const activation = await prisma.$transaction(async (tx) => {
     const companySlug = await buildUniqueSlug(tx, companyName);
-    const companyCodePrefix = await buildUniqueCodePrefix(tx, companyName);
+    const companyCodePrefix = await buildUniqueCodePrefix(tx, companySlug);
 
     return tx.companyActivationRequest.create({
       data: {
@@ -202,7 +250,9 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
   if (!quote.checkoutEnabled) {
     return {
       mode: "manual-review" as const,
-      activationRequestId: activation.id
+      activationRequestId: activation.id,
+      companySlug: activation.companySlug,
+      companyCodePrefix: activation.companyCodePrefix
     };
   }
 
@@ -211,15 +261,21 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
 
   try {
     stripe = getStripe();
-  } catch {
+  } catch (error) {
+    console.error("[billing/checkout] Stripe initialization failed", {
+      companyName,
+      plan: input.plan,
+      error
+    });
+
     throw new ServiceError(
-      "La activacion comercial con Stripe no esta disponible todavia. Configura Stripe antes de continuar.",
+      "Stripe no está configurado correctamente. Revisa STRIPE_SECRET_KEY.",
       503
     );
   }
 
   try {
-    appUrl = getAppUrl();
+    appUrl = resolveCheckoutAppUrl();
   } catch (error) {
     console.error("[billing/checkout] APP_URL configuration error", {
       companyName,
@@ -228,7 +284,7 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
     });
 
     throw new ServiceError(
-      "La configuración de la plataforma está incompleta. Define APP_URL para habilitar la activación.",
+      "La configuración de la plataforma está incompleta. Define APP_URL o NEXT_PUBLIC_APP_URL.",
       503
     );
   }
@@ -246,13 +302,16 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
       metadata: {
         activationRequestId: activation.id,
         companyName,
+        companySlug: activation.companySlug,
+        companyCodePrefix: activation.companyCodePrefix,
         contactName: fullName,
         contactEmail: email,
         sector,
         plan: input.plan,
         includedUsers: String(quote.includedUsers),
         extraUsers: String(quote.extraUsers),
-        totalAmountMxn: String(quote.totalAmountMxn)
+        totalAmountMxn: String(quote.totalAmountMxn),
+        totalUsers: String(quote.totalUsers)
       },
       line_items: [
         {
@@ -285,7 +344,7 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
     });
 
     throw new ServiceError(
-      "No fue posible iniciar Stripe Checkout. Verifica la configuración de Stripe e intenta nuevamente.",
+      "Stripe no pudo iniciar el checkout. Revisa logs del servidor.",
       502
     );
   }
@@ -302,6 +361,8 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
   return {
     mode: "checkout" as const,
     activationRequestId: activation.id,
+    companySlug: activation.companySlug,
+    companyCodePrefix: activation.companyCodePrefix,
     checkoutUrl: session.url,
     sessionId: session.id
   };
@@ -341,12 +402,28 @@ async function ensureCompanyFromActivation(
     return activation.company;
   }
 
-  const registrationCode = await buildUniqueRegistrationCode(client, activation.companyCodePrefix);
+  const finalSlug = await buildUniqueSlug(client, activation.companyName, activation.id);
+  const finalCodePrefix = await buildUniqueCodePrefix(client, finalSlug, activation.id);
+  const registrationCode = await buildUniqueRegistrationCode(client, finalCodePrefix);
+
+  if (
+    finalSlug !== activation.companySlug ||
+    finalCodePrefix !== activation.companyCodePrefix
+  ) {
+    console.info("[billing/checkout] Adjusted company identifiers before create", {
+      activationRequestId: activation.id,
+      previousSlug: activation.companySlug,
+      finalSlug,
+      previousCodePrefix: activation.companyCodePrefix,
+      finalCodePrefix
+    });
+  }
+
   const company = await client.company.create({
     data: {
       name: activation.companyName,
-      slug: activation.companySlug,
-      codePrefix: activation.companyCodePrefix,
+      slug: finalSlug,
+      codePrefix: finalCodePrefix,
       registrationCode,
       isActive: true,
       sector: activation.sector,
@@ -374,6 +451,8 @@ async function ensureCompanyFromActivation(
     },
     data: {
       companyId: company.id,
+      companySlug: finalSlug,
+      companyCodePrefix: finalCodePrefix,
       registrationCode,
       status: nextStatus ?? activation.status,
       stripeCustomerId:
