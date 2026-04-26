@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  Check,
   ChevronLeft,
+  ChevronDown,
   Loader2,
   Sparkles,
   Star,
@@ -117,6 +119,9 @@ type FormState = {
   extraUsers: number;
 };
 
+type ActivationField = "fullName" | "email" | "companyName" | "sector";
+type FieldErrors = Partial<Record<ActivationField, string>>;
+
 const initialFormState: FormState = {
   fullName: "",
   email: "",
@@ -140,6 +145,20 @@ const sectorOptions = [
   "Otro"
 ] as const;
 
+const sectorOptionsList = [
+  "Tecnología / SaaS",
+  "Consultoría",
+  "Marketing / Publicidad",
+  "Educación",
+  "Salud",
+  "Manufactura",
+  "Finanzas",
+  "Retail / Ecommerce",
+  "Recursos Humanos",
+  "Legal",
+  "Otro"
+] as const;
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -155,11 +174,14 @@ export function CompanyActivationCta() {
   const [secondsLeft, setSecondsLeft] = useState(4);
   const [form, setForm] = useState<FormState>(initialFormState);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSectorMenuOpen, setIsSectorMenuOpen] = useState(false);
   const [manualReviewMessage, setManualReviewMessage] = useState<string | null>(null);
 
   const plansRef = useRef<HTMLDivElement | null>(null);
   const billingRef = useRef<HTMLDivElement | null>(null);
+  const sectorMenuRef = useRef<HTMLDivElement | null>(null);
 
   const quote = useMemo(
     () =>
@@ -238,12 +260,40 @@ export function CompanyActivationCta() {
     }
   }, [step]);
 
+  useEffect(() => {
+    if (!isSectorMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!sectorMenuRef.current?.contains(event.target as Node)) {
+        setIsSectorMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsSectorMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isSectorMenuOpen]);
+
   function openActivation() {
     setOpen(true);
     setStep("hero");
     setCountdownComplete(false);
     setSecondsLeft(4);
     setError(null);
+    setFieldErrors({});
+    setIsSectorMenuOpen(false);
     setManualReviewMessage(null);
     setIsSubmitting(false);
   }
@@ -254,8 +304,44 @@ export function CompanyActivationCta() {
     setCountdownComplete(false);
     setSecondsLeft(4);
     setError(null);
+    setFieldErrors({});
+    setIsSectorMenuOpen(false);
     setManualReviewMessage(null);
     setIsSubmitting(false);
+  }
+
+  function clearFieldError(field: ActivationField) {
+    setFieldErrors((current) => {
+      if (!current[field]) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function validateBillingForm() {
+    const nextErrors: FieldErrors = {};
+
+    if (form.fullName.trim().length < 3) {
+      nextErrors.fullName = "Ingresa el nombre completo del contacto.";
+    }
+
+    if (!form.email.trim()) {
+      nextErrors.email = "Ingresa un correo válido.";
+    }
+
+    if (form.companyName.trim().length < 2) {
+      nextErrors.companyName = "Ingresa el nombre de la empresa.";
+    }
+
+    if (!form.sector.trim()) {
+      nextErrors.sector = "Selecciona el sector de tu empresa.";
+    }
+
+    return nextErrors;
   }
 
   function handleShowPlans() {
@@ -267,6 +353,7 @@ export function CompanyActivationCta() {
   }
 
   function handleContinueFromPlans() {
+    setIsSectorMenuOpen(false);
     setStep("billing");
   }
 
@@ -277,7 +364,16 @@ export function CompanyActivationCta() {
       return;
     }
 
+    const nextErrors = validateBillingForm();
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
+      setError(nextErrors.sector ?? Object.values(nextErrors)[0] ?? "Completa los campos requeridos.");
+      return;
+    }
+
     setError(null);
+    setFieldErrors({});
     setManualReviewMessage(null);
     setIsSubmitting(true);
 
@@ -289,21 +385,27 @@ export function CompanyActivationCta() {
         },
         body: JSON.stringify({
           fullName: form.fullName,
+          contactName: form.fullName,
           email: form.email,
+          contactEmail: form.email,
           companyName: form.companyName,
           sector: form.sector,
           plan: form.plan,
-          extraUsers: form.plan === "CORE" || form.plan === "GROWTH" ? form.extraUsers : 0
+          includedUsers: quote.includedUsers,
+          totalUsers: quote.totalUsers,
+          extraUsers: form.plan === "CORE" || form.plan === "GROWTH" ? form.extraUsers : 0,
+          monthlyAmount: quote.totalAmountMxn
         })
       });
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
         const nextError =
-          response.status === 503 ||
-          String(payload?.message ?? "").toLowerCase().includes("stripe")
-            ? "Configuración de pagos pendiente. Completa Stripe para habilitar la activación."
-            : payload?.message ?? "No fue posible iniciar la activación.";
+          typeof payload?.message === "string" && payload.message.trim().length > 0
+            ? payload.message
+            : response.status === 503
+              ? "Configuración de pagos pendiente. Completa Stripe para habilitar la activación."
+              : "No fue posible iniciar la activación.";
         setError(nextError);
         return;
       }
@@ -321,7 +423,8 @@ export function CompanyActivationCta() {
       }
 
       setError("No fue posible redirigir al checkout de Stripe.");
-    } catch {
+    } catch (checkoutError) {
+      console.error("[activation/billing] Checkout request failed", checkoutError);
       setError("Ocurrió un error inesperado al generar la activación.");
     } finally {
       setIsSubmitting(false);
@@ -624,10 +727,10 @@ export function CompanyActivationCta() {
                       </div>
 
                       <div className="grid gap-6 xl:grid-cols-[1.06fr_0.94fr]">
-                        <div className="space-y-5">
+                        <div className="space-y-4">
                           <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 shadow-[0_18px_50px_rgba(2,6,23,0.18)] backdrop-blur-[18px]">
                             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.10),transparent_44%,transparent_74%,rgba(93,224,230,0.08))]" />
-                            <div className="relative z-10">
+                            <div className="relative z-10 space-y-6">
                               <div className="flex flex-wrap items-center justify-between gap-4">
                                 <div>
                                   <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">
@@ -668,7 +771,15 @@ export function CompanyActivationCta() {
                                 </div>
                               </div>
 
-                              <div className="mt-6 grid gap-3 md:grid-cols-3">
+                              <div className="grid gap-3 md:grid-cols-2">
+                                <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
+                                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                                    Plan seleccionado
+                                  </p>
+                                  <p className="mt-2 text-lg font-semibold text-white">
+                                    {form.plan === "ENTERPRISE" ? "Enterprise" : selectedPlan.label}
+                                  </p>
+                                </div>
                                 <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
                                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
                                     Incluidos
@@ -693,7 +804,7 @@ export function CompanyActivationCta() {
                                 </div>
                                 <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
                                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                                    Base
+                                    Precio base
                                   </p>
                                   <p className="mt-2 text-lg font-semibold text-white">
                                     {form.plan === "ENTERPRISE"
@@ -701,12 +812,42 @@ export function CompanyActivationCta() {
                                       : formatCurrency(displayQuote.baseAmountMxn ?? 0)}
                                   </p>
                                 </div>
+                                <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
+                                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                                    Total mensual
+                                  </p>
+                                  <p className="mt-2 text-lg font-semibold text-white">
+                                    {form.plan === "ENTERPRISE"
+                                      ? "Cotización guiada"
+                                      : formatCurrency(displayQuote.totalAmountMxn ?? 0)}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="rounded-[1.6rem] border border-cyan-400/14 bg-slate-950/56 px-5 py-5">
+                                <p className="text-sm font-medium text-white">
+                                  Tu entorno se activará automáticamente después de la confirmación.
+                                </p>
+                                <ol className="mt-4 space-y-3 text-sm leading-7 text-slate-300">
+                                  <li className="flex items-start gap-3">
+                                    <span className="mt-2 h-2 w-2 rounded-full bg-cyan-300" />
+                                    <span>Se confirma el pago.</span>
+                                  </li>
+                                  <li className="flex items-start gap-3">
+                                    <span className="mt-2 h-2 w-2 rounded-full bg-cyan-300" />
+                                    <span>Se activa la empresa.</span>
+                                  </li>
+                                  <li className="flex items-start gap-3">
+                                    <span className="mt-2 h-2 w-2 rounded-full bg-cyan-300" />
+                                    <span>Se genera el código de acceso.</span>
+                                  </li>
+                                  <li className="flex items-start gap-3">
+                                    <span className="mt-2 h-2 w-2 rounded-full bg-cyan-300" />
+                                    <span>Se habilita el entorno operativo.</span>
+                                  </li>
+                                </ol>
                               </div>
                             </div>
-                          </div>
-
-                          <div className="rounded-[1.85rem] border border-white/10 bg-slate-950/64 px-6 py-5 text-sm leading-7 text-slate-300 backdrop-blur-[18px]">
-                            Tu entorno se activará automáticamente después de la confirmación.
                           </div>
                         </div>
 
@@ -737,7 +878,11 @@ export function CompanyActivationCta() {
                                     </Label>
                                     <Input
                                       id="activation-full-name"
-                                      className={orbitInputClassName}
+                                      className={`${orbitInputClassName} ${
+                                        fieldErrors.fullName
+                                          ? "border-rose-400/40 focus:border-rose-400/40 focus:ring-rose-400/25"
+                                          : ""
+                                      }`}
                                       value={form.fullName}
                                       onChange={(event) =>
                                         setForm((current) => ({
@@ -745,7 +890,12 @@ export function CompanyActivationCta() {
                                           fullName: event.target.value
                                         }))
                                       }
+                                      onChangeCapture={() => clearFieldError("fullName")}
+                                      onBlur={() => clearFieldError("fullName")}
                                     />
+                                    {fieldErrors.fullName ? (
+                                      <p className="text-xs text-rose-200">{fieldErrors.fullName}</p>
+                                    ) : null}
                                   </div>
 
                                   <div className="space-y-2">
@@ -754,7 +904,11 @@ export function CompanyActivationCta() {
                                     </Label>
                                     <Input
                                       id="activation-email"
-                                      className={orbitInputClassName}
+                                      className={`${orbitInputClassName} ${
+                                        fieldErrors.email
+                                          ? "border-rose-400/40 focus:border-rose-400/40 focus:ring-rose-400/25"
+                                          : ""
+                                      }`}
                                       value={form.email}
                                       onChange={(event) =>
                                         setForm((current) => ({
@@ -762,7 +916,12 @@ export function CompanyActivationCta() {
                                           email: event.target.value
                                         }))
                                       }
+                                      onChangeCapture={() => clearFieldError("email")}
+                                      onBlur={() => clearFieldError("email")}
                                     />
+                                    {fieldErrors.email ? (
+                                      <p className="text-xs text-rose-200">{fieldErrors.email}</p>
+                                    ) : null}
                                   </div>
                                 </div>
                               </div>
@@ -777,7 +936,11 @@ export function CompanyActivationCta() {
                                   </Label>
                                   <Input
                                     id="activation-company"
-                                    className={orbitInputClassName}
+                                    className={`${orbitInputClassName} ${
+                                      fieldErrors.companyName
+                                        ? "border-rose-400/40 focus:border-rose-400/40 focus:ring-rose-400/25"
+                                        : ""
+                                    }`}
                                     value={form.companyName}
                                     onChange={(event) =>
                                       setForm((current) => ({
@@ -785,33 +948,90 @@ export function CompanyActivationCta() {
                                         companyName: event.target.value
                                       }))
                                     }
+                                    onChangeCapture={() => clearFieldError("companyName")}
+                                    onBlur={() => clearFieldError("companyName")}
                                   />
+                                  {fieldErrors.companyName ? (
+                                    <p className="text-xs text-rose-200">{fieldErrors.companyName}</p>
+                                  ) : null}
                                 </div>
 
                                 <div className="space-y-2">
                                   <Label className="text-slate-200" htmlFor="activation-sector">
                                     Sector
                                   </Label>
-                                  <select
-                                    id="activation-sector"
-                                    className="h-12 w-full rounded-2xl border border-white/15 bg-slate-950/92 px-4 py-3 text-white transition-all duration-300 ease-in-out hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/40 focus:border-[#60A5FA]/45"
-                                    value={form.sector}
-                                    onChange={(event) =>
-                                      setForm((current) => ({
-                                        ...current,
-                                        sector: event.target.value
-                                      }))
-                                    }
-                                  >
-                                    <option value="" disabled>
-                                      Selecciona un sector
-                                    </option>
-                                    {sectorOptions.map((sector) => (
-                                      <option key={sector} value={sector}>
-                                        {sector}
-                                      </option>
-                                    ))}
-                                  </select>
+                                  <div ref={sectorMenuRef} className="relative">
+                                    <button
+                                      aria-expanded={isSectorMenuOpen}
+                                      aria-haspopup="listbox"
+                                      className={`flex h-12 w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-300 ease-in-out ${
+                                        fieldErrors.sector
+                                          ? "border-rose-400/40 bg-white/[0.08] text-white focus:outline-none focus:ring-2 focus:ring-rose-400/25"
+                                          : "border-white/15 bg-white/[0.08] text-white hover:border-white/20 hover:bg-white/[0.10] focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/40"
+                                      }`}
+                                      id="activation-sector"
+                                      type="button"
+                                      onClick={() => setIsSectorMenuOpen((current) => !current)}
+                                    >
+                                      <span className={form.sector ? "text-white" : "text-slate-400"}>
+                                        {form.sector || "Selecciona un sector"}
+                                      </span>
+                                      <ChevronDown
+                                        className={`h-4 w-4 text-slate-300 transition-transform duration-200 ${
+                                          isSectorMenuOpen ? "rotate-180" : ""
+                                        }`}
+                                      />
+                                    </button>
+
+                                    {isSectorMenuOpen ? (
+                                      <div className="absolute left-0 top-[calc(100%+0.55rem)] z-30 w-full overflow-hidden rounded-[1.5rem] border border-white/12 bg-[#07111f]/95 p-2 shadow-[0_24px_54px_rgba(2,6,23,0.45)] backdrop-blur-[20px]">
+                                        <div className="max-h-64 overflow-y-auto pr-1" role="listbox">
+                                          {sectorOptionsList.map((sector) => {
+                                            const isSelected = form.sector === sector;
+
+                                            return (
+                                              <button
+                                                aria-selected={isSelected}
+                                                key={sector}
+                                                className={`flex w-full items-center justify-between rounded-[1rem] px-3 py-3 text-left text-sm transition-all duration-200 ${
+                                                  isSelected
+                                                    ? "bg-cyan-400/12 text-white"
+                                                    : "text-slate-200 hover:bg-cyan-400/10 hover:text-white"
+                                                }`}
+                                                role="option"
+                                                type="button"
+                                                onClick={() => {
+                                                  setForm((current) => ({
+                                                    ...current,
+                                                    sector
+                                                  }));
+                                                  clearFieldError("sector");
+                                                  setError((current) =>
+                                                    current === "Selecciona el sector de tu empresa."
+                                                      ? null
+                                                      : current
+                                                  );
+                                                  setIsSectorMenuOpen(false);
+                                                }}
+                                              >
+                                                <span>{sector}</span>
+                                                {isSelected ? (
+                                                  <Check className="h-4 w-4 text-cyan-300" />
+                                                ) : null}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                  {fieldErrors.sector ? (
+                                    <p className="text-xs text-rose-200">{fieldErrors.sector}</p>
+                                  ) : (
+                                    <p className="text-xs text-slate-400">
+                                      Selecciona el sector principal de tu empresa.
+                                    </p>
+                                  )}
                                 </div>
 
                                 <div className="grid gap-4 md:grid-cols-2">

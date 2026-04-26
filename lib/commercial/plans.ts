@@ -1,11 +1,11 @@
 type CompanyPlan = "CORE" | "GROWTH" | "ENTERPRISE";
 
-export const CORE_INCLUDED_USERS = 20;
-export const CORE_BASE_MXN = 5200;
-export const CORE_EXTRA_USER_MXN = 299;
+export const CORE_INCLUDED_USERS = 15;
+export const CORE_BASE_MXN = 830;
+export const CORE_EXTRA_USER_MXN = 279;
 export const CORE_MAX_EXTRA_USERS = 10;
-export const GROWTH_MAX_USERS = 50;
-export const GROWTH_MONTHLY_MXN = 12900;
+export const GROWTH_MAX_USERS = 40;
+export const GROWTH_MONTHLY_MXN = 2390;
 
 export type QuoteInput = {
   plan: CompanyPlan;
@@ -41,14 +41,17 @@ export function buildQuoteSummary(input: QuoteInput): QuoteSummary {
   }
 
   if (input.plan === "GROWTH") {
+    const extraUsers = Math.max(0, Math.min(CORE_MAX_EXTRA_USERS, input.extraUsers ?? 0));
+    const extraAmountMxn = extraUsers * CORE_EXTRA_USER_MXN;
+
     return {
       plan: input.plan,
       includedUsers: GROWTH_MAX_USERS,
-      extraUsers: 0,
-      totalUsers: GROWTH_MAX_USERS,
+      extraUsers,
+      totalUsers: GROWTH_MAX_USERS + extraUsers,
       baseAmountMxn: GROWTH_MONTHLY_MXN,
-      extraAmountMxn: 0,
-      totalAmountMxn: GROWTH_MONTHLY_MXN,
+      extraAmountMxn,
+      totalAmountMxn: GROWTH_MONTHLY_MXN + extraAmountMxn,
       checkoutEnabled: true
     };
   }

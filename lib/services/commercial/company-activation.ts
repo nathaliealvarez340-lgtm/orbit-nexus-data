@@ -156,7 +156,7 @@ function buildProductDescription(input: {
   }
 
   if (input.plan === "GROWTH") {
-    return `Plan Growth con capacidad de hasta ${input.includedUsers} usuarios.`;
+    return `Plan Growth con ${input.includedUsers} usuarios incluidos y ${input.extraUsers} usuarios adicionales.`;
   }
 
   return "Plan Enterprise con activacion guiada y precio personalizado.";
@@ -207,6 +207,7 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
   }
 
   let stripe;
+  let appUrl: string;
 
   try {
     stripe = getStripe();
@@ -217,38 +218,77 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
     );
   }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    success_url: `${getAppUrl()}/activation/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${getAppUrl()}/?activation=cancelled`,
-    customer_email: email,
-    billing_address_collection: "required",
-    metadata: {
-      activationRequestId: activation.id,
+  try {
+    appUrl = getAppUrl();
+  } catch (error) {
+    console.error("[billing/checkout] APP_URL configuration error", {
       companyName,
-      plan: input.plan
-    },
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "mxn",
-          unit_amount: quote.totalAmountMxn * 100,
-          recurring: {
-            interval: "month"
-          },
-          product_data: {
-            name: `Orbit Nexus ${getPlanDisplayName(input.plan)}`,
-            description: buildProductDescription({
-              plan: input.plan,
-              includedUsers: quote.includedUsers,
-              extraUsers: quote.extraUsers
-            })
+      plan: input.plan,
+      error
+    });
+
+    throw new ServiceError(
+      "La configuración de la plataforma está incompleta. Define APP_URL para habilitar la activación.",
+      503
+    );
+  }
+
+  let session: Stripe.Checkout.Session;
+
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      success_url: `${appUrl}/activation/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/?activation=cancelled`,
+      customer_email: email,
+      client_reference_id: activation.id,
+      billing_address_collection: "required",
+      metadata: {
+        activationRequestId: activation.id,
+        companyName,
+        contactName: fullName,
+        contactEmail: email,
+        sector,
+        plan: input.plan,
+        includedUsers: String(quote.includedUsers),
+        extraUsers: String(quote.extraUsers),
+        totalAmountMxn: String(quote.totalAmountMxn)
+      },
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "mxn",
+            unit_amount: quote.totalAmountMxn * 100,
+            recurring: {
+              interval: "month"
+            },
+            product_data: {
+              name: `Orbit Nexus ${getPlanDisplayName(input.plan)}`,
+              description: buildProductDescription({
+                plan: input.plan,
+                includedUsers: quote.includedUsers,
+                extraUsers: quote.extraUsers
+              })
+            }
           }
         }
-      }
-    ]
-  });
+      ]
+    });
+  } catch (error) {
+    console.error("[billing/checkout] Stripe session creation failed", {
+      activationRequestId: activation.id,
+      companyName,
+      plan: input.plan,
+      totalAmountMxn: quote.totalAmountMxn,
+      error
+    });
+
+    throw new ServiceError(
+      "No fue posible iniciar Stripe Checkout. Verifica la configuración de Stripe e intenta nuevamente.",
+      502
+    );
+  }
 
   await prisma.companyActivationRequest.update({
     where: {
