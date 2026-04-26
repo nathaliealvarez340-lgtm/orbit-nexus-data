@@ -61,7 +61,7 @@ export default function HomePage() {
                     Orbit <span className="text-[#5de0e6]">Nexus</span>
                   </span>
                   <span className="mt-4 block font-semibold leading-[1.1] text-white">
-                    convierte complejidad en control.
+                    Control operativo inteligente.
                   </span>
                 </h1>
 
