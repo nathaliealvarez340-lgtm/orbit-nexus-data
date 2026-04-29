@@ -1,11 +1,18 @@
 "use client";
 
-import { Bot, MessageSquareText, Send, Sparkles, X } from "lucide-react";
+import { Bot, Loader2, MessageSquareText, Send, Sparkles, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { useWorkspaceChat } from "@/components/dashboard/workspace-chat-provider";
+import { useWorkspaceProjects } from "@/components/dashboard/workspace-projects-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  createAssistantReply,
+  getAssistantWelcomeReply,
+  type AssistantIntent
+} from "@/lib/services/nexus/assistant";
 import type { SessionUser } from "@/types/auth";
 
 type WorkspaceAssistantProps = {
@@ -16,92 +23,150 @@ type AssistantMessage = {
   id: string;
   sender: "assistant" | "user";
   text: string;
+  intent?: AssistantIntent;
+  contextLabel?: string;
+  suggestions?: string[];
 };
 
-function createAssistantResponse(role: SessionUser["role"], pathname: string, question: string) {
-  const normalized = question.toLowerCase();
+const INTENT_LABELS: Record<AssistantIntent, string> = {
+  greeting: "Contexto",
+  projects: "Proyectos",
+  consultants: "Consultores",
+  kpis: "KPIs",
+  alerts: "Alertas",
+  assignments: "Asignaciones",
+  deliverables: "Entregables",
+  platform_help: "Uso de plataforma",
+  recommendations: "Recomendaciones",
+  unknown: "Asistencia"
+};
 
-  if (role === "LEADER") {
-    if (normalized.includes("consultor") && normalized.includes("asign")) {
-      return "Abre el proyecto desde el dashboard y entra a la seccion de asignacion. Ahi veras candidatos del tenant actual con skills, KPIs, disponibilidad y match sugerido.";
-    }
-
-    if (normalized.includes("registr") || normalized.includes("nuevo consultor")) {
-      return "Usa el boton Registrar consultor desde el dashboard o desde la ruta /workspace/consultants/register. El alta guarda skills, KPIs iniciales, estado y disponibilidad para matching posterior.";
-    }
-
-    if (normalized.includes("alert") || normalized.includes("riesgo")) {
-      return "Las alertas viven en el panel de notificaciones y en la seccion de proyectos con intervencion. Desde cada proyecto puedes abrir riesgos o asignacion manual segun el estado.";
-    }
-  }
-
-  if (role === "CONSULTANT") {
-    if (normalized.includes("avance")) {
-      return "Puedes reportar avance desde el CTA principal del dashboard, desde el historial de avances o desde las acciones del proyecto si necesitas mas contexto antes de enviarlo.";
-    }
-
-    if (normalized.includes("entregable") || normalized.includes("sub")) {
-      return "La carga de entregables se hace desde Subir entregable. Tambien puedes ubicar tus ventanas en el calendario y abrir el proyecto relacionado para validar el contexto antes de enviarlo.";
-    }
-
-    if (normalized.includes("carga") || normalized.includes("capacidad")) {
-      return "La carga visible resume tu ocupacion operativa actual. Te ayuda a ver si aun puedes absorber otra tarea sin comprometer fechas, reuniones o bloques de trabajo.";
-    }
-  }
-
-  if (pathname.includes("/chat")) {
-    return "En chat puedes abrir una conversacion, responder y seguir el estado del mensaje. La lista lateral muestra no leidos y el panel derecho conserva el hilo activo.";
-  }
-
-  if (pathname.includes("/calendar")) {
-    return "En calendario puedes revisar lo de hoy, eventos de la semana y agregar nuevos eventos desde Agregar evento. Los bloques inferiores muestran vencimientos, reuniones, recordatorios y carga semanal.";
-  }
-
-  return role === "LEADER"
-    ? "Puedo ayudarte a ubicar proyectos, alertas, asignaciones, KPIs o la alta de consultores dentro del entorno actual."
-    : "Puedo ayudarte a ubicar entregables, avances, chat, calendario o el significado de tus KPIs dentro del dashboard.";
+function toAssistantMessage(
+  id: string,
+  message: Omit<AssistantMessage, "id" | "sender"> & { sender?: AssistantMessage["sender"] }
+): AssistantMessage {
+  return {
+    id,
+    sender: message.sender ?? "assistant",
+    text: message.text,
+    intent: message.intent,
+    contextLabel: message.contextLabel,
+    suggestions: message.suggestions
+  };
 }
 
 export function WorkspaceAssistant({ session }: WorkspaceAssistantProps) {
   const pathname = usePathname();
+  const { consultants, projects } = useWorkspaceProjects();
+  const { conversations, totalUnreadCount } = useWorkspaceChat();
+  const assistantContext = useMemo(
+    () => ({
+      session,
+      pathname,
+      projects,
+      consultants,
+      conversationCount: conversations.length,
+      unreadConversationCount: totalUnreadCount
+    }),
+    [consultants, conversations.length, pathname, projects, session, totalUnreadCount]
+  );
+  const welcomeMessage = useMemo(
+    () =>
+      toAssistantMessage("assistant-welcome", {
+        ...getAssistantWelcomeReply(assistantContext)
+      }),
+    [assistantContext]
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<AssistantMessage[]>([
-    {
-      id: "assistant-welcome",
-      sender: "assistant",
-      text:
-        session.role === "LEADER"
-          ? "Te acompano a ubicar asignaciones, alertas, KPIs y flujos del portal de liderazgo."
-          : "Te acompano a ubicar entregables, avances, calendario, chat y focos operativos del consultor."
-    }
-  ]);
+  const [isThinking, setIsThinking] = useState(false);
+  const [messages, setMessages] = useState<AssistantMessage[]>(() => [welcomeMessage]);
+  const timeoutsRef = useRef<number[]>([]);
+  const assistantContextRef = useRef(assistantContext);
 
   if (session.role !== "LEADER" && session.role !== "CONSULTANT") {
     return null;
   }
 
+  useEffect(() => {
+    assistantContextRef.current = assistantContext;
+  }, [assistantContext]);
+
+  useEffect(() => {
+    setMessages((current) =>
+      current.length === 1 && current[0]?.id === "assistant-welcome" ? [welcomeMessage] : current
+    );
+  }, [welcomeMessage]);
+
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+      });
+      timeoutsRef.current = [];
+    };
+  }, []);
+
   function ask(question: string) {
     const nextQuestion = question.trim();
 
-    if (!nextQuestion) {
+    if (!nextQuestion || isThinking) {
       return;
     }
+
+    const startedAt = Date.now();
 
     setMessages((current) => [
       ...current,
       {
-        id: `user-${Date.now()}`,
+        id: `user-${startedAt}`,
         sender: "user",
         text: nextQuestion
-      },
-      {
-        id: `assistant-${Date.now() + 1}`,
-        sender: "assistant",
-        text: createAssistantResponse(session.role, pathname, nextQuestion)
       }
     ]);
     setDraft("");
+    setIsThinking(true);
+
+    const timeoutId = window.setTimeout(() => {
+      try {
+        const reply = createAssistantReply(nextQuestion, assistantContextRef.current);
+
+        setMessages((current) => [
+          ...current,
+          toAssistantMessage(`assistant-${startedAt + 1}`, reply)
+        ]);
+      } catch {
+        setMessages((current) => [
+          ...current,
+          {
+            id: `assistant-error-${startedAt + 1}`,
+            sender: "assistant",
+            intent: "unknown",
+            contextLabel: assistantContextRef.current.pathname.includes("/workspace/chat")
+              ? "Chat operativo"
+              : "Dashboard",
+            suggestions:
+              session.role === "LEADER"
+                ? [
+                    "Que proyectos estan en riesgo?",
+                    "Que consultores tienen carga alta?",
+                    "Que asignaciones requieren intervencion?"
+                  ]
+                : [
+                    "Que entregables vencen primero?",
+                    "Como va mi carga actual?",
+                    "Que proyecto requiere mas atencion?"
+                  ],
+            text:
+              "No pude analizar el contexto en este intento. Intenta de nuevo o pide revisar proyectos, KPIs, consultores, alertas o entregables."
+          }
+        ]);
+      } finally {
+        setIsThinking(false);
+      }
+    }, 260);
+
+    timeoutsRef.current.push(timeoutId);
   }
 
   return (
@@ -127,7 +192,7 @@ export function WorkspaceAssistant({ session }: WorkspaceAssistantProps) {
               </p>
               <h3 className="mt-2 text-lg font-semibold text-white">Ayuda Orbit Nexus</h3>
               <p className="mt-2 text-sm leading-6 text-slate-400">
-                Resuelve dudas de uso, KPIs, alertas, entregables y flujos operativos sin salir de la plataforma.
+                Analiza proyectos, KPIs, consultores, alertas, entregables y acciones sugeridas usando el contexto operativo visible de tu cuenta.
               </p>
             </div>
             <Button
@@ -143,41 +208,90 @@ export function WorkspaceAssistant({ session }: WorkspaceAssistantProps) {
 
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
             {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.sender === "assistant" ? "justify-start" : "justify-end"}`}
-              >
+              <div key={message.id} className="space-y-2">
                 <div
-                  className={`max-w-[85%] rounded-[1.25rem] px-4 py-3 text-sm leading-6 ${
-                    message.sender === "assistant"
-                      ? "border border-white/10 bg-white/[0.04] text-slate-100"
-                      : "bg-cyan-500 text-slate-950"
-                  }`}
+                  className={`flex ${message.sender === "assistant" ? "justify-start" : "justify-end"}`}
                 >
-                  <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em]">
-                    {message.sender === "assistant" ? (
-                      <>
-                        <Bot className="h-3.5 w-3.5 text-cyan-300" />
-                        <span className="text-cyan-300">Asistente</span>
-                      </>
-                    ) : (
-                      <>
-                        <MessageSquareText className="h-3.5 w-3.5 text-slate-900/80" />
-                        <span className="text-slate-900/80">Tu consulta</span>
-                      </>
-                    )}
+                  <div
+                    className={`max-w-[88%] rounded-[1.25rem] px-4 py-3 text-sm leading-6 ${
+                      message.sender === "assistant"
+                        ? "border border-white/10 bg-white/[0.04] text-slate-100"
+                        : "bg-cyan-500 text-slate-950"
+                    }`}
+                  >
+                    <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em]">
+                      {message.sender === "assistant" ? (
+                        <>
+                          <Bot className="h-3.5 w-3.5 text-cyan-300" />
+                          <span className="text-cyan-300">Asistente</span>
+                          {message.intent ? (
+                            <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] tracking-[0.14em] text-cyan-200">
+                              {INTENT_LABELS[message.intent]}
+                            </span>
+                          ) : null}
+                        </>
+                      ) : (
+                        <>
+                          <MessageSquareText className="h-3.5 w-3.5 text-slate-900/80" />
+                          <span className="text-slate-900/80">Tu consulta</span>
+                        </>
+                      )}
+                    </div>
+
+                    {message.contextLabel && message.sender === "assistant" ? (
+                      <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                        Contexto: {message.contextLabel}
+                      </p>
+                    ) : null}
+
+                    <div className="whitespace-pre-line">{message.text}</div>
                   </div>
-                  {message.text}
                 </div>
+
+                {message.sender === "assistant" && message.suggestions?.length ? (
+                  <div className="flex flex-wrap gap-2 pl-1">
+                    {message.suggestions.slice(0, 3).map((suggestion) => (
+                      <button
+                        key={`${message.id}-${suggestion}`}
+                        className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-left text-xs font-medium text-slate-300 transition-colors hover:border-cyan-400/25 hover:bg-cyan-400/10 hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={isThinking}
+                        type="button"
+                        onClick={() => ask(suggestion)}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ))}
+
+            {isThinking ? (
+              <div className="flex justify-start">
+                <div className="max-w-[85%] rounded-[1.25rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-100">
+                  <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan-300">
+                    <Bot className="h-3.5 w-3.5" />
+                    <span>Asistente</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <Loader2 className="h-4 w-4 animate-spin text-cyan-300" />
+                    <span>Analizando contexto operativo...</span>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="border-t border-white/10 bg-slate-950/90 px-4 py-4">
             <div className="flex items-center gap-3">
               <Input
                 className="h-11 rounded-2xl border-white/10 bg-white/[0.04] text-white placeholder:text-slate-500"
-                placeholder="Pregunta algo sobre la plataforma..."
+                disabled={isThinking}
+                placeholder={
+                  session.role === "LEADER"
+                    ? "Pregunta por proyectos, KPIs, consultores o riesgos..."
+                    : "Pregunta por entregables, carga, avances o proyectos..."
+                }
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 onKeyDown={(event) => {
@@ -189,10 +303,11 @@ export function WorkspaceAssistant({ session }: WorkspaceAssistantProps) {
               />
               <Button
                 className="h-11 rounded-2xl px-4"
+                disabled={isThinking || !draft.trim()}
                 type="button"
                 onClick={() => ask(draft)}
               >
-                <Send className="h-4 w-4" />
+                {isThinking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
           </div>
