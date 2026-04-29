@@ -13,6 +13,10 @@ type CreateLeaderProjectInput = {
   description: string;
   clientName: string;
   clientEmail: string;
+  clientCompany?: string;
+  clientPhone?: string;
+  clientSector?: string;
+  clientNotes?: string;
   startDate: string;
   endDate: string;
   priority: ProjectPriority;
@@ -52,6 +56,15 @@ export async function createLeaderProject(input: CreateLeaderProjectInput) {
       description: input.description.trim(),
       clientContactName: input.clientName.trim(),
       clientContactEmail: normalizeEmail(input.clientEmail),
+      requirements: {
+        clientProfile: {
+          company: input.clientCompany?.trim() || null,
+          email: normalizeEmail(input.clientEmail),
+          phone: input.clientPhone?.trim() || null,
+          sector: input.clientSector?.trim() || null,
+          notes: input.clientNotes?.trim() || null
+        }
+      },
       durationLabel: buildDurationLabel(startDate, endDate),
       startDate,
       endDate,
@@ -66,6 +79,7 @@ export async function createLeaderProject(input: CreateLeaderProjectInput) {
       description: true,
       clientContactName: true,
       clientContactEmail: true,
+      requirements: true,
       startDate: true,
       endDate: true,
       priority: true,
@@ -73,4 +87,3 @@ export async function createLeaderProject(input: CreateLeaderProjectInput) {
     }
   });
 }
-

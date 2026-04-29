@@ -105,6 +105,18 @@ function formatDate(value: string | null) {
   return new Date(value).toLocaleDateString("es-MX");
 }
 
+function formatAccessType(value: "COMPANY" | "OWN_BUSINESS" | null | undefined) {
+  if (value === "COMPANY") {
+    return "Empresa";
+  }
+
+  if (value === "OWN_BUSINESS") {
+    return "Negocio propio";
+  }
+
+  return "Sin definir";
+}
+
 export function SuperadminDashboard({
   session,
   companies: initialCompanies,
@@ -651,6 +663,27 @@ export function SuperadminDashboard({
                         </>
                       ) : null}
                     </div>
+
+                    <div className="mt-3 grid gap-3 md:grid-cols-3">
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Tipo</p>
+                        <p className="mt-2 text-sm font-semibold text-white">
+                          {formatAccessType(request.organizationAccessType)}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Dominio autorizado</p>
+                        <p className="mt-2 text-sm font-semibold text-white">
+                          {request.authorizedEmailDomain ? `@${request.authorizedEmailDomain}` : "No aplica"}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Correo principal</p>
+                        <p className="mt-2 text-sm font-semibold text-white">
+                          {request.ownerContactEmail ?? request.contactEmail}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 ))
               )}
@@ -693,6 +726,24 @@ export function SuperadminDashboard({
                       <p className="text-sm text-slate-300">
                         Codigo fijo / registro actual:{" "}
                         <span className="font-semibold text-white">{company.registrationCode}</span>
+                      </p>
+                      <p className="text-sm text-slate-300">
+                        Tipo de operación:{" "}
+                        <span className="font-semibold text-white">
+                          {formatAccessType(company.organizationAccessType)}
+                        </span>
+                      </p>
+                      <p className="text-sm text-slate-300">
+                        Dominio autorizado:{" "}
+                        <span className="font-semibold text-white">
+                          {company.authorizedEmailDomain ? `@${company.authorizedEmailDomain}` : "No aplica"}
+                        </span>
+                      </p>
+                      <p className="text-sm text-slate-300">
+                        Correo principal:{" "}
+                        <span className="font-semibold text-white">
+                          {company.ownerContactEmail ?? company.contactEmail ?? "Sin correo"}
+                        </span>
                       </p>
                     </div>
 

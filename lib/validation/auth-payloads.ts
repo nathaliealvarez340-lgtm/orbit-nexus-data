@@ -44,6 +44,7 @@ export const registerPayloadSchema = z
     phone: z.string().trim().min(1, "phone es obligatorio."),
     password: z.string().min(1, "password es obligatorio."),
     role: z.string().trim().min(1, "role es obligatorio."),
+    companyName: z.string().trim().optional(),
     projectFolio: z.string().trim().optional(),
     companyRegistrationCode: z.string().trim().optional()
   })
@@ -68,6 +69,14 @@ export const registerPayloadSchema = z
       });
     }
 
+    if (role === "CLIENT" && !value.companyName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["companyName"],
+        message: "companyName es obligatorio para Cliente."
+      });
+    }
+
     if (role === "LEADER" && !value.companyRegistrationCode) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -82,6 +91,7 @@ export const registerPayloadSchema = z
     phone: value.phone,
     password: value.password,
     role: normalizeRegistrableRoleInput(value.role)!,
+    companyName: value.companyName,
     projectFolio: value.projectFolio,
     companyRegistrationCode: value.companyRegistrationCode
   }));
@@ -112,6 +122,7 @@ export const registerServiceSchema = z
     phone: z.string().trim().min(8, "Ingresa un celular valido."),
     password: z.string().min(1, "La contrasena es obligatoria."),
     role: z.enum(REGISTRABLE_ROLE_KEYS),
+    companyName: z.string().trim().optional(),
     projectFolio: z.string().trim().optional(),
     companyRegistrationCode: z.string().trim().optional()
   })
@@ -123,6 +134,14 @@ export const registerServiceSchema = z
         code: z.ZodIssueCode.custom,
         path: ["projectFolio"],
         message: "El folio unico del proyecto es obligatorio para clientes."
+      });
+    }
+
+    if (value.role === "CLIENT" && !value.companyName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["companyName"],
+        message: "El nombre de la empresa es obligatorio para clientes."
       });
     }
 
@@ -174,6 +193,10 @@ export const createProjectPayloadSchema = z.object({
   description: z.string().trim().min(10, "Describe brevemente el proyecto."),
   clientName: z.string().trim().min(3, "Ingresa el nombre del cliente."),
   clientEmail: z.string().trim().email("Ingresa un correo valido del cliente."),
+  clientCompany: z.string().trim().optional(),
+  clientPhone: z.string().trim().optional(),
+  clientSector: z.string().trim().optional(),
+  clientNotes: z.string().trim().optional(),
   startDate: z.string().trim().min(1, "La fecha inicial es obligatoria."),
   endDate: z.string().trim().min(1, "La fecha final es obligatoria."),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"])

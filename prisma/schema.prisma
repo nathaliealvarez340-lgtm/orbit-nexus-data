@@ -163,6 +163,11 @@ enum SupportTicketSource {
   SYSTEM
 }
 
+enum OrganizationAccessType {
+  COMPANY
+  OWN_BUSINESS
+}
+
 enum RejectionReason {
   CAPACITY
   TIMELINE_CONFLICT
@@ -190,6 +195,9 @@ model Company {
   stripeCustomerId            String?                      @unique
   stripeSubscriptionId        String?                      @unique
   stripeCheckoutSessionId     String?                      @unique
+  organizationAccessType      OrganizationAccessType?
+  authorizedEmailDomain       String?
+  ownerContactEmail           String?
   activatedAt                 DateTime?
   users                       User[]
   skills                      Skill[]
@@ -228,6 +236,9 @@ model CompanyActivationRequest {
   companyName           String
   sector                String
   plan                  CompanyPlan
+  organizationAccessType OrganizationAccessType
+  authorizedEmailDomain String?
+  ownerContactEmail     String?
   includedUsers         Int
   extraUsers            Int                  @default(0)
   totalAmountMxn        Int

@@ -95,6 +95,15 @@ export type DashboardProjectEvent = {
   href?: string;
 };
 
+export type DashboardProjectClientProfile = {
+  name: string;
+  company: string | null;
+  email: string | null;
+  phone: string | null;
+  sector: string | null;
+  notes: string | null;
+};
+
 export type DashboardProjectRecord = {
   id: string;
   tenantId: string | null;
@@ -102,6 +111,7 @@ export type DashboardProjectRecord = {
   folio: string;
   name: string;
   client: string;
+  clientProfile?: DashboardProjectClientProfile;
   description: string;
   status: DashboardProjectStatus;
   priority: DashboardProjectPriority;
@@ -255,6 +265,10 @@ export type CreateProjectInput = {
   description: string;
   client: string;
   clientEmail?: string;
+  clientCompany?: string;
+  clientPhone?: string;
+  clientSector?: string;
+  clientNotes?: string;
   consultantsRequired: number;
   startDate: string;
   endDate: string;
@@ -938,6 +952,14 @@ export function normalizeProjectRecord(project: DashboardProjectRecord): Dashboa
   return {
     ...project,
     tenantId: resolveTenantId(project.tenantId),
+    clientProfile: {
+      name: project.clientProfile?.name ?? project.client,
+      company: project.clientProfile?.company ?? null,
+      email: project.clientProfile?.email ?? null,
+      phone: project.clientProfile?.phone ?? null,
+      sector: project.clientProfile?.sector ?? null,
+      notes: project.clientProfile?.notes ?? null
+    },
     attachments: Array.isArray(project.attachments) ? [...project.attachments] : [],
     requiredSkills: Array.isArray(project.requiredSkills) ? [...project.requiredSkills] : [],
     openRisks: Array.isArray(project.openRisks) ? project.openRisks.map((risk) => ({ ...risk })) : [],
@@ -1713,6 +1735,14 @@ export function createProjectRecord(
     folio,
     name: input.name.trim(),
     client: input.client.trim(),
+    clientProfile: {
+      name: input.client.trim(),
+      company: input.clientCompany?.trim() || null,
+      email: input.clientEmail?.trim().toLowerCase() || null,
+      phone: input.clientPhone?.trim() || null,
+      sector: input.clientSector?.trim() || null,
+      notes: input.clientNotes?.trim() || null
+    },
     description: input.description.trim(),
     status: "approved" as const,
     priority: input.priority,

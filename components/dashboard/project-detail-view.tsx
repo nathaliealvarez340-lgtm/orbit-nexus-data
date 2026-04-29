@@ -101,6 +101,9 @@ export function ProjectDetailView({ session, projectSlug }: ProjectDetailViewPro
     return getClientDashboardSearchItems(getClientDashboardMock(session));
   }, [leaderData, session]);
 
+  const clientProfile = project?.clientProfile ?? null;
+  const leadConsultant = assignedConsultants[0] ?? null;
+
   const headerActions =
     session.role === "LEADER" ? <LeaderNotifications notifications={leaderData.notifications} /> : undefined;
 
@@ -318,13 +321,13 @@ export function ProjectDetailView({ session, projectSlug }: ProjectDetailViewPro
 
       <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
         <OperationsPanel
-          description="Contexto ejecutivo del proyecto, alcance, skills requeridas y lectura rapida del estado actual."
+          description="Contexto ejecutivo del proyecto, cliente, asignacion actual y lectura rapida del estado operativo."
           eyebrow="Resumen ejecutivo"
           title="Contexto del proyecto"
         >
           <div className="space-y-4">
             <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-6 text-slate-400">
-              <p className="text-base font-semibold text-white">Descripcion operacional</p>
+              <p className="text-base font-semibold text-white">Proyecto</p>
               <p className="mt-2">{project.description}</p>
             </div>
 
@@ -336,13 +339,57 @@ export function ProjectDetailView({ session, projectSlug }: ProjectDetailViewPro
                 </p>
               </div>
               <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4">
-                <p className="text-sm font-semibold text-white">Lider del proyecto</p>
+                <p className="text-sm font-semibold text-white">Asignacion</p>
                 <p className="mt-2 text-sm text-slate-400">{project.leader}</p>
+                <p className="mt-2 text-sm text-slate-500">
+                  {leadConsultant
+                    ? `Consultor principal: ${leadConsultant.fullName}`
+                    : "Aun no hay consultor asignado."}
+                </p>
               </div>
             </div>
 
             <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4">
-              <p className="text-sm font-semibold text-white">Skills / especializacion requerida</p>
+              <p className="text-sm font-semibold text-white">Cliente</p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Nombre</p>
+                  <p className="mt-2 text-sm text-slate-300">{clientProfile?.name ?? project.client}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Empresa</p>
+                  <p className="mt-2 text-sm text-slate-300">{clientProfile?.company ?? "No registrada"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Correo</p>
+                  <p className="mt-2 text-sm text-slate-300">{clientProfile?.email ?? "No registrado"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Telefono</p>
+                  <p className="mt-2 text-sm text-slate-300">{clientProfile?.phone ?? "No registrado"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Sector</p>
+                  <p className="mt-2 text-sm text-slate-300">{clientProfile?.sector ?? "No registrado"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Folio</p>
+                  <p className="mt-2 text-sm text-slate-300">{project.folio}</p>
+                </div>
+              </div>
+              {clientProfile?.notes ? (
+                <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Notas relevantes</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{clientProfile.notes}</p>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4">
+              <p className="text-sm font-semibold text-white">Avance y habilidades</p>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Progreso actual: {project.progress}% · Ultima lectura: {project.lastUpdate}
+              </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {project.requiredSkills.length ? (
                   project.requiredSkills.map((skill) => (

@@ -1,8 +1,8 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Check, ChevronDown, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { PasswordField } from "@/components/auth/password-field";
 import { PasswordRequirements } from "@/components/auth/password-requirements";
@@ -31,6 +31,7 @@ type RegisterFormState = {
   localPhone: string;
   password: string;
   role: RegistrableRoleKey | "";
+  companyName: string;
   projectFolio: string;
   companyRegistrationCode: string;
 };
@@ -47,6 +48,7 @@ const initialFormState: RegisterFormState = {
   localPhone: "",
   password: "",
   role: "",
+  companyName: "",
   projectFolio: "",
   companyRegistrationCode: ""
 };
@@ -76,12 +78,46 @@ export default function RegisterForm() {
   const [success, setSuccess] = useState<RegistrationSuccessState | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isCountryMenuOpen, setIsCountryMenuOpen] = useState(false);
+  const countryMenuRef = useRef<HTMLDivElement | null>(null);
 
   const normalizedPhone = useMemo(
     () => buildInternationalPhone(form.countryCode, form.localPhone),
     [form.countryCode, form.localPhone]
   );
   const passwordValidationMessage = getPasswordValidationMessage(form.password);
+  const selectedCountryOption = useMemo(
+    () =>
+      PHONE_COUNTRY_OPTIONS.find((option) => option.value === form.countryCode) ??
+      PHONE_COUNTRY_OPTIONS[0],
+    [form.countryCode]
+  );
+
+  useEffect(() => {
+    if (!isCountryMenuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!countryMenuRef.current?.contains(event.target as Node)) {
+        setIsCountryMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsCountryMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isCountryMenuOpen]);
 
   function updateField<K extends keyof RegisterFormState>(key: K, value: RegisterFormState[K]) {
     setForm((current) => ({
@@ -122,6 +158,10 @@ export default function RegisterForm() {
   function validateStepTwo() {
     if (!form.role) {
       return "Selecciona el tipo de usuario.";
+    }
+
+    if (form.role === "CLIENT" && !form.companyName.trim()) {
+      return "Ingresa el nombre de la empresa para continuar como cliente.";
     }
 
     if (form.role === "CLIENT" && !form.projectFolio.trim()) {
@@ -178,6 +218,7 @@ export default function RegisterForm() {
           phone: normalizedPhone,
           password: form.password,
           role: form.role,
+          companyName: form.role === "CLIENT" ? form.companyName.trim() : undefined,
           projectFolio: form.role === "CLIENT" ? form.projectFolio.trim() : undefined,
           companyRegistrationCode:
             form.role === "LEADER" ? form.companyRegistrationCode.trim() : undefined
@@ -327,20 +368,56 @@ export default function RegisterForm() {
             <label className="text-sm font-medium text-slate-200">Celular</label>
 
             <div className="flex gap-2">
-              <select
-                className={orbitSelectClassName}
-                value={form.countryCode}
-                onChange={(event) => updateField("countryCode", event.target.value)}
-              >
-                {PHONE_COUNTRY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <div ref={countryMenuRef} className="relative w-[132px] shrink-0 sm:w-[148px]">
+                <button
+                  aria-expanded={isCountryMenuOpen}
+                  aria-haspopup="listbox"
+                  className={`${orbitSelectClassName} flex items-center justify-between gap-2 px-3 text-left text-sm`}
+                  type="button"
+                  onClick={() => setIsCountryMenuOpen((current) => !current)}
+                >
+                  <span className="truncate">{selectedCountryOption?.label ?? form.countryCode}</span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-slate-300 transition-transform duration-200 ${
+                      isCountryMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {isCountryMenuOpen ? (
+                  <div className="absolute left-0 top-[calc(100%+0.55rem)] z-30 w-full overflow-hidden rounded-[1.35rem] border border-white/12 bg-[#07111f]/95 p-2 shadow-[0_24px_54px_rgba(2,6,23,0.45)] backdrop-blur-[20px]">
+                    <div className="max-h-64 overflow-y-auto pr-1" role="listbox">
+                      {PHONE_COUNTRY_OPTIONS.map((option) => {
+                        const isSelected = option.value === form.countryCode;
+
+                        return (
+                          <button
+                            aria-selected={isSelected}
+                            key={option.value}
+                            className={`flex w-full items-center justify-between rounded-[1rem] px-3 py-3 text-left text-sm transition-all duration-200 ${
+                              isSelected
+                                ? "bg-cyan-400/12 text-white"
+                                : "text-slate-200 hover:bg-cyan-400/10 hover:text-white"
+                            }`}
+                            role="option"
+                            type="button"
+                            onClick={() => {
+                              updateField("countryCode", option.value);
+                              setIsCountryMenuOpen(false);
+                            }}
+                          >
+                            <span>{option.label}</span>
+                            {isSelected ? <Check className="h-4 w-4 text-cyan-300" /> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
 
               <input
-                className={`${orbitInputClassName} flex-1`}
+                className={`${orbitInputClassName} min-w-0 flex-1`}
                 placeholder="5512345678"
                 type="text"
                 value={form.localPhone}
@@ -389,6 +466,9 @@ export default function RegisterForm() {
                   >
                     <p className="text-sm font-semibold text-white">{option.label}</p>
                     <p className="mt-1 text-sm leading-6 text-slate-400">{option.description}</p>
+                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
+                      {selected ? `${option.label} seleccionado` : `Elegir ${option.label.toLowerCase()}`}
+                    </p>
                   </button>
                 );
               })}
@@ -396,18 +476,34 @@ export default function RegisterForm() {
           </div>
 
           {form.role === "CLIENT" ? (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200" htmlFor="projectFolio">
-                Folio único del proyecto
-              </label>
-              <input
-                className={orbitInputClassName}
-                id="projectFolio"
-                placeholder="PRJ-2026-0001"
-                type="text"
-                value={form.projectFolio}
-                onChange={(event) => updateField("projectFolio", event.target.value)}
-              />
+            <div className="grid gap-5">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-200" htmlFor="client-company-name">
+                  Nombre de la empresa
+                </label>
+                <input
+                  className={orbitInputClassName}
+                  id="client-company-name"
+                  placeholder="Empresa asociada al proyecto"
+                  type="text"
+                  value={form.companyName}
+                  onChange={(event) => updateField("companyName", event.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-200" htmlFor="projectFolio">
+                  Folio único del proyecto
+                </label>
+                <input
+                  className={orbitInputClassName}
+                  id="projectFolio"
+                  placeholder="PRJ-2026-0001"
+                  type="text"
+                  value={form.projectFolio}
+                  onChange={(event) => updateField("projectFolio", event.target.value)}
+                />
+              </div>
             </div>
           ) : null}
 

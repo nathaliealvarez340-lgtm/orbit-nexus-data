@@ -4,7 +4,6 @@ import { generateUniqueAccessCode } from "@/lib/access-code";
 import {
   ALREADY_REGISTERED_MESSAGE,
   AMBIGUOUS_DIRECTORY_MATCH_MESSAGE,
-  CLIENT_EMAIL_MISMATCH_MESSAGE,
   INVALID_COMPANY_REGISTRATION_CODE_MESSAGE,
   INVALID_PROJECT_FOLIO_MESSAGE,
   UNAUTHORIZED_CONSULTANT_REGISTRATION_MESSAGE,
@@ -24,6 +23,7 @@ type RegisterUserInput = {
   phone: string;
   password: string;
   role: RegistrableRoleKey;
+  companyName?: string;
   projectFolio?: string;
   companyRegistrationCode?: string;
 };
@@ -204,9 +204,14 @@ async function activateConsultantUser(input: RegisterUserInput, roleId: string) 
 
 async function createOrActivateClientUser(input: RegisterUserInput, roleId: string) {
   const folio = input.projectFolio?.trim().toUpperCase();
+  const companyName = normalizeName(input.companyName ?? "");
 
   if (!folio) {
     throw new ServiceError(INVALID_PROJECT_FOLIO_MESSAGE, 400);
+  }
+
+  if (!companyName) {
+    throw new ServiceError("El nombre de la empresa es obligatorio para registrar al cliente.", 400);
   }
 
   const project = await prisma.project.findUnique({
@@ -223,26 +228,16 @@ async function createOrActivateClientUser(input: RegisterUserInput, roleId: stri
     throw new ServiceError(INVALID_PROJECT_FOLIO_MESSAGE, 404);
   }
 
+  if (normalizeName(project.company.name) !== companyName) {
+    throw new ServiceError("El nombre de la empresa no coincide con el proyecto.", 403);
+  }
+
   if (project.clientUserId) {
     throw new ServiceError(ALREADY_REGISTERED_MESSAGE, 409);
   }
 
   const normalizedEmail = normalizeEmail(input.email);
   const normalizedFullName = normalizeName(input.fullName);
-  const normalizedProjectEmail = project.clientContactEmail
-    ? normalizeEmail(project.clientContactEmail)
-    : null;
-  const normalizedProjectContactName = project.clientContactName
-    ? normalizeName(project.clientContactName)
-    : null;
-
-  if (normalizedProjectEmail && normalizedProjectEmail !== normalizedEmail) {
-    throw new ServiceError(CLIENT_EMAIL_MISMATCH_MESSAGE, 403);
-  }
-
-  if (normalizedProjectContactName && normalizedProjectContactName !== normalizedFullName) {
-    throw new ServiceError("El nombre no coincide con el contacto autorizado para este proyecto.", 403);
-  }
 
   const existingPendingClient = await prisma.user.findFirst({
     where: {
@@ -257,13 +252,6 @@ async function createOrActivateClientUser(input: RegisterUserInput, roleId: stri
 
   if (existingPendingClient?.status === "ACTIVE" && existingPendingClient.accessCode) {
     throw new ServiceError(ALREADY_REGISTERED_MESSAGE, 409);
-  }
-
-  if (!existingPendingClient && !normalizedProjectEmail) {
-    throw new ServiceError(
-      "Este proyecto no tiene un cliente autorizado para completar el registro.",
-      403
-    );
   }
 
   const passwordHash = await hashPassword(input.password);

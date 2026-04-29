@@ -34,6 +34,7 @@ import {
 
 type CompanyPlan = "CORE" | "GROWTH" | "ENTERPRISE";
 type ActivationStep = "hero" | "plans" | "billing";
+type OrganizationAccessType = "COMPANY" | "OWN_BUSINESS";
 
 const DISPLAY_CORE_BASE_MXN = CORE_BASE_MXN;
 const DISPLAY_CORE_EXTRA_USER_MXN = CORE_EXTRA_USER_MXN;
@@ -122,10 +123,20 @@ type FormState = {
   companyName: string;
   sector: string;
   plan: CompanyPlan;
+  organizationAccessType: OrganizationAccessType | null;
+  authorizedEmailDomain: string;
+  ownerContactEmail: string;
   extraUsers: number;
 };
 
-type ActivationField = "fullName" | "email" | "companyName" | "sector";
+type ActivationField =
+  | "fullName"
+  | "email"
+  | "companyName"
+  | "sector"
+  | "organizationAccessType"
+  | "authorizedEmailDomain"
+  | "ownerContactEmail";
 type FieldErrors = Partial<Record<ActivationField, string>>;
 
 const initialFormState: FormState = {
@@ -134,6 +145,9 @@ const initialFormState: FormState = {
   companyName: "",
   sector: "",
   plan: "CORE",
+  organizationAccessType: null,
+  authorizedEmailDomain: "",
+  ownerContactEmail: "",
   extraUsers: 0
 };
 
@@ -167,6 +181,14 @@ const sectorOptionsList = [
 
 const activationSupportHref =
   "mailto:soporte@orbitne.com?subject=Soporte%20activacion%20Orbit%20Nexus";
+const PUBLIC_EMAIL_DOMAINS = new Set([
+  "gmail.com",
+  "outlook.com",
+  "hotmail.com",
+  "yahoo.com",
+  "icloud.com",
+  "live.com"
+]);
 
 type ExchangeRateState = {
   rate: number;
@@ -184,6 +206,14 @@ function formatCurrency(value: number) {
 
 function formatEstimatedUsd(amountMxn: number, rate: number) {
   return `≈ $${Math.round(amountMxn / rate)} USD estimado`;
+}
+
+function normalizeDomainValue(value: string) {
+  return value.trim().toLowerCase().replace(/^@+/, "");
+}
+
+function isValidCorporateDomain(value: string) {
+  return /^[a-z0-9]+([.-]?[a-z0-9]+)*\.[a-z]{2,}$/i.test(value);
 }
 
 export function CompanyActivationCta() {
@@ -422,6 +452,27 @@ export function CompanyActivationCta() {
       nextErrors.sector = "Selecciona el sector de tu empresa.";
     }
 
+    if (!form.organizationAccessType) {
+      nextErrors.organizationAccessType = "Selecciona cómo operará tu acceso.";
+    }
+
+    if (form.organizationAccessType === "COMPANY") {
+      const normalizedDomain = normalizeDomainValue(form.authorizedEmailDomain);
+
+      if (!normalizedDomain || !isValidCorporateDomain(normalizedDomain)) {
+        nextErrors.authorizedEmailDomain = "Ingresa un dominio corporativo válido.";
+      } else if (PUBLIC_EMAIL_DOMAINS.has(normalizedDomain)) {
+        nextErrors.authorizedEmailDomain = "Usa un dominio corporativo, no un correo público.";
+      }
+    }
+
+    if (
+      form.organizationAccessType === "OWN_BUSINESS" &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.ownerContactEmail.trim())
+    ) {
+      nextErrors.ownerContactEmail = "Ingresa el correo principal del acceso.";
+    }
+
     return nextErrors;
   }
 
@@ -472,6 +523,15 @@ export function CompanyActivationCta() {
           companyName: form.companyName,
           sector: form.sector,
           plan: form.plan,
+          organizationAccessType: form.organizationAccessType,
+          authorizedEmailDomain:
+            form.organizationAccessType === "COMPANY"
+              ? normalizeDomainValue(form.authorizedEmailDomain)
+              : undefined,
+          ownerContactEmail:
+            form.organizationAccessType === "OWN_BUSINESS"
+              ? form.ownerContactEmail.trim()
+              : undefined,
           includedUsers: quote.includedUsers,
           totalUsers: quote.totalUsers,
           extraUsers: form.plan === "CORE" || form.plan === "GROWTH" ? form.extraUsers : 0,
@@ -483,7 +543,7 @@ export function CompanyActivationCta() {
       if (!response.ok) {
         const nextError =
           response.status === 400
-            ? payload?.message === "Selecciona el sector de tu empresa."
+            ? typeof payload?.message === "string" && payload.message.trim().length > 0
               ? payload.message
               : "Faltan datos para iniciar el checkout."
             : response.status === 503
@@ -1020,6 +1080,63 @@ export function CompanyActivationCta() {
                                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                                   Configuración
                                 </p>
+                                <div className="space-y-3">
+                                  <Label className="text-slate-200">¿Cómo operará tu acceso?</Label>
+                                  <div className="grid gap-3 md:grid-cols-2">
+                                    <button
+                                      className={`rounded-[1.35rem] border px-4 py-4 text-left transition ${
+                                        form.organizationAccessType === "COMPANY"
+                                          ? "border-cyan-400/40 bg-cyan-500/10 ring-1 ring-cyan-400/20"
+                                          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08]"
+                                      }`}
+                                      type="button"
+                                      onClick={() => {
+                                        setForm((current) => ({
+                                          ...current,
+                                          organizationAccessType: "COMPANY",
+                                          ownerContactEmail: ""
+                                        }));
+                                        clearFieldError("organizationAccessType");
+                                        clearFieldError("authorizedEmailDomain");
+                                      }}
+                                    >
+                                      <p className="text-sm font-semibold text-white">Empresa</p>
+                                      <p className="mt-2 text-sm leading-6 text-slate-400">
+                                        Acceso para un equipo con dominio corporativo reconocido por Orbit Nexus.
+                                      </p>
+                                    </button>
+
+                                    <button
+                                      className={`rounded-[1.35rem] border px-4 py-4 text-left transition ${
+                                        form.organizationAccessType === "OWN_BUSINESS"
+                                          ? "border-cyan-400/40 bg-cyan-500/10 ring-1 ring-cyan-400/20"
+                                          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08]"
+                                      }`}
+                                      type="button"
+                                      onClick={() => {
+                                        setForm((current) => ({
+                                          ...current,
+                                          organizationAccessType: "OWN_BUSINESS",
+                                          authorizedEmailDomain: "",
+                                          ownerContactEmail: current.ownerContactEmail || current.email
+                                        }));
+                                        clearFieldError("organizationAccessType");
+                                        clearFieldError("ownerContactEmail");
+                                      }}
+                                    >
+                                      <p className="text-sm font-semibold text-white">Negocio propio</p>
+                                      <p className="mt-2 text-sm leading-6 text-slate-400">
+                                        Acceso principal para una operación independiente con contacto centralizado.
+                                      </p>
+                                    </button>
+                                  </div>
+                                  {fieldErrors.organizationAccessType ? (
+                                    <p className="text-xs text-rose-200">
+                                      {fieldErrors.organizationAccessType}
+                                    </p>
+                                  ) : null}
+                                </div>
+
                                 <div className="space-y-2">
                                   <Label className="text-slate-200" htmlFor="activation-company">
                                     Empresa
@@ -1045,6 +1162,85 @@ export function CompanyActivationCta() {
                                     <p className="text-xs text-rose-200">{fieldErrors.companyName}</p>
                                   ) : null}
                                 </div>
+
+                                {form.organizationAccessType === "COMPANY" ? (
+                                  <div className="space-y-2">
+                                    <Label className="text-slate-200" htmlFor="activation-domain">
+                                      Dominio corporativo
+                                    </Label>
+                                    <div
+                                      className={`flex h-12 items-center overflow-hidden rounded-2xl border bg-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-300 ease-in-out ${
+                                        fieldErrors.authorizedEmailDomain
+                                          ? "border-rose-400/40 focus-within:ring-2 focus-within:ring-rose-400/25"
+                                          : "border-white/15 hover:border-white/20 focus-within:border-[#60A5FA]/45 focus-within:ring-2 focus-within:ring-[#38BDF8]/40"
+                                      }`}
+                                    >
+                                      <span className="flex h-full items-center border-r border-white/10 px-4 text-sm font-medium text-cyan-300">
+                                        @
+                                      </span>
+                                      <input
+                                        id="activation-domain"
+                                        className="h-full w-full bg-transparent px-4 text-sm text-white placeholder:text-slate-400 focus:outline-none"
+                                        placeholder="empresa.com"
+                                        type="text"
+                                        value={form.authorizedEmailDomain}
+                                        onChange={(event) =>
+                                          setForm((current) => ({
+                                            ...current,
+                                            authorizedEmailDomain: event.target.value
+                                          }))
+                                        }
+                                        onChangeCapture={() => clearFieldError("authorizedEmailDomain")}
+                                        onBlur={() => clearFieldError("authorizedEmailDomain")}
+                                      />
+                                    </div>
+                                    {fieldErrors.authorizedEmailDomain ? (
+                                      <p className="text-xs text-rose-200">
+                                        {fieldErrors.authorizedEmailDomain}
+                                      </p>
+                                    ) : (
+                                      <p className="text-xs text-slate-400">
+                                        Usaremos este dominio para reconocer usuarios autorizados de tu organización.
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : null}
+
+                                {form.organizationAccessType === "OWN_BUSINESS" ? (
+                                  <div className="space-y-2">
+                                    <Label className="text-slate-200" htmlFor="activation-owner-email">
+                                      Correo principal del acceso
+                                    </Label>
+                                    <Input
+                                      id="activation-owner-email"
+                                      className={`${orbitInputClassName} ${
+                                        fieldErrors.ownerContactEmail
+                                          ? "border-rose-400/40 focus:border-rose-400/40 focus:ring-rose-400/25"
+                                          : ""
+                                      }`}
+                                      placeholder="contacto@negocio.com"
+                                      type="email"
+                                      value={form.ownerContactEmail}
+                                      onChange={(event) =>
+                                        setForm((current) => ({
+                                          ...current,
+                                          ownerContactEmail: event.target.value
+                                        }))
+                                      }
+                                      onChangeCapture={() => clearFieldError("ownerContactEmail")}
+                                      onBlur={() => clearFieldError("ownerContactEmail")}
+                                    />
+                                    {fieldErrors.ownerContactEmail ? (
+                                      <p className="text-xs text-rose-200">
+                                        {fieldErrors.ownerContactEmail}
+                                      </p>
+                                    ) : (
+                                      <p className="text-xs text-slate-400">
+                                        Este correo quedará asociado como contacto principal del acceso.
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : null}
 
                                 <div className="space-y-2">
                                   <Label className="text-slate-200" htmlFor="activation-sector">

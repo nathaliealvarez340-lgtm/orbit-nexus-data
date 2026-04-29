@@ -1,5 +1,6 @@
 import {
   CompanyBillingStatus,
+  OrganizationAccessType,
   CompanyPlan,
   Prisma,
   type PrismaClient
@@ -19,6 +20,9 @@ type StartCompanyActivationInput = {
   companyName: string;
   sector: string;
   plan: CompanyPlan;
+  organizationAccessType: OrganizationAccessType;
+  authorizedEmailDomain?: string;
+  ownerContactEmail?: string;
   extraUsers?: number;
 };
 
@@ -30,6 +34,14 @@ type ActivationRequestRecord = Prisma.CompanyActivationRequestGetPayload<{
 
 const COMPANY_IDENTIFIER_RETRY_LIMIT = 5;
 const CHECKOUT_APP_URL_FALLBACK = "https://orbitne.com";
+const PUBLIC_EMAIL_DOMAINS = new Set([
+  "gmail.com",
+  "outlook.com",
+  "hotmail.com",
+  "yahoo.com",
+  "icloud.com",
+  "live.com"
+]);
 
 function slugify(value: string) {
   return value
@@ -210,11 +222,26 @@ function resolveCheckoutAppUrl() {
   }
 }
 
+function normalizeEmailDomain(value: string) {
+  return value.trim().toLowerCase().replace(/^@+/, "");
+}
+
+function isValidCorporateDomain(value: string) {
+  return /^[a-z0-9]+([.-]?[a-z0-9]+)*\.[a-z]{2,}$/i.test(value);
+}
+
 export async function startCompanyActivation(input: StartCompanyActivationInput) {
   const fullName = input.fullName.trim();
   const email = normalizeEmail(input.email);
   const companyName = input.companyName.trim();
   const sector = input.sector.trim();
+  const organizationAccessType = input.organizationAccessType;
+  const authorizedEmailDomain = input.authorizedEmailDomain
+    ? normalizeEmailDomain(input.authorizedEmailDomain)
+    : null;
+  const ownerContactEmail = input.ownerContactEmail
+    ? normalizeEmail(input.ownerContactEmail)
+    : null;
   const quote = buildQuoteSummary({
     plan: input.plan,
     extraUsers: input.extraUsers
@@ -222,6 +249,20 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
 
   if (!fullName || !email || !companyName || !sector) {
     throw new ServiceError("Debes completar los datos basicos para cotizar la activacion.", 400);
+  }
+
+  if (organizationAccessType === "COMPANY") {
+    if (!authorizedEmailDomain || !isValidCorporateDomain(authorizedEmailDomain)) {
+      throw new ServiceError("Ingresa un dominio corporativo valido.", 400);
+    }
+
+    if (PUBLIC_EMAIL_DOMAINS.has(authorizedEmailDomain)) {
+      throw new ServiceError("Usa un dominio corporativo, no un correo publico.", 400);
+    }
+  }
+
+  if (organizationAccessType === "OWN_BUSINESS" && !ownerContactEmail) {
+    throw new ServiceError("Ingresa el correo principal del acceso.", 400);
   }
 
   const activation = await prisma.$transaction(async (tx) => {
@@ -235,6 +276,9 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
         companyName,
         sector,
         plan: input.plan,
+        organizationAccessType,
+        authorizedEmailDomain,
+        ownerContactEmail,
         includedUsers: quote.includedUsers,
         extraUsers: quote.extraUsers,
         totalAmountMxn: quote.totalAmountMxn,
@@ -308,6 +352,9 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
         contactEmail: email,
         sector,
         plan: input.plan,
+        organizationAccessType,
+        authorizedEmailDomain: authorizedEmailDomain ?? "",
+        ownerContactEmail: ownerContactEmail ?? "",
         monthlyAmount: String(quote.baseAmountMxn),
         includedUsers: String(quote.includedUsers),
         extraUsers: String(quote.extraUsers),
@@ -383,6 +430,9 @@ async function ensureCompanyFromActivation(
         },
         data: {
           billingStatus: nextStatus,
+          organizationAccessType: activation.organizationAccessType,
+          authorizedEmailDomain: activation.authorizedEmailDomain,
+          ownerContactEmail: activation.ownerContactEmail,
           stripeCustomerId:
             typeof stripeSession?.customer === "string"
               ? stripeSession.customer
@@ -430,6 +480,9 @@ async function ensureCompanyFromActivation(
       sector: activation.sector,
       contactName: activation.fullName,
       contactEmail: activation.email,
+      organizationAccessType: activation.organizationAccessType,
+      authorizedEmailDomain: activation.authorizedEmailDomain,
+      ownerContactEmail: activation.ownerContactEmail,
       subscriptionPlan: activation.plan,
       includedUsers: activation.includedUsers,
       extraUsers: activation.extraUsers,

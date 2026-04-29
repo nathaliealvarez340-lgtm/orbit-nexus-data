@@ -15,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import {
   getLeaderDashboardMock,
   getLeaderDashboardSearchItems,
-  getNextProjectFolio,
   type DashboardProjectPriority
 } from "@/lib/dashboard/mock-data";
 import type { SessionUser } from "@/types/auth";
@@ -29,6 +28,10 @@ type ProjectCreateFormState = {
   description: string;
   client: string;
   clientEmail: string;
+  clientCompany: string;
+  clientPhone: string;
+  clientSector: string;
+  clientNotes: string;
   consultantsRequired: string;
   startDate: string;
   endDate: string;
@@ -41,6 +44,10 @@ const initialFormState: ProjectCreateFormState = {
   description: "",
   client: "",
   clientEmail: "",
+  clientCompany: "",
+  clientPhone: "",
+  clientSector: "",
+  clientNotes: "",
   consultantsRequired: "1",
   startDate: "",
   endDate: "",
@@ -58,10 +65,6 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
 
   const leaderData = useMemo(() => getLeaderDashboardMock(session, projects), [projects, session]);
   const searchItems = useMemo(() => getLeaderDashboardSearchItems(leaderData), [leaderData]);
-  const projectedFolio = useMemo(
-    () => getNextProjectFolio(projects, form.startDate || undefined),
-    [form.startDate, projects]
-  );
 
   function updateField<Key extends keyof ProjectCreateFormState>(
     field: Key,
@@ -127,6 +130,10 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
             description: form.description.trim(),
             clientName: form.client.trim(),
             clientEmail: form.clientEmail.trim(),
+            clientCompany: form.clientCompany.trim() || undefined,
+            clientPhone: form.clientPhone.trim() || undefined,
+            clientSector: form.clientSector.trim() || undefined,
+            clientNotes: form.clientNotes.trim() || undefined,
             startDate: form.startDate,
             endDate: form.endDate,
             priority: form.priority
@@ -146,6 +153,10 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
             description: form.description,
             client: form.client,
             clientEmail: form.clientEmail,
+            clientCompany: form.clientCompany,
+            clientPhone: form.clientPhone,
+            clientSector: form.clientSector,
+            clientNotes: form.clientNotes,
             consultantsRequired,
             startDate: form.startDate,
             endDate: form.endDate,
@@ -284,6 +295,51 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
               </div>
 
               <div className="space-y-2">
+                <Label className="text-slate-200" htmlFor="project-client-company">
+                  Empresa del cliente
+                </Label>
+                <Input
+                  id="project-client-company"
+                  className="h-11 rounded-2xl border-white/10 bg-white/[0.04] text-white placeholder:text-slate-500"
+                  placeholder="Ej. Nova Holding"
+                  value={form.clientCompany}
+                  onChange={(event) => {
+                    updateField("clientCompany", event.target.value);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-slate-200" htmlFor="project-client-phone">
+                  Telefono del cliente
+                </Label>
+                <Input
+                  id="project-client-phone"
+                  className="h-11 rounded-2xl border-white/10 bg-white/[0.04] text-white placeholder:text-slate-500"
+                  placeholder="Opcional"
+                  value={form.clientPhone}
+                  onChange={(event) => {
+                    updateField("clientPhone", event.target.value);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-slate-200" htmlFor="project-client-sector">
+                  Sector del cliente
+                </Label>
+                <Input
+                  id="project-client-sector"
+                  className="h-11 rounded-2xl border-white/10 bg-white/[0.04] text-white placeholder:text-slate-500"
+                  placeholder="Opcional"
+                  value={form.clientSector}
+                  onChange={(event) => {
+                    updateField("clientSector", event.target.value);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label className="text-slate-200" htmlFor="project-consultants">
                   Consultores requeridos
                 </Label>
@@ -370,6 +426,21 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
               </div>
 
               <div className="space-y-2 md:col-span-2">
+                <Label className="text-slate-200" htmlFor="project-client-notes">
+                  Notas del cliente
+                </Label>
+                <textarea
+                  id="project-client-notes"
+                  className="min-h-[110px] w-full rounded-[1.25rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/40"
+                  placeholder="Contexto relevante, observaciones o restricciones del cliente."
+                  value={form.clientNotes}
+                  onChange={(event) => {
+                    updateField("clientNotes", event.target.value);
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
                 <Label className="text-slate-200" htmlFor="project-files">
                   Upload de archivos (mock)
                 </Label>
@@ -411,9 +482,11 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                 Folio
               </p>
-              <p className="mt-2 text-lg font-semibold text-white">{projectedFolio}</p>
+              <p className="mt-2 text-lg font-semibold text-white">
+                Se genera al hacer click en Crear proyecto
+              </p>
               <p className="mt-2">
-                El sistema asigna el siguiente consecutivo disponible y lo conserva en el estado del workspace.
+                El folio unico aparece despues del alta y queda guardado en el detalle del proyecto.
               </p>
             </div>
 

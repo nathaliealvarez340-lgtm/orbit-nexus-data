@@ -47,6 +47,9 @@ export type CompanySummary = {
   extraUsers: number;
   monthlyAmountMxn: number | null;
   billingStatus: CompanyBillingStatus;
+  organizationAccessType: "COMPANY" | "OWN_BUSINESS" | null;
+  authorizedEmailDomain: string | null;
+  ownerContactEmail: string | null;
   activatedAt: string | null;
   leaderCount: number;
   consultantCount: number;
@@ -60,6 +63,9 @@ export type ActivationRequestSummary = {
   id: string;
   companyName: string;
   contactEmail: string;
+  organizationAccessType: "COMPANY" | "OWN_BUSINESS";
+  authorizedEmailDomain: string | null;
+  ownerContactEmail: string | null;
   plan: CompanyPlan;
   totalAmountMxn: number;
   status: CompanyBillingStatus;
@@ -93,6 +99,9 @@ export async function getRecentActivationRequests(limit = 6) {
       id: true,
       companyName: true,
       email: true,
+      organizationAccessType: true,
+      authorizedEmailDomain: true,
+      ownerContactEmail: true,
       plan: true,
       totalAmountMxn: true,
       status: true,
@@ -113,6 +122,9 @@ export async function getRecentActivationRequests(limit = 6) {
         id: request.id,
         companyName: request.companyName,
         contactEmail: request.email,
+        organizationAccessType: request.organizationAccessType,
+        authorizedEmailDomain: request.authorizedEmailDomain,
+        ownerContactEmail: request.ownerContactEmail,
         plan: request.plan,
         totalAmountMxn: request.totalAmountMxn,
         status: request.status,
@@ -293,6 +305,9 @@ export async function getCompanySummaryList() {
       extraUsers: true,
       monthlyAmountMxn: true,
       billingStatus: true,
+      organizationAccessType: true,
+      authorizedEmailDomain: true,
+      ownerContactEmail: true,
       activatedAt: true,
       createdAt: true,
       _count: {
@@ -352,6 +367,9 @@ export async function getCompanySummaryList() {
         extraUsers: company.extraUsers,
         monthlyAmountMxn: company.monthlyAmountMxn,
         billingStatus: company.billingStatus,
+        organizationAccessType: company.organizationAccessType,
+        authorizedEmailDomain: company.authorizedEmailDomain,
+        ownerContactEmail: company.ownerContactEmail,
         activatedAt: company.activatedAt?.toISOString() ?? null,
         leaderCount,
         consultantCount,
