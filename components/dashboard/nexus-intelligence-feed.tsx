@@ -14,36 +14,36 @@ type NexusIntelligenceFeedProps = {
 };
 
 const categoryClasses = {
-  Tendencia: "border-cyan-400/25 bg-cyan-500/14 text-cyan-200",
-  Estrategia: "border-emerald-400/25 bg-emerald-500/14 text-emerald-200",
   Riesgo: "border-violet-400/25 bg-violet-500/14 text-violet-200",
-  Oportunidad: "border-sky-400/25 bg-sky-500/14 text-sky-200"
+  Productividad: "border-cyan-400/25 bg-cyan-500/14 text-cyan-200",
+  Talento: "border-sky-400/25 bg-sky-500/14 text-sky-200",
+  Mercado: "border-amber-400/25 bg-amber-500/14 text-amber-200",
+  Operacion: "border-emerald-400/25 bg-emerald-500/14 text-emerald-200"
 } as const;
 
-const modalDescriptions = {
-  Tendencia:
-    "Esta vista ampliada mostrará señales de mercado, movimientos operativos y patrones de adopción relevantes para anticipar decisiones con más contexto.",
-  Estrategia:
-    "Aquí se desplegará un análisis editorial con acciones sugeridas, tradeoffs operativos y decisiones recomendadas para mejorar capacidad, foco y coordinación.",
-  Riesgo:
-    "Este espacio presentará alertas explicadas en profundidad, indicadores de deterioro y rutas de mitigación para actuar antes de que el problema escale.",
-  Oportunidad:
-    "Aquí aparecerán oportunidades accionables para liberar capacidad, elevar eficiencia y capturar mejoras rápidas dentro de la operación."
-} as const;
+function getConfidenceLabel(confidence: number) {
+  if (confidence >= 85) {
+    return "Alta";
+  }
 
-function clampTwoLines(title: string) {
-  return (
-    <span
-      style={{
-        display: "-webkit-box",
-        overflow: "hidden",
-        WebkitBoxOrient: "vertical",
-        WebkitLineClamp: 2
-      }}
-    >
-      {title}
-    </span>
-  );
+  if (confidence >= 70) {
+    return "Media";
+  }
+
+  return "Emergente";
+}
+
+function formatPublishedAt(value: string) {
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Sin fecha";
+  }
+
+  return new Intl.DateTimeFormat("es-MX", {
+    day: "2-digit",
+    month: "short"
+  }).format(parsedDate);
 }
 
 export function NexusIntelligenceFeed({ items, className }: NexusIntelligenceFeedProps) {
@@ -62,9 +62,7 @@ export function NexusIntelligenceFeed({ items, className }: NexusIntelligenceFee
 
     const container = scrollRef.current;
     const intervalId = window.setInterval(() => {
-      const cards = Array.from(
-        container.querySelectorAll<HTMLElement>("[data-feed-card='true']")
-      );
+      const cards = Array.from(container.querySelectorAll<HTMLElement>("[data-feed-card='true']"));
 
       if (cards.length < 2) {
         return;
@@ -75,12 +73,11 @@ export function NexusIntelligenceFeed({ items, className }: NexusIntelligenceFee
         const closestDistance = Math.abs(cards[closestIndex].offsetLeft - container.scrollLeft);
         return currentDistance < closestDistance ? index : closestIndex;
       }, 0);
-
       const nextIndex = (nearestIndex + 1) % cards.length;
-      cards[nextIndex]?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "start"
+
+      container.scrollTo({
+        left: cards[nextIndex]?.offsetLeft ?? 0,
+        behavior: "smooth"
       });
     }, 6000);
 
@@ -94,7 +91,7 @@ export function NexusIntelligenceFeed({ items, className }: NexusIntelligenceFee
       return;
     }
 
-    const delta = Math.max(container.clientWidth * 0.82, 280);
+    const delta = Math.max(container.clientWidth * 0.8, 280);
     container.scrollBy({
       left: direction === "next" ? delta : -delta,
       behavior: "smooth"
@@ -106,7 +103,7 @@ export function NexusIntelligenceFeed({ items, className }: NexusIntelligenceFee
       <OperationsPanel
         className={cn("overflow-hidden", className)}
         contentClassName="space-y-5"
-        description="Señales editoriales para anticipar riesgos, detectar oportunidades y decidir con más contexto sin salir de la operación."
+        description="Senales editoriales con lectura ejecutiva, impacto esperado y acciones concretas para decidir con mas contexto sin salir del workspace."
         eyebrow="Inteligencia"
         title="Nexus Intelligence Feed"
         actions={
@@ -135,7 +132,7 @@ export function NexusIntelligenceFeed({ items, className }: NexusIntelligenceFee
         }
       >
         <div className="flex items-center justify-between gap-3 text-sm text-slate-400">
-          <p>Contenido estratégico en formato editorial para mantener visión ejecutiva y criterio operativo.</p>
+          <p>Contenido de inteligencia operativa para anticipar riesgo, elevar productividad y priorizar decisiones de liderazgo.</p>
           <p className="hidden whitespace-nowrap text-xs uppercase tracking-[0.2em] text-slate-500 md:block">
             Desliza para explorar
           </p>
@@ -143,15 +140,17 @@ export function NexusIntelligenceFeed({ items, className }: NexusIntelligenceFee
 
         <div
           ref={scrollRef}
-          className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pr-1 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex min-h-[29rem] snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-2 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
+          onPointerDown={() => setIsPaused(true)}
+          onPointerUp={() => setIsPaused(false)}
         >
           {items.map((item) => (
             <article
               key={item.id}
               data-feed-card="true"
-              className="group relative min-w-[280px] flex-[0_0_88%] snap-start overflow-hidden rounded-[1.75rem] border border-white/12 bg-white/[0.05] shadow-[0_18px_48px_rgba(2,6,23,0.22)] backdrop-blur-[18px] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-cyan-400/28 hover:shadow-[0_24px_56px_rgba(14,165,233,0.14)] sm:flex-[0_0_72%] lg:flex-[0_0_360px]"
+              className="group relative flex min-h-[29rem] min-w-[300px] flex-[0_0_90%] snap-start flex-col overflow-hidden rounded-[1.75rem] border border-white/12 bg-white/[0.05] shadow-[0_18px_48px_rgba(2,6,23,0.22)] backdrop-blur-[18px] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-cyan-400/28 hover:shadow-[0_24px_56px_rgba(14,165,233,0.14)] sm:flex-[0_0_74%] lg:flex-[0_0_395px]"
               role="button"
               tabIndex={0}
               onClick={() => setSelectedItem(item)}
@@ -170,7 +169,7 @@ export function NexusIntelligenceFeed({ items, className }: NexusIntelligenceFee
                   loading="lazy"
                   src={item.image}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/74 via-slate-950/12 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/78 via-slate-950/14 to-transparent" />
                 <span
                   className={cn(
                     "absolute left-4 top-4 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]",
@@ -181,21 +180,60 @@ export function NexusIntelligenceFeed({ items, className }: NexusIntelligenceFee
                 </span>
               </div>
 
-              <div className="space-y-4 p-5">
-                <h3 className="text-lg font-semibold leading-6 text-white">{clampTwoLines(item.title)}</h3>
-                <p className="truncate text-sm text-slate-300">{item.subtitle}</p>
-                <Button
-                  className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_16px_38px_rgba(0,74,173,0.26)] transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-[0_18px_44px_rgba(0,74,173,0.34)]"
-                  size="sm"
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setSelectedItem(item);
-                  }}
-                >
-                  {item.ctaText}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+              <div className="flex flex-1 flex-col space-y-4 p-5">
+                <div className="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  <span>{item.sourceType === "internal" ? "Insight operativo" : item.sourceName}</span>
+                  <span>{formatPublishedAt(item.publishedAt)}</span>
+                </div>
+
+                <div className="space-y-3">
+                  <h3
+                    className="text-lg font-semibold leading-6 text-white"
+                    style={{
+                      display: "-webkit-box",
+                      overflow: "hidden",
+                      WebkitBoxOrient: "vertical",
+                      WebkitLineClamp: 2
+                    }}
+                  >
+                    {item.title}
+                  </h3>
+                  <p className="text-sm leading-6 text-slate-300">{item.actionableInsight}</p>
+                </div>
+
+                <div className="grid gap-3 text-sm text-slate-300">
+                  <div className="rounded-[1.1rem] border border-white/10 bg-white/[0.03] px-3 py-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                      Recomendacion
+                    </p>
+                    <p className="mt-2 leading-6">{item.recommendedAction}</p>
+                  </div>
+                  <div className="rounded-[1.1rem] border border-white/10 bg-white/[0.03] px-3 py-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                      Impacto esperado
+                    </p>
+                    <p className="mt-2 leading-6">{item.expectedImpact}</p>
+                  </div>
+                </div>
+
+                <div className="mt-auto flex items-center justify-between gap-3">
+                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-200">
+                    Confianza {getConfidenceLabel(item.confidence)} | {item.confidence}%
+                  </span>
+
+                  <Button
+                    className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_16px_38px_rgba(0,74,173,0.26)] transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-[0_18px_44px_rgba(0,74,173,0.34)]"
+                    size="sm"
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setSelectedItem(item);
+                    }}
+                  >
+                    {item.ctaText}
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </article>
           ))}
@@ -240,40 +278,46 @@ export function NexusIntelligenceFeed({ items, className }: NexusIntelligenceFee
             </div>
 
             <div className="space-y-5 p-6 md:p-7">
+              <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <span>{selectedItem.sourceType === "internal" ? "Insight operativo" : "Fuente externa preparada"}</span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-cyan-200">
+                  {selectedItem.sourceName}
+                </span>
+                <span>{formatPublishedAt(selectedItem.publishedAt)}</span>
+              </div>
+
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
-                  Vista previa editorial
-                </p>
                 <h3 className="text-2xl font-semibold tracking-[-0.03em] text-white">
                   {selectedItem.title}
                 </h3>
-                <p className="text-sm leading-7 text-slate-300">{selectedItem.subtitle}</p>
+                <p className="text-sm leading-7 text-slate-300">{selectedItem.actionableInsight}</p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-slate-300">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
+                    Recomendacion concreta
+                  </p>
+                  <p className="mt-3">{selectedItem.recommendedAction}</p>
+                </div>
+                <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-slate-300">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
+                    Impacto esperado
+                  </p>
+                  <p className="mt-3">{selectedItem.expectedImpact}</p>
+                </div>
               </div>
 
               <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-slate-300">
-                {modalDescriptions[selectedItem.category]}
-                <br />
-                <br />
-                Próximamente esta tarjeta mostrará contenido extendido, insights accionables y
-                recomendaciones concretas dentro del mismo dashboard.
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_16px_38px_rgba(0,74,173,0.26)]"
-                  type="button"
-                  onClick={() => setSelectedItem(null)}
-                >
-                  Entendido
-                </Button>
-                <Button
-                  className="border-white/12 bg-white/[0.06] text-slate-100 hover:bg-white/[0.1]"
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setSelectedItem(null)}
-                >
-                  Cerrar
-                </Button>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
+                  Nivel de confianza
+                </p>
+                <p className="mt-3">
+                  {selectedItem.confidence}% |{" "}
+                  {selectedItem.sourceType === "internal"
+                    ? "Basado en senales internas del workspace y preparado para conectarse a datos reales."
+                    : "Estructura lista para integrar fuentes externas sin inventar noticias actuales."}
+                </p>
               </div>
             </div>
           </div>

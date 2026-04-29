@@ -3,6 +3,7 @@
 import { LeaderExecutiveHeader } from "@/components/dashboard/leader-executive-header";
 import { LeaderFloatingActions } from "@/components/dashboard/leader-floating-actions";
 import { ChatSummaryCard } from "@/components/dashboard/leader-chat-summary-card";
+import { LeaderKpiDistribution } from "@/components/dashboard/leader-kpi-distribution";
 import { LeaderKpiRow } from "@/components/dashboard/leader-kpi-row";
 import { LeaderNotifications } from "@/components/dashboard/leader-notifications";
 import { LeaderProjectGrid } from "@/components/dashboard/leader-project-grid";
@@ -28,7 +29,7 @@ type LeaderDashboardProps = {
 };
 
 export function LeaderDashboard({ session }: LeaderDashboardProps) {
-  const { projects } = useWorkspaceProjects();
+  const { consultants, projects } = useWorkspaceProjects();
   const { conversations, totalUnreadCount } = useWorkspaceChat();
   const currentData = getLeaderDashboardMock(session, projects);
   const firstName = session.fullName.trim().split(/\s+/)[0] ?? session.fullName;
@@ -77,6 +78,10 @@ export function LeaderDashboard({ session }: LeaderDashboardProps) {
       href: "/workspace/consultants/register"
     },
     {
+      label: "Cotizaciones",
+      href: "/workspace/quotes"
+    },
+    {
       label: "Ir a chat",
       href: "/workspace/chat"
     },
@@ -109,6 +114,7 @@ export function LeaderDashboard({ session }: LeaderDashboardProps) {
       navItems={[
         { label: "Resumen", href: "#leader-overview", active: true },
         { label: "Proyectos", href: "#leader-projects", badge: String(currentData.recentProjects.length) },
+        { label: "Cotizaciones", href: "/workspace/quotes" },
         {
           label: "Intervencion",
           href: "#leader-intervention",
@@ -150,6 +156,8 @@ export function LeaderDashboard({ session }: LeaderDashboardProps) {
           </section>
 
           <NexusIntelligenceFeed items={leaderIntelligenceFeedItems} />
+
+          <LeaderKpiDistribution consultants={consultants} />
 
           <section
             className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:items-stretch"
