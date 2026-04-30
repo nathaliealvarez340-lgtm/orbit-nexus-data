@@ -26,6 +26,10 @@ type StartCompanyActivationInput = {
   extraUsers?: number;
 };
 
+type StartCompanyActivationOptions = {
+  requestOrigin?: string;
+};
+
 type ActivationRequestRecord = Prisma.CompanyActivationRequestGetPayload<{
   include: {
     company: true;
@@ -206,10 +210,11 @@ function buildProductDescription(input: {
   return "Plan Enterprise con activacion guiada y precio personalizado.";
 }
 
-function resolveCheckoutAppUrl() {
+function resolveCheckoutAppUrl(requestOrigin?: string) {
   const rawValue =
     process.env.APP_URL?.trim() ||
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    requestOrigin?.trim() ||
     CHECKOUT_APP_URL_FALLBACK;
 
   try {
@@ -230,7 +235,10 @@ function isValidCorporateDomain(value: string) {
   return /^[a-z0-9]+([.-]?[a-z0-9]+)*\.[a-z]{2,}$/i.test(value);
 }
 
-export async function startCompanyActivation(input: StartCompanyActivationInput) {
+export async function startCompanyActivation(
+  input: StartCompanyActivationInput,
+  options?: StartCompanyActivationOptions
+) {
   const fullName = input.fullName.trim();
   const email = normalizeEmail(input.email);
   const companyName = input.companyName.trim();
@@ -319,7 +327,7 @@ export async function startCompanyActivation(input: StartCompanyActivationInput)
   }
 
   try {
-    appUrl = resolveCheckoutAppUrl();
+    appUrl = resolveCheckoutAppUrl(options?.requestOrigin);
   } catch (error) {
     console.error("[billing/checkout] APP_URL configuration error", {
       companyName,

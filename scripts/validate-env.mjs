@@ -95,6 +95,9 @@ const superadminMasterCode = readValue("SUPERADMIN_MASTER_CODE");
 
 const explicitAppUrl = readValue("APP_URL");
 const publicClientAppUrl = readValue("NEXT_PUBLIC_APP_URL");
+const authCookieDomain = readValue("AUTH_COOKIE_DOMAIN");
+const allowedOrigins = readValue("ALLOWED_ORIGINS");
+const corsOrigin = readValue("CORS_ORIGIN");
 const vercelProjectProductionUrl = readValue("VERCEL_PROJECT_PRODUCTION_URL");
 const vercelUrl = readValue("VERCEL_URL");
 
@@ -146,6 +149,47 @@ if (isProductionLike && !publicClientAppUrl) {
   warnings.push(
     "NEXT_PUBLIC_APP_URL is not configured. Add NEXT_PUBLIC_APP_URL=https://orbitne.com to keep client-side public origin references explicit."
   );
+}
+
+if (authCookieDomain) {
+  try {
+    const hostname = authCookieDomain.includes("://")
+      ? new URL(authCookieDomain).hostname
+      : authCookieDomain.replace(/^\.+/, "");
+
+    if (!hostname || hostname.includes("/") || hostname.includes(" ")) {
+      errors.push(
+        `AUTH_COOKIE_DOMAIN must be a bare hostname such as orbitne.com. Current value: ${authCookieDomain}`
+      );
+    }
+  } catch {
+    errors.push(
+      `AUTH_COOKIE_DOMAIN must be a bare hostname or absolute URL. Current value: ${authCookieDomain}`
+    );
+  }
+}
+
+for (const [name, value] of [
+  ["CORS_ORIGIN", corsOrigin],
+  ["ALLOWED_ORIGINS", allowedOrigins]
+]) {
+  if (!value) {
+    continue;
+  }
+
+  const origins = value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (origins.length === 0) {
+    errors.push(`${name} must include at least one valid absolute origin.`);
+    continue;
+  }
+
+  for (const origin of origins) {
+    validateUrl(name, origin, { httpsOnly: isProductionLike });
+  }
 }
 
 if (databaseUrl && databaseUrl.startsWith("file:") && isProductionLike) {

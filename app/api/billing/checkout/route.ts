@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createErrorResponse } from "@/lib/http";
+import { resolveRequestOrigin } from "@/lib/network/request-origin";
 import { startCompanyActivation } from "@/lib/services/commercial/company-activation";
 import { companyActivationPayloadSchema } from "@/lib/validation/commercial";
 
@@ -10,7 +11,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const input = companyActivationPayloadSchema.parse(body);
-    const result = await startCompanyActivation(input);
+    const result = await startCompanyActivation(input, {
+      requestOrigin: resolveRequestOrigin(request)
+    });
 
     return NextResponse.json({
       message:

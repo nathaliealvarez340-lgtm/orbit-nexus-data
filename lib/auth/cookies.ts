@@ -1,5 +1,4 @@
 import { AUTH_COOKIE_NAME } from "@/lib/constants";
-import { getAppUrl } from "@/lib/config";
 
 type AuthCookieOptions = {
   domain?: string;
@@ -13,19 +12,27 @@ type AuthCookieOptions = {
 
 const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
+function normalizeCookieDomain(value: string) {
+  const trimmed = value.trim().replace(/^\.+/, "");
+
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (trimmed.includes("://")) {
+    return new URL(trimmed).hostname.toLowerCase();
+  }
+
+  return trimmed.toLowerCase();
+}
+
 function resolveAuthCookieDomain() {
   if (process.env.NODE_ENV !== "production") {
     return undefined;
   }
 
   try {
-    const hostname = new URL(getAppUrl()).hostname.toLowerCase();
-
-    if (hostname === "orbitne.com" || hostname.endsWith(".orbitne.com")) {
-      return "orbitne.com";
-    }
-
-    return undefined;
+    return normalizeCookieDomain(process.env.AUTH_COOKIE_DOMAIN ?? "");
   } catch {
     return undefined;
   }
