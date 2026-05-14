@@ -57,7 +57,7 @@ export function ExecutiveCommandCenter({
       navItems={navItems}
       searchItems={data.searchItems}
       showHero={false}
-      contentClassName="mx-auto w-full max-w-[1480px]"
+      contentClassName="w-full"
     >
       <section
         id="command-center"

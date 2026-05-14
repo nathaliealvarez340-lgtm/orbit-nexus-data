@@ -125,13 +125,13 @@ export function SearchBar({ items, className, variant = "default" }: SearchBarPr
       <Input
         aria-label="Buscar en dashboard"
         className={cn(
-          "pl-4 pr-4 shadow-soft",
+          "pl-4 pr-4 shadow-soft transition-all duration-300 ease-in-out focus-visible:border-cyan-300/45 focus-visible:ring-2 focus-visible:ring-cyan-300/25",
           isDark
-            ? "h-11 rounded-[1.2rem] border-white/10 bg-white/[0.05] text-sm text-white placeholder:text-slate-500"
+            ? "h-12 rounded-[1.2rem] border-white/10 bg-white/[0.05] text-sm text-white placeholder:text-slate-500 focus-visible:bg-white/[0.07] focus-visible:shadow-[0_0_32px_rgba(93,224,230,0.12)]"
             : "border-white/80 bg-white/88",
           isCompact ? "h-11 rounded-[1.15rem] text-sm" : !isDark ? "h-12 rounded-2xl" : ""
         )}
-        placeholder="Buscar modulos, cotizaciones, facturas, clientes o actividad..."
+        placeholder="Buscar módulos, cotizaciones, facturas, clientes o actividad..."
         value={query}
         onChange={(event) => {
           const nextValue = event.target.value;

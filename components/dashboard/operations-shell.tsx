@@ -88,15 +88,16 @@ export function OperationsShell({
   ];
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.18),transparent_28%),linear-gradient(180deg,#020617_0%,#0f172a_50%,#020617_100%)] text-white">
-      <div className="mx-auto flex min-h-screen max-w-[1650px] items-start gap-5 px-4 py-4 lg:px-6">
+    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.18),transparent_28%),linear-gradient(180deg,#020617_0%,#0f172a_50%,#020617_100%)] text-white">
+      <div className="flex min-h-screen w-full items-start gap-4 px-3 py-3 sm:px-4 lg:gap-5 lg:px-5 lg:py-4">
         <OperationsSidebar
           accessCode={session.accessCode}
           items={normalizedNavItems}
+          ownerName={session.fullName}
           roleLabel={getRoleDisplayLabel(session.role, portalLabel)}
         />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col xl:max-w-[calc(100vw-22rem)]">
           <div className={cn("flex min-h-[calc(100vh-2rem)] flex-1 flex-col gap-6", contentClassName)}>
             <OperationsTopbar
               headerActions={headerActions}
@@ -143,7 +144,7 @@ export function OperationsShell({
         </div>
       </div>
       {session.role !== "SUPERADMIN" ? (
-        <div className="fixed bottom-4 left-4 right-4 z-[180] flex flex-col items-stretch gap-3 sm:bottom-6 sm:left-auto sm:right-6 sm:w-[22rem] sm:items-end">
+        <div className="fixed bottom-4 left-4 right-4 z-50 flex flex-col items-stretch gap-3 sm:bottom-6 sm:left-auto sm:right-6 sm:w-[21.5rem] sm:items-end">
           <ExecutiveRealtimePoller embedded />
           <MaiaVoiceStatus />
           <WorkspaceAssistant embeddedLauncher session={session} />

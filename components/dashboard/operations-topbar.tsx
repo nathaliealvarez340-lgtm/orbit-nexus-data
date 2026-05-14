@@ -20,8 +20,9 @@ export function OperationsTopbar({
   showProfileCard = true
 }: OperationsTopbarProps) {
   return (
-    <header className="rounded-[1.75rem] border border-white/10 bg-slate-950/88 px-5 py-4 shadow-[0_24px_70px_rgba(2,6,23,0.4)] backdrop-blur-md">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <header className="rounded-[1.75rem] border border-white/10 bg-slate-950/88 py-4 pl-14 pr-4 shadow-[0_24px_70px_rgba(2,6,23,0.4)] backdrop-blur-md sm:pl-16 sm:pr-5 xl:px-5">
+      <span className="sr-only">Workspace de {session.fullName}</span>
+      <div className="flex min-h-12 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 flex-1">
           <SearchBar className="max-w-none" items={searchItems} variant="dark" />
         </div>
