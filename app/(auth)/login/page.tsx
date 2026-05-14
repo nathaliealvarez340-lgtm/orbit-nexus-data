@@ -6,7 +6,7 @@ export default function LoginPage() {
     <AuthShell
       mode="login"
       title="Entra a tu sistema operativo ejecutivo."
-      description="Accede con tu código único empresarial para administrar operación, usuarios, proyectos, métricas, finanzas y Orbit AI desde un solo entorno seguro."
+      description="Accede con tu código único empresarial para administrar operación, usuarios, proyectos, métricas, finanzas y MAIA desde un solo entorno seguro."
     >
       <LoginForm />
     </AuthShell>

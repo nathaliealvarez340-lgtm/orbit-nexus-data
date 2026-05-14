@@ -76,10 +76,11 @@ export default function LoginForm() {
     <form className="space-y-7" noValidate onSubmit={handleSubmit}>
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-white">
-          Accede a tu entorno operativo
+          Accede a tu CEO Operating System
         </h2>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Ingresa con tu código único empresarial y contraseña para continuar.
+          Accede con tu código único empresarial para administrar operación, usuarios, proyectos,
+          métricas, finanzas y MAIA desde un solo entorno seguro.
         </p>
       </div>
 
@@ -109,7 +110,7 @@ export default function LoginForm() {
             className="text-xs font-semibold tracking-[0.08em] text-cyan-200 transition hover:text-cyan-100 hover:underline"
             href={"/auth/recover-access" as Route}
           >
-            Olvidé...
+            Recuperar acceso
           </Link>
         </div>
 
@@ -118,7 +119,7 @@ export default function LoginForm() {
           className={`${orbitInputClassName} pr-11`}
           id="password"
           name="password"
-          placeholder="Ingresa tu contrasena"
+          placeholder="Ingresa tu contraseña"
           value={password}
           onChange={setPassword}
         />
@@ -141,19 +142,12 @@ export default function LoginForm() {
         )}
       </button>
 
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-white/10" />
-        <span className="text-xs text-slate-500">o</span>
-        <div className="h-px flex-1 bg-white/10" />
-      </div>
-
       <div className={orbitInfoPanelClassName}>
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-300">
-          Acceso seguro
+          ENTORNO PROTEGIDO
         </p>
         <p className="mt-2 text-sm leading-6 text-slate-300">
-          Tu sesión está protegida mediante autenticación por código único y validación por
-          organización.
+          Tu sesión opera bajo autenticación empresarial, permisos internos y validación segura.
         </p>
       </div>
 

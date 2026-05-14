@@ -1,11 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import {
-  BadgeCheck,
-  KeyRound,
-  ShieldCheck,
-  Sparkles,
-  type LucideIcon
-} from "lucide-react";
+import { BadgeCheck, KeyRound, ShieldCheck, Sparkles, type LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
+import { useState } from "react";
 
 import { CompanyActivationCta } from "@/components/commercial/company-activation-cta";
 import { Button } from "@/components/ui/button";
@@ -18,25 +17,82 @@ const highlights: Array<{
 }> = [
   {
     icon: Sparkles,
-    title: "Registro guiado",
-    description: "Alta estructurada en dos pasos para iniciar sin fricción."
+    title: "Command Center Ejecutivo",
+    description: "Visualiza prioridades, riesgos y métricas clave desde un solo entorno operativo."
   },
   {
     icon: KeyRound,
-    title: "Acceso por código único",
-    description: "Identificación directa sin procesos innecesarios."
+    title: "MAIA Assistant",
+    description: "Ejecuta tareas, responde con contexto y guía decisiones estratégicas en tiempo real."
   },
   {
     icon: BadgeCheck,
-    title: "Validación autorizada",
-    description: "Solo usuarios aprobados pueden formar parte del sistema."
+    title: "Finanzas & Control",
+    description: "Gestiona cotizaciones, facturas y datos fiscales dentro de una arquitectura empresarial."
   },
   {
     icon: ShieldCheck,
-    title: "Seguridad por empresa",
-    description: "Cada organización opera en su propio entorno protegido."
+    title: "Operación en tiempo real",
+    description: "Monitorea proyectos, tareas, alertas y actividad operativa sin perder trazabilidad."
   }
 ];
+
+const heroVariants: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.78,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  }
+};
+
+const cardsContainerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      delayChildren: 0.22,
+      staggerChildren: 0.12
+    }
+  }
+};
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, x: 36 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.68,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  }
+};
+
+function LanguageToggle() {
+  const [language, setLanguage] = useState<"ES" | "EN">("ES");
+
+  return (
+    <div className="inline-flex rounded-2xl border border-white/15 bg-slate-950/42 p-1 text-xs font-semibold tracking-[0.16em] text-slate-300 shadow-[0_14px_34px_rgba(2,6,23,0.26)] backdrop-blur-xl">
+      {(["ES", "EN"] as const).map((option) => (
+        <button
+          key={option}
+          className={`rounded-xl px-3 py-2 transition-all duration-300 ease-in-out ${
+            language === option
+              ? "bg-cyan-400/16 text-cyan-100 shadow-[0_0_22px_rgba(93,224,230,0.18)]"
+              : "hover:bg-white/[0.07] hover:text-white"
+          }`}
+          type="button"
+          onClick={() => setLanguage(option)}
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function HomePage() {
   return (
@@ -48,12 +104,18 @@ export default function HomePage() {
       />
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-3rem)] max-w-[1500px] flex-col gap-8">
-        <div className="flex justify-end">
+        <div className="flex items-center justify-end gap-3">
+          <LanguageToggle />
           <CompanyActivationCta />
         </div>
 
         <section className="grid flex-1 items-center gap-8 lg:min-h-[calc(100vh-10rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
-          <div className="relative min-w-0 w-full max-w-[560px] justify-self-center self-center px-2 py-6 md:min-h-[560px] md:px-3 md:py-7 lg:justify-self-end xl:px-4 xl:py-8">
+          <motion.div
+            animate="visible"
+            className="relative min-w-0 w-full max-w-[560px] justify-self-center self-center px-2 py-6 md:min-h-[560px] md:px-3 md:py-7 lg:justify-self-end xl:px-4 xl:py-8"
+            initial="hidden"
+            variants={heroVariants}
+          >
             <div className="relative z-10 flex h-full flex-col justify-center">
               <div className="max-w-[32rem] space-y-8 md:space-y-10">
                 <h1 className="max-w-[30rem] text-[clamp(38px,4.4vw,60px)] leading-[1.1] tracking-[-0.03em] text-white">
@@ -61,45 +123,52 @@ export default function HomePage() {
                     Orbit <span className="text-[#5de0e6]">Nexus</span>
                   </span>
                   <span className="mt-4 block font-semibold leading-[1.1] text-white">
-                    Control operativo inteligente.
+                    Opera tu empresa como CEO.
                   </span>
                 </h1>
 
                 <div className="space-y-6 md:space-y-7">
                   <p className="max-w-[30rem] text-base leading-7 text-slate-300 md:text-[1.05rem] md:leading-8">
-                    Centraliza usuarios, accesos y operación en una arquitectura segura, escalable y lista para crecer.
+                    Centraliza operación, finanzas, clientes, equipo y decisiones en un solo
+                    sistema ejecutivo impulsado por IA.
                   </p>
 
                   <div className="flex flex-wrap gap-3 pt-1 md:pt-2">
                     <Button
                       asChild
-                      size="lg"
                       className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-[0_22px_50px_rgba(0,74,173,0.42)]"
+                      size="lg"
                     >
                       <Link href="/login">Iniciar sesión</Link>
                     </Button>
                     <Button
                       asChild
+                      className="border-white/15 bg-white/[0.06] text-white transition-all duration-300 ease-in-out hover:border-white/25 hover:bg-white/[0.1] hover:shadow-[0_14px_36px_rgba(15,23,42,0.22)]"
                       size="lg"
                       variant="outline"
-                      className="border-white/15 bg-white/[0.06] text-white transition-all duration-300 ease-in-out hover:border-white/25 hover:bg-white/[0.1] hover:shadow-[0_14px_36px_rgba(15,23,42,0.22)]"
                     >
-                      <Link href="/register">Registrarse</Link>
+                      <Link href="/register">Activar empresa</Link>
                     </Button>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="grid min-w-0 w-full gap-[0.8rem] self-center lg:max-w-[590px] lg:justify-self-start">
+          <motion.div
+            animate="visible"
+            className="grid min-w-0 w-full gap-[0.8rem] self-center lg:max-w-[590px] lg:justify-self-start"
+            initial="hidden"
+            variants={cardsContainerVariants}
+          >
             {highlights.map((item) => {
               const Icon = item.icon;
 
               return (
-                <div
+                <motion.div
                   key={item.title}
                   className="group relative overflow-hidden rounded-[1.8rem] border border-white/[0.16] bg-slate-950/42 p-5 shadow-[0_16px_42px_rgba(2,6,23,0.22)] backdrop-blur-[20px] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-cyan-400/35 hover:bg-slate-950/52 hover:shadow-[0_24px_60px_rgba(0,74,173,0.2)] md:p-6"
+                  variants={cardVariants}
                 >
                   <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),transparent_38%,transparent_74%,rgba(93,224,230,0.08))] opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100" />
                   <div className="relative z-10 space-y-3.5">
@@ -119,10 +188,10 @@ export default function HomePage() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </section>
       </div>
     </main>

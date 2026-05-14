@@ -1,5 +1,9 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { KeyRound, LockKeyhole, Orbit, Radar, Shield, Sparkles, Waves } from "lucide-react";
+import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 
 import { LiveDateTime } from "@/components/auth/live-date-time";
 import { OrbitBackgroundVideo } from "@/components/ui/orbit-background-video";
@@ -14,18 +18,18 @@ type AuthShellProps = {
 const loginFeatures = [
   {
     icon: KeyRound,
-    title: "Acceso inteligente",
-    text: "Ingreso por código único empresarial con trazabilidad inmediata."
+    title: "Acceso empresarial",
+    text: "Ingreso por código único con trazabilidad y permisos internos."
   },
   {
     icon: Shield,
-    title: "Seguridad segmentada",
-    text: "Cada organización opera dentro de su propio entorno protegido."
+    title: "Entorno protegido",
+    text: "Cada empresa opera dentro de su propio espacio seguro."
   },
   {
     icon: Radar,
-    title: "Control operativo",
-    text: "Usuarios, proyectos, métricas y decisiones conectados en una sola arquitectura."
+    title: "Control CEO",
+    text: "Operación, finanzas, usuarios, métricas y decisiones conectadas."
   },
   {
     icon: LockKeyhole,
@@ -48,14 +52,39 @@ const registerFeatures = [
   {
     icon: Orbit,
     title: "Sistema ejecutivo",
-    text: "Una capa diseñada para controlar operación, finanzas, reportes y Orbit AI."
+    text: "Una capa diseñada para controlar operación, finanzas, reportes y MAIA."
   },
   {
     icon: Waves,
     title: "Experiencia fluida",
-    text: "Una interfaz premium para entrar con claridad desde el primer ingreso."
+    text: "Una interfaz premium para activar la empresa con claridad desde el primer ingreso."
   }
 ];
+
+const panelVariants: Variants = {
+  hidden: { opacity: 0, y: 26 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.76,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  }
+};
+
+const formPanelVariants: Variants = {
+  hidden: { opacity: 0, y: 34 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: 0.12,
+      duration: 0.82,
+      ease: [0.22, 1, 0.36, 1]
+    }
+  }
+};
 
 function panelClassName() {
   return "border border-white/[0.16] bg-slate-950/42 backdrop-blur-[24px]";
@@ -81,9 +110,12 @@ export function AuthShell({
         videoClassName="saturate-[1.06] contrast-[1.03]"
       />
 
-      <section className="main-content relative z-[2] mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <div
+      <section className="main-content relative z-[2] mx-auto grid min-h-[calc(100vh-3rem)] max-w-7xl items-center gap-6 lg:grid-cols-[1.02fr_0.86fr]">
+        <motion.div
+          animate="visible"
           className={`relative overflow-hidden rounded-[2.4rem] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.26)] md:p-10 ${panelClassName()}`}
+          initial="hidden"
+          variants={panelVariants}
         >
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),transparent_30%,transparent_72%,rgba(93,224,230,0.08))]" />
           <div className="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-white/70 to-transparent" />
@@ -103,7 +135,7 @@ export function AuthShell({
                 Orbit <span className="text-[#5de0e6]">Nexus</span>
               </p>
               <p className="mt-1 text-sm text-slate-300">
-                Sistema operativo ejecutivo con inteligencia operativa.
+                CEO Operating System con inteligencia operativa.
               </p>
             </div>
           </div>
@@ -147,12 +179,15 @@ export function AuthShell({
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
-        <div
+        <motion.div
+          animate="visible"
           className={`relative overflow-hidden rounded-[2.4rem] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.26)] md:p-8 ${panelClassName()}`}
+          initial="hidden"
+          variants={formPanelVariants}
         >
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.12),transparent_44%,rgba(93,224,230,0.03))]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.1),transparent_42%,rgba(93,224,230,0.035))]" />
           <div className="absolute left-[-80px] bottom-[-120px] h-72 w-72 rounded-full bg-[#004aad]/12 blur-3xl" />
 
           <div
@@ -160,7 +195,7 @@ export function AuthShell({
           >
             {children}
           </div>
-        </div>
+        </motion.div>
       </section>
     </main>
   );

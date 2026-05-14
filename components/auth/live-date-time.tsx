@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarDays, Clock3, MapPin } from "lucide-react";
 
-function formatNow(date: Date, timeZone: string) {
-  const dateText = new Intl.DateTimeFormat("es-MX", {
+function formatNow(date: Date, timeZone: string, locale: string) {
+  const dateText = new Intl.DateTimeFormat(locale, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -12,7 +12,7 @@ function formatNow(date: Date, timeZone: string) {
     timeZone
   }).format(date);
 
-  const timeText = new Intl.DateTimeFormat("es-MX", {
+  const timeText = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
@@ -28,18 +28,16 @@ function prettifyTimeZone(tz: string) {
 }
 
 export function LiveDateTime() {
-  const browserTimeZone = useMemo(() => {
-    try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-    } catch {
-      return "UTC";
-    }
-  }, []);
-
   const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
+  const [locale, setLocale] = useState("es-MX");
+  const [browserTimeZone, setBrowserTimeZone] = useState("UTC");
 
   useEffect(() => {
+    const resolvedOptions = Intl.DateTimeFormat().resolvedOptions();
+
+    setBrowserTimeZone(resolvedOptions.timeZone || "UTC");
+    setLocale(navigator.language || resolvedOptions.locale || "es-MX");
     setMounted(true);
     setNow(new Date());
 
@@ -56,7 +54,7 @@ export function LiveDateTime() {
     );
   }
 
-  const { dateText, timeText } = formatNow(now, browserTimeZone);
+  const { dateText, timeText } = formatNow(now, browserTimeZone, locale);
 
   return (
     <div className="inline-flex w-full max-w-[600px] flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl border border-white/15 bg-slate-950/46 px-6 py-4 text-sm text-slate-200 shadow-sm backdrop-blur-xl">
