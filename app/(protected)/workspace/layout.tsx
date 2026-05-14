@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { ProtectedSessionGuard } from "@/components/auth/protected-session-guard";
+import { MaiaVoiceProvider } from "@/components/dashboard/maia-voice-provider";
 import { WorkspaceChatProvider } from "@/components/dashboard/workspace-chat-provider";
 import { WorkspaceProjectsProvider } from "@/components/dashboard/workspace-projects-provider";
 import { requireSession } from "@/lib/auth/session";
@@ -14,8 +15,10 @@ export default async function WorkspaceLayout({ children }: { children: ReactNod
   return (
     <WorkspaceProjectsProvider tenantId={session.tenantId}>
       <WorkspaceChatProvider tenantId={session.tenantId} session={session}>
-        <ProtectedSessionGuard />
-        {children}
+        <MaiaVoiceProvider session={session}>
+          <ProtectedSessionGuard />
+          {children}
+        </MaiaVoiceProvider>
       </WorkspaceChatProvider>
     </WorkspaceProjectsProvider>
   );

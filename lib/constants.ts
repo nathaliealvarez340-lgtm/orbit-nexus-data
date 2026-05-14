@@ -5,6 +5,12 @@ export const AUTH_COOKIE_NAME = "orbit_nexus_session";
 
 export const ROLE_LABELS: Record<AppRoleKey, string> = {
   SUPERADMIN: "Superadmin",
+  OWNER: "Owner",
+  ADMIN: "Admin",
+  MANAGER: "Manager",
+  FINANCE: "Finance",
+  OPERATIONS: "Operations",
+  VIEWER: "Viewer",
   LEADER: "Lider",
   CONSULTANT: "Consultor",
   CLIENT: "Cliente"

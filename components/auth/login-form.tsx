@@ -79,7 +79,7 @@ export default function LoginForm() {
           Accede a tu entorno operativo
         </h2>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Ingresa con tu código único y contraseña para continuar.
+          Ingresa con tu código único empresarial y contraseña para continuar.
         </p>
       </div>
 
@@ -92,7 +92,7 @@ export default function LoginForm() {
           className={orbitInputClassName}
           id="accessCode"
           name="accessCode"
-          placeholder="Ej. LDNT-001"
+          placeholder="Ej. MAIA-001234"
           type="text"
           value={code}
           onChange={(event) => setCode(event.target.value)}
@@ -118,7 +118,7 @@ export default function LoginForm() {
           className={`${orbitInputClassName} pr-11`}
           id="password"
           name="password"
-          placeholder="Ingresa tu contraseña"
+          placeholder="Ingresa tu contrasena"
           value={password}
           onChange={setPassword}
         />
@@ -153,14 +153,14 @@ export default function LoginForm() {
         </p>
         <p className="mt-2 text-sm leading-6 text-slate-300">
           Tu sesión está protegida mediante autenticación por código único y validación por
-          empresa.
+          organización.
         </p>
       </div>
 
       <p className="text-center text-sm text-slate-400">
-        ¿Aún no tienes acceso?{" "}
+        ¿Aún no tienes una empresa activa?{" "}
         <Link className="font-semibold text-cyan-300 hover:text-cyan-200 hover:underline" href="/register">
-          Regístrate aquí
+          Activar empresa
         </Link>
       </p>
 

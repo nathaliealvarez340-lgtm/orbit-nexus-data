@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
 
 import { LeaderQuotesView } from "@/components/dashboard/leader-quotes-view";
+import { canAccessQuotesModule } from "@/lib/auth/authorization";
 import { requireSession } from "@/lib/auth/session";
 
 export default async function WorkspaceQuotesPage() {
   const session = await requireSession();
 
-  if (session.role !== "LEADER") {
+  if (!canAccessQuotesModule(session.role)) {
     redirect("/workspace");
   }
 

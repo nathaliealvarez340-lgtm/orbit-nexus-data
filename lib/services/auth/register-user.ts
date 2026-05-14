@@ -1,60 +1,117 @@
-import { Prisma } from "@prisma/client";
-
-import { generateUniqueAccessCode } from "@/lib/access-code";
 import {
-  ALREADY_REGISTERED_MESSAGE,
-  AMBIGUOUS_DIRECTORY_MATCH_MESSAGE,
-  INVALID_COMPANY_REGISTRATION_CODE_MESSAGE,
-  INVALID_PROJECT_FOLIO_MESSAGE,
-  UNAUTHORIZED_CONSULTANT_REGISTRATION_MESSAGE,
-  UNAUTHORIZED_DIRECTORY_MESSAGE,
-  UNAUTHORIZED_LEADER_REGISTRATION_MESSAGE
-} from "@/lib/constants";
+  ActivityLogType,
+  CompanyBillingStatus,
+  CompanyPlan,
+  OrganizationAccessType,
+  Prisma,
+  RoleKey,
+  UserStatus
+} from "@prisma/client";
+
 import { normalizeEmail, normalizeName, normalizeOptionalPhone } from "@/lib/normalization";
 import { hashPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
 import { ServiceError } from "@/lib/services/service-error";
 import { registerServiceSchema } from "@/lib/validation/auth-payloads";
-import type { RegistrableRoleKey } from "@/types/auth";
 
 type RegisterUserInput = {
+  companyName: string;
   fullName: string;
   email: string;
-  phone: string;
+  phone?: string;
   password: string;
-  role: RegistrableRoleKey;
-  companyName?: string;
-  projectFolio?: string;
-  companyRegistrationCode?: string;
 };
 
+const IDENTIFIER_RETRY_LIMIT = 5;
 const ACCESS_CODE_RETRY_LIMIT = 5;
 
-function isAccessCodeConflict(error: unknown) {
-  return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === "P2002" &&
-    Array.isArray(error.meta?.target) &&
-    error.meta.target.includes("accessCode")
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .trim();
+}
+
+function buildCompanyPrefix(value: string) {
+  const sanitized = value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+
+  return (sanitized.slice(0, 6) || "ORBIT").slice(0, 6);
+}
+
+async function buildUniqueSlug(companyName: string) {
+  const baseSlug = slugify(companyName) || "empresa";
+
+  for (let attempt = 0; attempt < IDENTIFIER_RETRY_LIMIT; attempt += 1) {
+    const candidate = attempt === 0 ? baseSlug : `${baseSlug}-${attempt}`;
+    const existing = await prisma.company.findUnique({
+      where: { slug: candidate },
+      select: { id: true }
+    });
+
+    if (!existing) {
+      return candidate;
+    }
+  }
+
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  return `${baseSlug}-${randomSuffix}`;
+}
+
+async function buildUniqueCompanyPrefix(companyName: string) {
+  const basePrefix = buildCompanyPrefix(companyName);
+
+  for (let attempt = 0; attempt < IDENTIFIER_RETRY_LIMIT; attempt += 1) {
+    const candidate = attempt === 0 ? basePrefix : `${basePrefix}${attempt}`;
+    const existing = await prisma.company.findUnique({
+      where: { codePrefix: candidate },
+      select: { id: true }
+    });
+
+    if (!existing) {
+      return candidate;
+    }
+  }
+
+  return `${basePrefix}${Math.floor(1000 + Math.random() * 9000)}`;
+}
+
+async function buildUniqueRegistrationCode(companyPrefix: string) {
+  for (let attempt = 0; attempt < ACCESS_CODE_RETRY_LIMIT; attempt += 1) {
+    const candidate = `${companyPrefix}-OWNER-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    const existing = await prisma.company.findUnique({
+      where: { registrationCode: candidate },
+      select: { id: true }
+    });
+
+    if (!existing) {
+      return candidate;
+    }
+  }
+
+  throw new ServiceError(
+    "No fue posible generar el codigo interno de la empresa. Intenta nuevamente.",
+    500
   );
 }
 
-async function reserveAccessCode<T>(
-  role: Extract<RegistrableRoleKey, "LEADER" | "CONSULTANT" | "CLIENT">,
-  companyCodePrefix: string,
-  operation: (accessCode: string) => Promise<T>
-): Promise<T> {
+async function buildUniqueEnterpriseAccessCode(companyPrefix: string) {
   for (let attempt = 0; attempt < ACCESS_CODE_RETRY_LIMIT; attempt += 1) {
-    const accessCode = await generateUniqueAccessCode(prisma, role, companyCodePrefix);
+    const randomChunk = String(Math.floor(Math.random() * 10_000)).padStart(4, "0");
+    const candidate = `${companyPrefix}-00${randomChunk}`;
+    const existing = await prisma.user.findUnique({
+      where: { accessCode: candidate },
+      select: { id: true }
+    });
 
-    try {
-      return await operation(accessCode);
-    } catch (error) {
-      if (isAccessCodeConflict(error)) {
-        continue;
-      }
-
-      throw error;
+    if (!existing) {
+      return candidate;
     }
   }
 
@@ -64,314 +121,115 @@ async function reserveAccessCode<T>(
   );
 }
 
-async function activateLeaderUser(input: RegisterUserInput, roleId: string) {
-  const registrationCode = input.companyRegistrationCode?.trim().toUpperCase();
-
-  if (!registrationCode) {
-    throw new ServiceError("El codigo maestro de la empresa es obligatorio para registrar un lider.", 400);
-  }
-
-  const company = await prisma.company.findUnique({
-    where: {
-      registrationCode
-    },
-    select: {
-      id: true,
-      name: true,
-      codePrefix: true,
-      isActive: true
-    }
-  });
-
-  if (!company || !company.isActive) {
-    throw new ServiceError(INVALID_COMPANY_REGISTRATION_CODE_MESSAGE, 403);
-  }
-
-  const normalizedFullName = normalizeName(input.fullName);
-  const email = normalizeEmail(input.email);
-
-  const matches = await prisma.user.findMany({
-    where: {
-      companyId: company.id,
-      roleId,
-      normalizedFullName,
-      email,
-      importedFromDirectory: true
-    }
-  });
-
-  if (matches.length === 0) {
-    throw new ServiceError(UNAUTHORIZED_LEADER_REGISTRATION_MESSAGE, 403);
-  }
-
-  if (matches.length > 1) {
-    throw new ServiceError(AMBIGUOUS_DIRECTORY_MATCH_MESSAGE, 409);
-  }
-
-  const [authorizedUser] = matches;
-
-  if (authorizedUser.status === "ACTIVE" && authorizedUser.accessCode) {
-    throw new ServiceError(ALREADY_REGISTERED_MESSAGE, 409);
-  }
-
-  const passwordHash = await hashPassword(input.password);
-
-  return reserveAccessCode("LEADER", company.codePrefix, (accessCode) =>
-    prisma.user.update({
-      where: {
-        id: authorizedUser.id
-      },
-      data: {
-        companyId: company.id,
-        roleId,
-        fullName: input.fullName.trim(),
-        normalizedFullName,
-        email,
-        phone: normalizeOptionalPhone(input.phone),
-        passwordHash,
-        accessCode,
-        status: "ACTIVE",
-        disabledAt: null,
-        registeredAt: new Date()
-      },
-      include: {
-        role: true,
-        company: true
-      }
-    })
-  );
-}
-
-async function activateConsultantUser(input: RegisterUserInput, roleId: string) {
-  const normalizedFullName = normalizeName(input.fullName);
-  const email = normalizeEmail(input.email);
-
-  const matches = await prisma.user.findMany({
-    where: {
-      roleId,
-      normalizedFullName,
-      email,
-      importedFromDirectory: true
-    },
-    include: {
-      company: true
-    }
-  });
-
-  if (matches.length === 0) {
-    throw new ServiceError(UNAUTHORIZED_CONSULTANT_REGISTRATION_MESSAGE, 403);
-  }
-
-  if (matches.length > 1) {
-    throw new ServiceError(AMBIGUOUS_DIRECTORY_MATCH_MESSAGE, 409);
-  }
-
-  const [authorizedUser] = matches;
-
-  if (!authorizedUser.company || !authorizedUser.company.isActive) {
-    throw new ServiceError(UNAUTHORIZED_DIRECTORY_MESSAGE, 403);
-  }
-
-  if (authorizedUser.status === "ACTIVE" && authorizedUser.accessCode) {
-    throw new ServiceError(ALREADY_REGISTERED_MESSAGE, 409);
-  }
-
-  const passwordHash = await hashPassword(input.password);
-
-  return reserveAccessCode("CONSULTANT", authorizedUser.company.codePrefix, (accessCode) =>
-    prisma.user.update({
-      where: {
-        id: authorizedUser.id
-      },
-      data: {
-        fullName: input.fullName.trim(),
-        normalizedFullName,
-        email,
-        phone: normalizeOptionalPhone(input.phone),
-        passwordHash,
-        accessCode,
-        status: "ACTIVE",
-        disabledAt: null,
-        registeredAt: new Date()
-      },
-      include: {
-        role: true,
-        company: true
-      }
-    })
-  );
-}
-
-async function createOrActivateClientUser(input: RegisterUserInput, roleId: string) {
-  const folio = input.projectFolio?.trim().toUpperCase();
-  const companyName = normalizeName(input.companyName ?? "");
-
-  if (!folio) {
-    throw new ServiceError(INVALID_PROJECT_FOLIO_MESSAGE, 400);
-  }
-
-  if (!companyName) {
-    throw new ServiceError("El nombre de la empresa es obligatorio para registrar al cliente.", 400);
-  }
-
-  const project = await prisma.project.findUnique({
-    where: {
-      folio
-    },
-    include: {
-      company: true,
-      clientUser: true
-    }
-  });
-
-  if (!project || !project.company.isActive) {
-    throw new ServiceError(INVALID_PROJECT_FOLIO_MESSAGE, 404);
-  }
-
-  if (normalizeName(project.company.name) !== companyName) {
-    throw new ServiceError("El nombre de la empresa no coincide con el proyecto.", 403);
-  }
-
-  if (project.clientUserId) {
-    throw new ServiceError(ALREADY_REGISTERED_MESSAGE, 409);
-  }
-
-  const normalizedEmail = normalizeEmail(input.email);
-  const normalizedFullName = normalizeName(input.fullName);
-
-  const existingPendingClient = await prisma.user.findFirst({
-    where: {
-      companyId: project.companyId,
-      roleId,
-      email: normalizedEmail
-    },
-    include: {
-      company: true
-    }
-  });
-
-  if (existingPendingClient?.status === "ACTIVE" && existingPendingClient.accessCode) {
-    throw new ServiceError(ALREADY_REGISTERED_MESSAGE, 409);
-  }
-
-  const passwordHash = await hashPassword(input.password);
-
-  if (existingPendingClient) {
-    return reserveAccessCode("CLIENT", project.company.codePrefix, (accessCode) =>
-      prisma.user
-        .update({
-          where: {
-            id: existingPendingClient.id
-          },
-          data: {
-            fullName: input.fullName.trim(),
-            normalizedFullName,
-            email: normalizedEmail,
-            phone: normalizeOptionalPhone(input.phone),
-            passwordHash,
-            accessCode,
-            status: "ACTIVE",
-            disabledAt: null,
-            registeredAt: new Date()
-          },
-          include: {
-            role: true,
-            company: true
-          }
-        })
-        .then(async (user) => {
-          await prisma.project.update({
-            where: {
-              id: project.id
-            },
-            data: {
-              clientUserId: user.id
-            }
-          });
-
-          return user;
-        })
-    );
-  }
-
-  return reserveAccessCode("CLIENT", project.company.codePrefix, (accessCode) =>
-    prisma.project.update({
-      where: {
-        id: project.id
-      },
-      data: {
-        clientUser: {
-          create: {
-            companyId: project.companyId,
-            roleId,
-            fullName: input.fullName.trim(),
-            normalizedFullName,
-            email: normalizedEmail,
-            phone: normalizeOptionalPhone(input.phone),
-            passwordHash,
-            accessCode,
-            status: "ACTIVE",
-            registeredAt: new Date()
-          }
-        }
-      },
-      include: {
-        clientUser: {
-          include: {
-            role: true,
-            company: true
-          }
-        }
-      }
-    }).then((nextProject) => {
-      const user = nextProject.clientUser;
-
-      if (!user) {
-        throw new ServiceError("No fue posible activar el cliente para el proyecto.", 500);
-      }
-
-      return user;
-    })
-  );
+function isUniqueConstraintConflict(error: unknown) {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
 
 export async function registerUser(input: RegisterUserInput) {
   const parsedInput = registerServiceSchema.parse(input);
+  const companyName = parsedInput.companyName.trim();
+  const fullName = parsedInput.fullName.trim();
+  const email = normalizeEmail(parsedInput.email);
+  const normalizedFullName = normalizeName(fullName);
+  const passwordHash = await hashPassword(parsedInput.password);
 
-  const role = await prisma.role.findUniqueOrThrow({
-    where: {
-      key: parsedInput.role
+  for (let attempt = 0; attempt < IDENTIFIER_RETRY_LIMIT; attempt += 1) {
+    const slug = await buildUniqueSlug(companyName);
+    const codePrefix = await buildUniqueCompanyPrefix(companyName);
+    const registrationCode = await buildUniqueRegistrationCode(codePrefix);
+    const accessCode = await buildUniqueEnterpriseAccessCode(codePrefix);
+
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        const ownerRole = await tx.role.upsert({
+          where: { key: RoleKey.OWNER },
+          update: {
+            name: "Owner",
+            description: "Acceso propietario al sistema operativo ejecutivo de la organizacion."
+          },
+          create: {
+            key: RoleKey.OWNER,
+            name: "Owner",
+            description: "Acceso propietario al sistema operativo ejecutivo de la organizacion."
+          }
+        });
+
+        const company = await tx.company.create({
+          data: {
+            name: companyName,
+            slug,
+            codePrefix,
+            registrationCode,
+            isActive: true,
+            contactName: fullName,
+            contactEmail: email,
+            ownerContactEmail: email,
+            authorizedEmailDomain: email.split("@")[1] ?? null,
+            organizationAccessType: OrganizationAccessType.COMPANY,
+            subscriptionPlan: CompanyPlan.CORE,
+            billingStatus: CompanyBillingStatus.ACTIVE,
+            activatedAt: new Date()
+          }
+        });
+
+        const user = await tx.user.create({
+          data: {
+            companyId: company.id,
+            roleId: ownerRole.id,
+            fullName,
+            normalizedFullName,
+            email,
+            phone: normalizeOptionalPhone(parsedInput.phone),
+            passwordHash,
+            accessCode,
+            status: UserStatus.ACTIVE,
+            registeredAt: new Date()
+          },
+          include: {
+            role: true,
+            company: true
+          }
+        });
+
+        await tx.activityLog.create({
+          data: {
+            companyId: company.id,
+            userId: user.id,
+            type: ActivityLogType.SYSTEM,
+            title: "Empresa activada",
+            description:
+              "Se activo la organizacion y se creo el primer owner del sistema operativo ejecutivo.",
+            routePath: "/workspace",
+            metadata: {
+              role: ownerRole.key
+            }
+          }
+        });
+
+        return {
+          id: user.id,
+          accessCode,
+          role: user.role.key,
+          companyName: user.company?.name ?? companyName
+        };
+      });
+
+      return result;
+    } catch (error) {
+      if (isUniqueConstraintConflict(error) && attempt < IDENTIFIER_RETRY_LIMIT - 1) {
+        console.warn("[auth/register] Identifier collision while activating company", {
+          companyName,
+          attempt: attempt + 1
+        });
+        continue;
+      }
+
+      throw error;
     }
-  });
-
-  if (parsedInput.role === "LEADER") {
-    const user = await activateLeaderUser(parsedInput, role.id);
-
-    return {
-      id: user.id,
-      accessCode: user.accessCode!,
-      role: user.role.key,
-      companyName: user.company?.name ?? "Empresa asignada"
-    };
   }
 
-  if (parsedInput.role === "CONSULTANT") {
-    const user = await activateConsultantUser(parsedInput, role.id);
-
-    return {
-      id: user.id,
-      accessCode: user.accessCode!,
-      role: user.role.key,
-      companyName: user.company?.name ?? "Empresa asignada"
-    };
-  }
-
-  const user = await createOrActivateClientUser(parsedInput, role.id);
-
-  return {
-    id: user.id,
-    accessCode: user.accessCode!,
-    role: user.role.key,
-    companyName: user.company?.name ?? "Empresa asignada"
-  };
+  throw new ServiceError(
+    "No fue posible activar la empresa con un identificador unico. Intenta nuevamente.",
+    409
+  );
 }

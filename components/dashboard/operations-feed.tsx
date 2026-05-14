@@ -41,7 +41,7 @@ export function OperationsFeed({
 
   return (
     <div className={cn("space-y-3", className)}>
-      {items.map((item) => {
+      {items.map((item, index) => {
         const actions =
           item.actions?.length
             ? item.actions
@@ -51,7 +51,7 @@ export function OperationsFeed({
 
         return (
           <article
-            key={`${item.title}-${item.meta}`}
+            key={`${item.project?.id ?? item.href ?? item.meta ?? "feed-item"}-${index}`}
             className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4"
           >
             <div className="flex flex-col gap-4">
@@ -85,9 +85,9 @@ export function OperationsFeed({
 
               {actions.length ? (
                 <div className="flex flex-wrap gap-2">
-                  {actions.map((action) => (
+                  {actions.map((action, actionIndex) => (
                     <Button
-                      key={`${item.title}-${action.href}`}
+                      key={`${action.href}-${action.label}-${actionIndex}`}
                       asChild
                       className="bg-white/[0.06] text-slate-100 hover:bg-white/[0.1]"
                       size="sm"

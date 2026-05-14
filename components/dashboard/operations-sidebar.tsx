@@ -30,7 +30,7 @@ export function OperationsSidebar({
             <Badge className="bg-white/10 text-slate-100 hover:bg-white/10">Orbit Nexus</Badge>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-400">
-                Centro operativo
+                CEO Operating System
               </p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
                 {roleLabel}
@@ -44,7 +44,7 @@ export function OperationsSidebar({
             </p>
             <div className="mt-3 space-y-3 text-sm text-slate-300">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-500">Rol</span>
+                <span className="text-slate-500">Perfil</span>
                 <span className="font-medium text-white">{roleLabel}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
@@ -52,7 +52,7 @@ export function OperationsSidebar({
                 <span className="font-medium text-cyan-300">{accessCode}</span>
               </div>
               <p className="rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2 text-xs leading-5 text-slate-400">
-                Sesion protegida lista para operar sin exponer contexto interno de empresa.
+                Sesion protegida para decidir, ejecutar y controlar la empresa con contexto seguro.
               </p>
             </div>
           </div>

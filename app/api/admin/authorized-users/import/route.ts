@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { assertRole } from "@/lib/auth/authorization";
+import { OPERATIONS_MANAGEMENT_ROLES, assertRole } from "@/lib/auth/authorization";
 import { getSession } from "@/lib/auth/session";
 import { assertTenantAccess } from "@/lib/auth/tenant";
 import { createErrorResponse } from "@/lib/http";
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       );
     }
 
-    assertRole(session, ["SUPERADMIN", "LEADER"]);
+    assertRole(session, ["SUPERADMIN", ...OPERATIONS_MANAGEMENT_ROLES]);
 
     const body = await request.json();
     const input = importAuthorizedUsersSchema.parse(body);
@@ -39,4 +39,3 @@ export async function POST(request: Request) {
     return createErrorResponse(error);
   }
 }
-

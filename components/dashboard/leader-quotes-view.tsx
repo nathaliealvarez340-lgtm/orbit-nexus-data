@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useRef, useState, useEffect } from "react";
 
 import { LeaderNotifications } from "@/components/dashboard/leader-notifications";
 import { OperationsPanel } from "@/components/dashboard/operations-panel";
@@ -43,6 +43,7 @@ import {
   updateQuoteRecord,
   type LeaderQuotesWorkspaceState,
   type QuoteCatalogItem,
+  type QuoteClientRecord,
   type QuoteRecord,
   type QuoteStatusFilter
 } from "@/lib/quotes/mock-data";
@@ -68,6 +69,16 @@ type QuoteCatalogFormState = {
   unitLabel: string;
   basePrice: string;
   taxPercent: string;
+};
+
+type MaiaQuotePatch = {
+  clientName?: string;
+  companyName?: string;
+  clientEmail?: string;
+  validUntil?: string;
+  commercialTerms?: string;
+  saveDraft?: boolean;
+  lineItem?: Partial<QuoteLineItemInput>;
 };
 
 const STORAGE_QUOTES_KEY = "orbit-nexus-workspace-quotes";
@@ -155,6 +166,31 @@ function createDraftFromQuote(quote: QuoteRecord): QuoteDraftInput {
     lineItems: quote.lineItems.map((line) => ({
       ...line
     }))
+  };
+}
+
+type ApiWorkspaceClient = {
+  id: string;
+  legalName: string;
+  commercialName: string | null;
+  email: string;
+  phone: string | null;
+  sector: string | null;
+  primaryContact: string | null;
+  createdAt?: string;
+};
+
+function mapApiClientToQuoteClient(client: ApiWorkspaceClient, tenantId: string | null): QuoteClientRecord {
+  return {
+    id: client.id,
+    tenantId,
+    name: client.primaryContact ?? client.legalName,
+    company: client.commercialName ?? client.legalName,
+    email: client.email,
+    phone: client.phone ?? "",
+    sector: client.sector ?? "",
+    clientType: "NEW",
+    createdAt: client.createdAt ?? new Date().toISOString()
   };
 }
 
@@ -250,6 +286,8 @@ function buildPrintableQuoteHtml(quote: QuoteRecord) {
 }
 
 export function LeaderQuotesView({ session }: LeaderQuotesViewProps) {
+  const searchParams = useSearchParams();
+  const hasConsumedMaiaActionRef = useRef(false);
   const tenantId = session.tenantId ?? session.companyId ?? null;
   const { projects } = useWorkspaceProjects();
   const leaderData = useMemo(() => getLeaderDashboardMock(session, projects), [projects, session]);
@@ -272,6 +310,7 @@ export function LeaderQuotesView({ session }: LeaderQuotesViewProps) {
   const [clientError, setClientError] = useState<string | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [quoteNotice, setQuoteNotice] = useState<string | null>(null);
+  const [isMaiaQuoteFlow, setIsMaiaQuoteFlow] = useState(false);
 
   useEffect(() => {
     const storageKey = getScopedStorageKey(STORAGE_QUOTES_KEY, tenantId);
@@ -304,12 +343,95 @@ export function LeaderQuotesView({ session }: LeaderQuotesViewProps) {
   }, [isHydrated, tenantId, workspaceState]);
 
   useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    let isCurrent = true;
+
+    async function loadRegisteredClients() {
+      try {
+        const response = await fetch("/api/clients", {
+          cache: "no-store"
+        });
+        const payload = (await response.json()) as {
+          data?: ApiWorkspaceClient[];
+        };
+
+        if (!isCurrent || !response.ok || !payload.data?.length) {
+          return;
+        }
+
+        const registeredClients = payload.data.map((client) =>
+          mapApiClientToQuoteClient(client, tenantId)
+        );
+
+        setWorkspaceState((current) => {
+          const existingIds = new Set(current.clients.map((client) => client.id));
+          const nextClients = registeredClients.filter((client) => !existingIds.has(client.id));
+
+          if (!nextClients.length) {
+            return current;
+          }
+
+          return {
+            ...current,
+            clients: [...nextClients, ...current.clients]
+          };
+        });
+      } catch {
+        // El modulo de cotizaciones sigue funcionando con clientes locales si la API no responde.
+      }
+    }
+
+    void loadRegisteredClients();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [isHydrated, tenantId]);
+
+  useEffect(() => {
     if (selectedQuoteId) {
       return;
     }
 
     setSelectedQuoteId(workspaceState.quotes[0]?.id ?? null);
   }, [selectedQuoteId, workspaceState.quotes]);
+
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    if (searchParams.get("maiaAction") === "new_quote" && !hasConsumedMaiaActionRef.current) {
+      hasConsumedMaiaActionRef.current = true;
+      startMaiaQuoteFlow();
+    }
+  }, [isHydrated, searchParams]);
+
+  useEffect(() => {
+    function handleMaiaNewQuote() {
+      startMaiaQuoteFlow();
+    }
+
+    function handleMaiaQuoteUpdate(event: Event) {
+      const customEvent = event as CustomEvent<{ patch?: MaiaQuotePatch }>;
+      const patch = customEvent.detail?.patch;
+
+      if (patch) {
+        applyMaiaQuotePatch(patch);
+      }
+    }
+
+    window.addEventListener("maia:quote:new", handleMaiaNewQuote);
+    window.addEventListener("maia:quote:update", handleMaiaQuoteUpdate);
+
+    return () => {
+      window.removeEventListener("maia:quote:new", handleMaiaNewQuote);
+      window.removeEventListener("maia:quote:update", handleMaiaQuoteUpdate);
+    };
+  });
 
   const filteredQuotes = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -348,12 +470,79 @@ export function LeaderQuotesView({ session }: LeaderQuotesViewProps) {
     0
   );
 
+  function startMaiaQuoteFlow() {
+    setQuoteForm(createEmptyQuoteDraft(workspaceState.settings));
+    setQuoteEditorMode("create");
+    setEditingQuoteId(null);
+    setSelectedQuoteId(null);
+    setQuoteError(null);
+    setIsMaiaQuoteFlow(true);
+    setQuoteNotice("MAIA esta ayudandote a crear esta cotizacion. Dile el cliente, concepto, cantidad y precio para completar el borrador.");
+  }
+
   function resetQuoteEditor() {
     setQuoteForm(createEmptyQuoteDraft(workspaceState.settings));
     setQuoteEditorMode("create");
     setEditingQuoteId(null);
     setQuoteError(null);
     setQuoteNotice(null);
+    setIsMaiaQuoteFlow(false);
+  }
+
+  function applyMaiaQuotePatch(patch: MaiaQuotePatch) {
+    setIsMaiaQuoteFlow(true);
+    setQuoteError(null);
+
+    if (patch.saveDraft) {
+      saveDraft();
+      return;
+    }
+
+    setQuoteForm((current) => {
+      const currentLines = current.lineItems.length
+        ? current.lineItems
+        : [createEmptyQuoteLine(workspaceState.settings.defaultTaxPercent)];
+      const firstLine = currentLines[0] ?? createEmptyQuoteLine(workspaceState.settings.defaultTaxPercent);
+      const nextLineItems = patch.lineItem
+        ? [
+            {
+              ...firstLine,
+              ...patch.lineItem,
+              quantity: Number(patch.lineItem.quantity ?? firstLine.quantity),
+              basePrice: Number(patch.lineItem.basePrice ?? firstLine.basePrice),
+              discountPercent: Number(patch.lineItem.discountPercent ?? firstLine.discountPercent),
+              taxPercent: Number(patch.lineItem.taxPercent ?? firstLine.taxPercent)
+            },
+            ...currentLines.slice(1)
+          ]
+        : currentLines;
+
+      return {
+        ...current,
+        clientName: patch.clientName ?? current.clientName,
+        companyName: patch.companyName ?? current.companyName,
+        clientEmail: patch.clientEmail ?? current.clientEmail,
+        validUntil: patch.validUntil ?? current.validUntil,
+        commercialTerms: patch.commercialTerms ?? current.commercialTerms,
+        lineItems: nextLineItems
+      };
+    });
+
+    if (patch.clientName) {
+      const clientExists = workspaceState.clients.some((client) => {
+        const target = patch.clientName?.trim().toLowerCase();
+        return client.company.toLowerCase() === target || client.name.toLowerCase() === target;
+      });
+
+      setQuoteNotice(
+        clientExists
+          ? `MAIA selecciono ${patch.clientName} en el borrador.`
+          : `MAIA agrego ${patch.clientName} como cliente en el borrador. Si no existe en Empresas / Clientes, puedes darlo de alta antes de enviar.`
+      );
+      return;
+    }
+
+    setQuoteNotice("MAIA actualizo el borrador. Revisa el preview antes de guardar o enviar.");
   }
 
   function syncClientIntoDraft(clientId: string) {
@@ -538,7 +727,7 @@ export function LeaderQuotesView({ session }: LeaderQuotesViewProps) {
     const nextRecord = persistQuote(
       "SENT",
       "Cotizacion enviada",
-      "La cotizacion se preparo como enviada desde el workspace Leader."
+      "La cotizacion se preparo como enviada desde el workspace ejecutivo."
     );
 
     setQuoteNotice(`${nextRecord.quoteNumber} quedo lista como enviada.`);
@@ -659,39 +848,17 @@ export function LeaderQuotesView({ session }: LeaderQuotesViewProps) {
     previewWindow.focus();
   }
 
-  if (session.role !== "LEADER") {
-    return (
-      <OperationsShell
-        session={session}
-        portalLabel={session.role}
-        portalTitle="Cotizaciones"
-        subtitle="Esta seccion pertenece al workspace comercial de liderazgo. Tu sesion sigue protegida sin exponer funciones fuera de tu rol."
-        navItems={[{ label: "Volver al workspace", href: "/workspace", active: true }]}
-        primaryActions={[{ label: "Ir al dashboard", href: "/workspace" }]}
-        searchItems={searchItems}
-      >
-        <OperationsPanel
-          description="La ruta queda protegida para que solo el rol LEADER use el modulo de cotizaciones."
-          eyebrow="Acceso restringido"
-          title="Sin permisos para cotizaciones"
-        >
-          <Button asChild>
-            <Link href="/workspace">Volver al dashboard</Link>
-          </Button>
-        </OperationsPanel>
-      </OperationsShell>
-    );
-  }
-
   return (
     <OperationsShell
       session={session}
-      portalLabel="LEADER"
+      portalLabel="Executive OS"
       portalTitle="Cotizaciones"
       subtitle="Configura propuestas comerciales con lectura financiera clara, control de margen y trazabilidad sin salir del workspace ejecutivo."
       navItems={[
         { label: "Resumen", href: "/workspace" },
         { label: "Cotizaciones", href: "/workspace/quotes", active: true, badge: String(workspaceState.quotes.length) },
+        { label: "Facturas", href: "/workspace/invoices" },
+        { label: "Orbit AI", href: "/workspace/orbit-ai" },
         { label: "Clientes", href: "#quote-clients", badge: String(workspaceState.clients.length) },
         { label: "Catalogo", href: "#quote-catalog", badge: String(workspaceState.catalog.length) }
       ]}
@@ -893,6 +1060,16 @@ export function LeaderQuotesView({ session }: LeaderQuotesViewProps) {
             title={quoteEditorMode === "edit" ? "Editar cotizacion" : "Nueva cotizacion"}
           >
             <div className="space-y-5">
+              {isMaiaQuoteFlow ? (
+                <div className="rounded-[1.35rem] border border-cyan-400/20 bg-cyan-500/10 px-4 py-4 text-sm leading-6 text-cyan-100">
+                  <p className="font-semibold">MAIA esta ayudandote a crear esta cotizacion.</p>
+                  <p className="mt-1 text-cyan-100/80">
+                    Puedes dictar: cliente, correo, concepto, cantidad, precio, descuento,
+                    impuesto o &quot;guardar borrador&quot;.
+                  </p>
+                </div>
+              ) : null}
+
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2 md:col-span-2">
                   <Label className="text-slate-200" htmlFor="quote-client">
@@ -1222,6 +1399,66 @@ export function LeaderQuotesView({ session }: LeaderQuotesViewProps) {
                     {formatCurrency(quoteCalculation.totals.total)}
                   </p>
                 </div>
+              </div>
+
+              <div className="rounded-[1.45rem] border border-cyan-400/15 bg-slate-950/70 p-4 shadow-[0_20px_60px_rgba(8,47,73,0.18)]">
+                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-4">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
+                      Preview de cotizacion
+                    </p>
+                    <h4 className="mt-2 text-lg font-semibold text-white">
+                      {quoteForm.companyName || "Empresa receptora pendiente"}
+                    </h4>
+                    <p className="mt-1 text-sm text-slate-400">
+                      {quoteForm.clientName || "Cliente pendiente"} |{" "}
+                      {quoteForm.clientEmail || "Correo pendiente"}
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+                    Borrador
+                  </span>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {quoteForm.lineItems.map((line) => (
+                    <div
+                      key={`preview-${line.id}`}
+                      className="grid gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-slate-300 sm:grid-cols-[minmax(0,1fr)_80px_110px]"
+                    >
+                      <div>
+                        <p className="font-semibold text-white">{line.name || "Concepto pendiente"}</p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {line.description || "Descripcion pendiente"}
+                        </p>
+                      </div>
+                      <p>{line.quantity} unidad(es)</p>
+                      <p className="font-semibold text-white">
+                        {formatCurrency(line.quantity * line.basePrice)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 grid gap-2 border-t border-white/10 pt-4 text-sm">
+                  <div className="flex justify-between text-slate-400">
+                    <span>Subtotal</span>
+                    <span>{formatCurrency(quoteCalculation.totals.subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Impuestos</span>
+                    <span>{formatCurrency(quoteCalculation.totals.taxAmount)}</span>
+                  </div>
+                  <div className="flex justify-between text-base font-semibold text-white">
+                    <span>Total</span>
+                    <span>{formatCurrency(quoteCalculation.totals.total)}</span>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-xs leading-5 text-slate-500">
+                  Revisa la cotizacion. MAIA no enviara, emitira factura ni cerrara la propuesta
+                  sin confirmacion explicita.
+                </p>
               </div>
 
               {quoteCalculation.issues.length ? (

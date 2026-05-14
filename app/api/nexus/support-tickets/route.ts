@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { SupportTicketPriority, SupportTicketSource } from "@prisma/client";
 
-import { assertRole } from "@/lib/auth/authorization";
+import { EXECUTIVE_WORKSPACE_ROLES, assertRole } from "@/lib/auth/authorization";
 import { getSession } from "@/lib/auth/session";
 import { createErrorResponse } from "@/lib/http";
 import { createSupportTicket } from "@/lib/services/nexus/support-tickets";
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Sesion no valida." }, { status: 401 });
     }
 
-    assertRole(session, ["SUPERADMIN", "LEADER", "CONSULTANT", "CLIENT"]);
+    assertRole(session, ["SUPERADMIN", ...EXECUTIVE_WORKSPACE_ROLES]);
 
     const body = await request.json();
     const input = supportTicketCreateSchema.parse(body);

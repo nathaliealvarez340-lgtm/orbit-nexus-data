@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { assertRole } from "@/lib/auth/authorization";
+import { OPERATIONS_MANAGEMENT_ROLES, assertRole } from "@/lib/auth/authorization";
 import { getSession } from "@/lib/auth/session";
 import { createErrorResponse } from "@/lib/http";
 import {
@@ -19,7 +19,7 @@ export async function GET() {
       return NextResponse.json({ message: "Sesion no valida." }, { status: 401 });
     }
 
-    assertRole(session, ["LEADER"]);
+    assertRole(session, OPERATIONS_MANAGEMENT_ROLES);
 
     const consultants = await listLeaderConsultants(session.companyId);
 
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Sesion no valida." }, { status: 401 });
     }
 
-    assertRole(session, ["LEADER"]);
+    assertRole(session, OPERATIONS_MANAGEMENT_ROLES);
 
     const body = await request.json();
     const input = createConsultantAuthorizationSchema.parse(body);
@@ -57,4 +57,3 @@ export async function POST(request: Request) {
     return createErrorResponse(error);
   }
 }
-

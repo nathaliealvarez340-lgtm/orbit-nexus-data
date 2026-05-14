@@ -5,8 +5,8 @@ export default function LoginPage() {
   return (
     <AuthShell
       mode="login"
-      title="Ingresa a una capa de control más clara, más segura y mucho más inteligente."
-      description="Entra a Orbit Nexus con tu código único para continuar dentro de una experiencia premium diseñada para velocidad, trazabilidad y control empresarial."
+      title="Entra a tu sistema operativo ejecutivo."
+      description="Accede con tu código único empresarial para administrar operación, usuarios, proyectos, métricas, finanzas y Orbit AI desde un solo entorno seguro."
     >
       <LoginForm />
     </AuthShell>

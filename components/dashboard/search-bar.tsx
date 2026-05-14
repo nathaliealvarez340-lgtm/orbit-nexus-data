@@ -17,14 +17,14 @@ type SearchBarProps = {
 
 const groupLabels: Record<DashboardSearchItem["type"], string> = {
   project: "Proyectos",
-  action: "Acciones",
+  action: "Modulos y acciones",
   activity: "Actividad",
   user: "Usuarios"
 };
 
 const itemTypePills: Record<DashboardSearchItem["type"], string> = {
   project: "Proyecto",
-  action: "Accion",
+  action: "Modulo",
   activity: "Actividad",
   user: "Usuario"
 };
@@ -131,7 +131,7 @@ export function SearchBar({ items, className, variant = "default" }: SearchBarPr
             : "border-white/80 bg-white/88",
           isCompact ? "h-11 rounded-[1.15rem] text-sm" : !isDark ? "h-12 rounded-2xl" : ""
         )}
-        placeholder="Buscar proyectos, acciones o actividad..."
+        placeholder="Buscar modulos, cotizaciones, facturas, clientes o actividad..."
         value={query}
         onChange={(event) => {
           const nextValue = event.target.value;
@@ -269,7 +269,7 @@ export function SearchBar({ items, className, variant = "default" }: SearchBarPr
                     !isDark && (isCompact ? "px-4 py-4 text-sm" : "px-5 py-6 text-sm")
                   )}
                 >
-                  Sin resultados
+                  No encontramos módulos o datos relacionados.
                 </div>
               )}
             </div>,

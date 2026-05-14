@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { getPasswordValidationMessages } from "@/lib/password-policy";
-import { REGISTRABLE_ROLE_KEYS, type RegistrableRoleKey } from "@/types/auth";
+import type { RegistrableRoleKey } from "@/types/auth";
 
 export function normalizeRegistrableRoleInput(value: string): RegistrableRoleKey | null {
   const normalized = value
@@ -39,61 +39,30 @@ export const loginPayloadSchema = z.object({
 
 export const registerPayloadSchema = z
   .object({
-    fullName: z.string().trim().min(1, "fullName es obligatorio."),
-    email: z.string().trim().min(1, "email es obligatorio.").email("email no es valido."),
-    phone: z.string().trim().min(1, "phone es obligatorio."),
-    password: z.string().min(1, "password es obligatorio."),
-    role: z.string().trim().min(1, "role es obligatorio."),
-    companyName: z.string().trim().optional(),
-    projectFolio: z.string().trim().optional(),
-    companyRegistrationCode: z.string().trim().optional()
+    companyName: z.string().trim().min(2, "Ingresa el nombre de la empresa."),
+    fullName: z.string().trim().min(3, "Ingresa el nombre completo del owner."),
+    email: z.string().trim().min(1, "Ingresa el correo empresarial.").email("Ingresa un correo valido."),
+    phone: z.string().trim().optional(),
+    password: z.string().min(1, "Ingresa una contrasena."),
+    confirmPassword: z.string().min(1, "Confirma la contrasena.")
   })
   .superRefine((value, ctx) => {
     appendPasswordIssues(value.password, ctx, ["password"]);
 
-    const role = normalizeRegistrableRoleInput(value.role);
-
-    if (!role) {
+    if (value.password !== value.confirmPassword) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["role"],
-        message: "role debe ser Lider, Consultor o Cliente."
-      });
-    }
-
-    if (role === "CLIENT" && !value.projectFolio) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["projectFolio"],
-        message: "projectFolio es obligatorio para Cliente."
-      });
-    }
-
-    if (role === "CLIENT" && !value.companyName) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["companyName"],
-        message: "companyName es obligatorio para Cliente."
-      });
-    }
-
-    if (role === "LEADER" && !value.companyRegistrationCode) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["companyRegistrationCode"],
-        message: "companyRegistrationCode es obligatorio para Lider."
+        path: ["confirmPassword"],
+        message: "La confirmacion de contrasena no coincide."
       });
     }
   })
   .transform((value) => ({
+    companyName: value.companyName,
     fullName: value.fullName,
     email: value.email,
     phone: value.phone,
-    password: value.password,
-    role: normalizeRegistrableRoleInput(value.role)!,
-    companyName: value.companyName,
-    projectFolio: value.projectFolio,
-    companyRegistrationCode: value.companyRegistrationCode
+    password: value.password
   }));
 
 export const resetPasswordPayloadSchema = z
@@ -117,41 +86,14 @@ export const resetPasswordPayloadSchema = z
 
 export const registerServiceSchema = z
   .object({
+    companyName: z.string().trim().min(2, "Ingresa el nombre de la empresa."),
     fullName: z.string().trim().min(3, "Ingresa tu nombre completo."),
     email: z.string().trim().email("Ingresa un correo valido."),
-    phone: z.string().trim().min(8, "Ingresa un celular valido."),
-    password: z.string().min(1, "La contrasena es obligatoria."),
-    role: z.enum(REGISTRABLE_ROLE_KEYS),
-    companyName: z.string().trim().optional(),
-    projectFolio: z.string().trim().optional(),
-    companyRegistrationCode: z.string().trim().optional()
+    phone: z.string().trim().optional(),
+    password: z.string().min(1, "La contrasena es obligatoria.")
   })
   .superRefine((value, ctx) => {
     appendPasswordIssues(value.password, ctx, ["password"]);
-
-    if (value.role === "CLIENT" && !value.projectFolio) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["projectFolio"],
-        message: "El folio unico del proyecto es obligatorio para clientes."
-      });
-    }
-
-    if (value.role === "CLIENT" && !value.companyName) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["companyName"],
-        message: "El nombre de la empresa es obligatorio para clientes."
-      });
-    }
-
-    if (value.role === "LEADER" && !value.companyRegistrationCode) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["companyRegistrationCode"],
-        message: "El codigo maestro de empresa es obligatorio para lideres."
-      });
-    }
   });
 
 export const adminAccessPayloadSchema = z.object({

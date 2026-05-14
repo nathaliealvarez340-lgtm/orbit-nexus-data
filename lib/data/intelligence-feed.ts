@@ -149,6 +149,94 @@ export const leaderIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
   }
 ];
 
+export const executiveIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
+  {
+    id: "executive-risk-drift",
+    title: "Cuando baja la trazabilidad, los riesgos operativos suelen escalar antes de hacerse visibles",
+    subtitle: "Insight operativo",
+    category: "Riesgo",
+    image: baseImages.Riesgo,
+    ctaText: "Ver analisis",
+    sourceType: "internal",
+    sourceName: "Orbit Nexus Intelligence",
+    publishedAt: "2026-05-12T08:00:00.000Z",
+    confidence: 93,
+    actionableInsight:
+      "Los frentes con actividad dispersa y dependencias sin seguimiento consistente concentran mas bloqueos y correcciones tardias.",
+    recommendedAction:
+      "Centraliza decisiones criticas, define responsables y monitorea tareas bloqueadas antes de abrir nuevos frentes.",
+    expectedImpact: "Menor escalacion y mejor control de la operacion diaria."
+  },
+  {
+    id: "executive-productivity-throughput",
+    title: "La productividad real mejora cuando las prioridades se ordenan por impacto y no solo por urgencia",
+    subtitle: "Insight operativo",
+    category: "Productividad",
+    image: baseImages.Productividad,
+    ctaText: "Aplicar recomendacion",
+    sourceType: "internal",
+    sourceName: "Orbit Nexus Intelligence",
+    publishedAt: "2026-05-12T08:20:00.000Z",
+    confidence: 89,
+    actionableInsight:
+      "Las organizaciones con checkpoints operativos claros reducen friccion y aceleran validaciones sin saturar reuniones.",
+    recommendedAction:
+      "Ordena tus siguientes acciones por impacto en throughput, riesgo y dependencia cruzada entre equipos.",
+    expectedImpact: "Mas avance visible y menos trabajo reactivo."
+  },
+  {
+    id: "executive-talent-capacity",
+    title: "La capacidad disponible es mas valiosa cuando se protege antes de entrar en sobrecarga silenciosa",
+    subtitle: "Insight operativo",
+    category: "Talento",
+    image: baseImages.Talento,
+    ctaText: "Ver analisis",
+    sourceType: "internal",
+    sourceName: "Orbit Nexus Intelligence",
+    publishedAt: "2026-05-12T08:40:00.000Z",
+    confidence: 87,
+    actionableInsight:
+      "Los equipos que redistribuyen carga antes de llegar al limite sostienen mejor calidad, cumplimiento y velocidad.",
+    recommendedAction:
+      "Revisa ocupacion, tareas bloqueadas y areas criticas antes de asignar nuevas responsabilidades clave.",
+    expectedImpact: "Mayor estabilidad operativa y menos desgaste del equipo."
+  },
+  {
+    id: "executive-market-readiness",
+    title: "Este modulo esta listo para combinar inteligencia operativa interna con senales externas de mercado",
+    subtitle: "Fuente preparada para integracion externa",
+    category: "Mercado",
+    image: baseImages.Mercado,
+    ctaText: "Ver analisis",
+    sourceType: "external",
+    sourceName: "Future market feed",
+    publishedAt: "2026-05-12T09:00:00.000Z",
+    confidence: 64,
+    actionableInsight:
+      "La arquitectura ya soporta futuras fuentes RSS o API sin simular noticias actuales ni romper la experiencia productiva.",
+    recommendedAction:
+      "Usa este espacio como capa futura para contrastar tu operacion con contexto externo cuando habilites integraciones reales.",
+    expectedImpact: "Mejor lectura ejecutiva con contexto de negocio ampliado."
+  },
+  {
+    id: "executive-operations-bottlenecks",
+    title: "Los cuellos de botella repetidos casi siempre nacen en el proceso, no en una sola persona",
+    subtitle: "Insight operativo",
+    category: "Operacion",
+    image: baseImages.Operacion,
+    ctaText: "Aplicar recomendacion",
+    sourceType: "internal",
+    sourceName: "Orbit Nexus Intelligence",
+    publishedAt: "2026-05-12T09:18:00.000Z",
+    confidence: 91,
+    actionableInsight:
+      "Cuando el mismo bloqueo se repite entre proyectos, conviene intervenir handoffs, aprobaciones y dependencias antes de sumar capacidad.",
+    recommendedAction:
+      "Analiza bloqueos recurrentes, identifica nodos de aprobacion y automatiza seguimiento donde exista retraso repetitivo.",
+    expectedImpact: "Mas fluidez operativa y mejor previsibilidad en resultados."
+  }
+];
+
 export const consultantIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
   {
     id: "consultant-productivity-focus",

@@ -15,17 +15,17 @@ const loginFeatures = [
   {
     icon: KeyRound,
     title: "Acceso inteligente",
-    text: "Ingreso por código único con trazabilidad inmediata."
+    text: "Ingreso por código único empresarial con trazabilidad inmediata."
   },
   {
     icon: Shield,
     title: "Seguridad segmentada",
-    text: "Cada empresa opera dentro de su propio entorno protegido."
+    text: "Cada organización opera dentro de su propio entorno protegido."
   },
   {
     icon: Radar,
     title: "Control operativo",
-    text: "Usuarios, acceso y visibilidad conectados en una sola arquitectura."
+    text: "Usuarios, proyectos, métricas y decisiones conectados en una sola arquitectura."
   },
   {
     icon: LockKeyhole,
@@ -37,23 +37,23 @@ const loginFeatures = [
 const registerFeatures = [
   {
     icon: Sparkles,
-    title: "Alta guiada",
-    text: "Registro estructurado para activar usuarios autorizados sin fricción."
+    title: "Activación guiada",
+    text: "Crea tu organización y el primer owner sin fricción."
   },
   {
     icon: Shield,
-    title: "Validación segura",
-    text: "El sistema confirma identidad, rol y permisos antes de habilitar acceso."
+    title: "RBAC flexible",
+    text: "Base preparada para owner, admin, finance, operations y usuarios de consulta."
   },
   {
     icon: Orbit,
-    title: "Escalabilidad real",
-    text: "Una base diseñada para crecer sin perder orden ni control."
+    title: "Sistema ejecutivo",
+    text: "Una capa diseñada para controlar operación, finanzas, reportes y Orbit AI."
   },
   {
     icon: Waves,
     title: "Experiencia fluida",
-    text: "Una capa visual premium para operar con claridad desde el primer ingreso."
+    text: "Una interfaz premium para entrar con claridad desde el primer ingreso."
   }
 ];
 
@@ -103,7 +103,7 @@ export function AuthShell({
                 Orbit <span className="text-[#5de0e6]">Nexus</span>
               </p>
               <p className="mt-1 text-sm text-slate-300">
-                Plataforma futurista para acceso, control y trazabilidad.
+                Sistema operativo ejecutivo con inteligencia operativa.
               </p>
             </div>
           </div>

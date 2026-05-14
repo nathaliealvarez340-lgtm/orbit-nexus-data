@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { authCookie } from "@/lib/auth/cookies";
 import { createErrorResponse } from "@/lib/http";
 import { signSessionToken } from "@/lib/jwt";
+import { assertRateLimit } from "@/lib/rate-limit";
 import { accessSuperadmin } from "@/lib/services/admin/access-superadmin";
 import { adminAccessPayloadSchema } from "@/lib/validation/auth-payloads";
 
@@ -10,6 +11,12 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
+    assertRateLimit(request, {
+      key: "auth:admin-access",
+      limit: 6,
+      windowMs: 60_000
+    });
+
     const body = await request.json();
     const input = adminAccessPayloadSchema.parse(body);
     const user = await accessSuperadmin(input);
@@ -35,4 +42,3 @@ export async function POST(request: Request) {
     return createErrorResponse(error);
   }
 }
-

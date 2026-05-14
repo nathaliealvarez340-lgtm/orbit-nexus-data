@@ -1,5 +1,6 @@
 .next
 node_modules
+orbit-nexus-data/
 .env
 .env.local
 .env.development.local
@@ -8,6 +9,7 @@ node_modules
 coverage
 dist
 *.log
+*.tsbuildinfo
 prisma/dev.db
 tmp
 

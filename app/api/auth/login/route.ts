@@ -4,6 +4,7 @@ import { authCookie } from "@/lib/auth/cookies";
 import { getRequestMetadata } from "@/lib/auth/request-metadata";
 import { createErrorResponse } from "@/lib/http";
 import { signSessionToken } from "@/lib/jwt";
+import { assertRateLimit } from "@/lib/rate-limit";
 import { loginUser } from "@/lib/services/auth/login-user";
 import { loginPayloadSchema } from "@/lib/validation/auth-payloads";
 
@@ -11,6 +12,12 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
+    assertRateLimit(request, {
+      key: "auth:login",
+      limit: 10,
+      windowMs: 60_000
+    });
+
     const body = await request.json();
     const input = loginPayloadSchema.parse(body);
     const metadata = getRequestMetadata(request);

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { assertRole } from "@/lib/auth/authorization";
+import { OPERATIONS_MANAGEMENT_ROLES, assertRole } from "@/lib/auth/authorization";
 import { getSession } from "@/lib/auth/session";
 import { createErrorResponse } from "@/lib/http";
 import { createLeaderProject } from "@/lib/services/leader/create-project";
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Sesion no valida." }, { status: 401 });
     }
 
-    assertRole(session, ["LEADER"]);
+    assertRole(session, OPERATIONS_MANAGEMENT_ROLES);
 
     const body = await request.json();
     const input = createProjectPayloadSchema.parse(body);
@@ -34,4 +34,3 @@ export async function POST(request: Request) {
     return createErrorResponse(error);
   }
 }
-

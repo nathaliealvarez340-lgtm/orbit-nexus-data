@@ -12,6 +12,7 @@ import { useWorkspaceProjects } from "@/components/dashboard/workspace-projects-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OPERATIONS_MANAGEMENT_ROLES } from "@/lib/auth/authorization";
 import {
   getLeaderDashboardMock,
   getLeaderDashboardSearchItems,
@@ -65,6 +66,7 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
 
   const leaderData = useMemo(() => getLeaderDashboardMock(session, projects), [projects, session]);
   const searchItems = useMemo(() => getLeaderDashboardSearchItems(leaderData), [leaderData]);
+  const canManageProjects = OPERATIONS_MANAGEMENT_ROLES.includes(session.role);
 
   function updateField<Key extends keyof ProjectCreateFormState>(
     field: Key,
@@ -80,8 +82,8 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
       return;
     }
 
-    if (session.role !== "LEADER") {
-      setError("Solo el portal LEADER puede crear proyectos en esta fase.");
+    if (!canManageProjects) {
+      setError("Tu rol no tiene permisos para crear proyectos operativos.");
       return;
     }
 
@@ -177,13 +179,13 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
     })();
   }
 
-  if (session.role !== "LEADER") {
+  if (!canManageProjects) {
     return (
       <OperationsShell
         session={session}
         portalLabel={session.role}
         portalTitle="Creacion de proyectos"
-        subtitle="Esta vista forma parte del flujo del lider. Tu sesion sigue protegida, pero esta accion no esta disponible para tu rol."
+        subtitle="Esta vista forma parte del flujo operativo. Tu sesion sigue protegida, pero esta accion no esta disponible para tu rol."
         navItems={[
           { label: "Volver al workspace", href: "/workspace", active: true }
         ]}
@@ -191,7 +193,7 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
         searchItems={searchItems}
       >
         <OperationsPanel
-          description="Mantuvimos la ruta protegida y visible, pero el alta de proyectos solo existe para el portal LEADER."
+          description="Mantuvimos la ruta protegida y visible para usuarios con permisos de operacion."
           eyebrow="Acceso restringido"
           title="Sin permisos para crear proyectos"
         >
@@ -208,7 +210,7 @@ export function ProjectCreateView({ session }: ProjectCreateViewProps) {
   return (
     <OperationsShell
       session={session}
-      portalLabel="LEADER"
+      portalLabel="Executive OS"
       portalTitle="Creacion de proyectos"
       subtitle="Activa nuevos frentes operativos con la misma lectura ejecutiva del dashboard principal y deja el proyecto listo para seguimiento real."
       navItems={[

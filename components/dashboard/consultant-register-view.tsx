@@ -10,6 +10,7 @@ import { useWorkspaceProjects } from "@/components/dashboard/workspace-projects-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OPERATIONS_MANAGEMENT_ROLES } from "@/lib/auth/authorization";
 import {
   getLeaderDashboardMock,
   getLeaderDashboardSearchItems,
@@ -74,9 +75,10 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
 
   const leaderData = useMemo(() => getLeaderDashboardMock(session, projects), [projects, session]);
   const searchItems = useMemo(() => getLeaderDashboardSearchItems(leaderData), [leaderData]);
+  const canManageTeam = OPERATIONS_MANAGEMENT_ROLES.includes(session.role);
 
   useEffect(() => {
-    if (session.role !== "LEADER") {
+    if (!canManageTeam) {
       return;
     }
 
@@ -117,7 +119,7 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
     return () => {
       ignore = true;
     };
-  }, [session.role]);
+  }, [canManageTeam]);
 
   function updateField<Key extends keyof ConsultantRegisterFormState>(
     field: Key,
@@ -274,19 +276,19 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
     }
   }
 
-  if (session.role !== "LEADER") {
+  if (!canManageTeam) {
     return (
       <OperationsShell
         session={session}
         portalLabel={session.role}
         portalTitle="Alta de consultores"
-        subtitle="Esta vista forma parte del flujo de coordinacion del lider."
+        subtitle="Esta vista forma parte del flujo de coordinacion de equipo."
         navItems={[{ label: "Volver al workspace", href: "/workspace", active: true }]}
         primaryActions={[{ label: "Ir al dashboard", href: "/workspace" }]}
         searchItems={searchItems}
       >
         <OperationsPanel
-          description="Mantuvimos la ruta protegida, pero solo el portal LEADER puede registrar consultores."
+          description="Mantuvimos la ruta protegida para usuarios con permisos de administracion operativa."
           eyebrow="Acceso restringido"
           title="Sin permisos para continuar"
         >
@@ -301,7 +303,7 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
   return (
     <OperationsShell
       session={session}
-      portalLabel="LEADER"
+      portalLabel="Executive OS"
       portalTitle="Alta de consultores"
       subtitle="Autoriza consultores internos con datos operativos iniciales y mantenlos visibles para matching, asignacion y seguimiento."
       navItems={[
@@ -557,4 +559,3 @@ export function ConsultantRegisterView({ session }: ConsultantRegisterViewProps)
     </OperationsShell>
   );
 }
-

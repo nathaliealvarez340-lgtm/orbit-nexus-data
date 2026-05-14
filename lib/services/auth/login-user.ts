@@ -38,7 +38,8 @@ export async function loginUser(input: LoginUserInput) {
       accessCode
     },
     include: {
-      role: true
+      role: true,
+      company: true
     }
   });
 
@@ -79,6 +80,21 @@ export async function loginUser(input: LoginUserInput) {
       device: input.device,
       status: "FAILED",
       failureReason: "USER_DISABLED"
+    });
+
+    throw new ServiceError(AUTH_DISABLED_USER_MESSAGE, 403);
+  }
+
+  if (user.companyId && (!user.company || !user.company.isActive)) {
+    await recordLoginActivity({
+      userId: user.id,
+      roleId: user.roleId,
+      companyId: user.companyId,
+      accessCodeAttempt: accessCode,
+      ipAddress: input.ipAddress,
+      device: input.device,
+      status: "FAILED",
+      failureReason: "COMPANY_DISABLED"
     });
 
     throw new ServiceError(AUTH_DISABLED_USER_MESSAGE, 403);
