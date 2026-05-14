@@ -35,7 +35,7 @@ export const AMBIGUOUS_DIRECTORY_MATCH_MESSAGE =
   "Se encontraron multiples coincidencias para este usuario en empresas distintas. Contacta al administrador de la plataforma para validar tu empresa.";
 
 export const AUTH_INVALID_CREDENTIALS_MESSAGE =
-  "Codigo de acceso o contrasena incorrectos.";
+  "No pudimos validar tus credenciales. Revisa tu codigo y contrasena.";
 
 export const AUTH_PENDING_ACTIVATION_MESSAGE =
   "Tu usuario aun no ha sido activado. Completa tu registro o contacta al administrador de la plataforma.";

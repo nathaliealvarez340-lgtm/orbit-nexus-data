@@ -17,7 +17,9 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 
+import { useLanguage } from "@/components/i18n/language-provider";
 import { Badge } from "@/components/ui/badge";
+import type { TranslationKey } from "@/lib/i18n/dictionary";
 import { cn } from "@/lib/utils";
 
 type OperationsSidebarItem = {
@@ -35,13 +37,13 @@ type OperationsSidebarProps = {
 };
 
 type SidebarLink = {
-  label: string;
+  labelKey: TranslationKey;
   href: string;
 };
 
 type SidebarGroup = {
   id: string;
-  label: string;
+  labelKey: TranslationKey;
   icon: ComponentType<{ className?: string }>;
   href?: string;
   children?: SidebarLink[];
@@ -50,56 +52,56 @@ type SidebarGroup = {
 const sidebarGroups: SidebarGroup[] = [
   {
     id: "dashboard",
-    label: "DASHBOARD",
+    labelKey: "workspace.sidebar.dashboard",
     icon: LayoutDashboard,
     href: "/workspace"
   },
   {
     id: "notifications",
-    label: "NOTIFICACIONES",
+    labelKey: "workspace.sidebar.notifications",
     icon: Bell,
     children: [
-      { label: "Gmail", href: "/workspace/integrations?provider=gmail" },
-      { label: "Orbit", href: "/workspace/alerts" }
+      { labelKey: "workspace.sidebar.gmail", href: "/workspace/integrations?provider=gmail" },
+      { labelKey: "workspace.sidebar.orbit", href: "/workspace/alerts" }
     ]
   },
   {
     id: "quotes",
-    label: "COTIZACIONES",
+    labelKey: "workspace.sidebar.quotes",
     icon: FileText,
     children: [
-      { label: "Crear nueva cotización", href: "/workspace/quotes?maiaAction=new_quote" },
-      { label: "Cotizaciones realizadas", href: "/workspace/quotes" },
-      { label: "Borradores", href: "/workspace/quotes?status=draft" },
-      { label: "Cotizaciones eliminadas", href: "/workspace/quotes?status=deleted" }
+      { labelKey: "workspace.sidebar.newQuote", href: "/workspace/quotes?maiaAction=new_quote" },
+      { labelKey: "workspace.sidebar.completedQuotes", href: "/workspace/quotes" },
+      { labelKey: "workspace.sidebar.drafts", href: "/workspace/quotes?status=draft" },
+      { labelKey: "workspace.sidebar.deletedQuotes", href: "/workspace/quotes?status=deleted" }
     ]
   },
   {
     id: "billing",
-    label: "FACTURACIÓN",
+    labelKey: "workspace.sidebar.billing",
     icon: ReceiptText,
     children: [
-      { label: "Crear factura", href: "/workspace/invoices?mode=new" },
-      { label: "CFDI emitidos", href: "/workspace/invoices?status=stamped" },
-      { label: "En proceso", href: "/workspace/invoices?status=pending" },
-      { label: "CFDI eliminados", href: "/workspace/invoices?status=deleted" }
+      { labelKey: "workspace.sidebar.newInvoice", href: "/workspace/invoices?mode=new" },
+      { labelKey: "workspace.sidebar.issuedCfdi", href: "/workspace/invoices?status=stamped" },
+      { labelKey: "workspace.sidebar.inProgress", href: "/workspace/invoices?status=pending" },
+      { labelKey: "workspace.sidebar.deletedCfdi", href: "/workspace/invoices?status=deleted" }
     ]
   },
   {
     id: "information",
-    label: "INFORMACIÓN",
+    labelKey: "workspace.sidebar.information",
     icon: UserCircle,
     children: [
-      { label: "Empresa / Cliente", href: "/workspace/clients" },
-      { label: "Tareas", href: "/workspace/tasks" },
-      { label: "Reportes", href: "/workspace/reports" }
+      { labelKey: "workspace.sidebar.companyClient", href: "/workspace/clients" },
+      { labelKey: "workspace.sidebar.tasks", href: "/workspace/tasks" },
+      { labelKey: "workspace.sidebar.reports", href: "/workspace/reports" }
     ]
   }
 ];
 
 const bottomLinks: SidebarLink[] = [
-  { label: "AJUSTES", href: "/workspace/tax-profile" },
-  { label: "CUENTA", href: "/workspace" }
+  { labelKey: "workspace.sidebar.settings", href: "/workspace/tax-profile" },
+  { labelKey: "workspace.sidebar.account", href: "/workspace" }
 ];
 
 function stripQuery(href: string) {
@@ -144,6 +146,7 @@ function SidebarContent({
   roleLabel,
   onNavigate
 }: OperationsSidebarProps & { onNavigate?: () => void }) {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const badgeLookup = useMemo(
     () => new Map(items.map((item) => [item.href, item.badge])),
@@ -186,7 +189,7 @@ function SidebarContent({
         <Badge className="bg-white/10 text-slate-100 hover:bg-white/10">Orbit Nexus</Badge>
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-400">
-            CEO OPERATING SYSTEM
+            {t("workspace.sidebar.system")}
           </p>
           <h2 className="mt-2 line-clamp-2 text-2xl font-semibold tracking-tight text-white">
             {ownerName}
@@ -199,11 +202,11 @@ function SidebarContent({
 
       <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
-          Código
+          {t("workspace.sidebar.code")}
         </p>
         <p className="mt-2 font-semibold text-cyan-300">{accessCode}</p>
         <p className="mt-3 rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2 text-xs leading-5 text-slate-400">
-          Sesión protegida para decidir, ejecutar y controlar la empresa con contexto seguro.
+          {t("workspace.sidebar.protected")}
         </p>
       </div>
 
@@ -234,7 +237,7 @@ function SidebarContent({
                 />
                 <span className="relative z-10 flex items-center gap-3">
                   <Icon className="h-4 w-4 text-cyan-200" />
-                  {group.label}
+                  {t(group.labelKey)}
                 </span>
                 {groupBadge ? (
                   <span className="relative z-10 rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-slate-300">
@@ -264,7 +267,7 @@ function SidebarContent({
                 />
                 <span className="relative z-10 flex items-center gap-3">
                   <Icon className="h-4 w-4 text-cyan-200" />
-                  {group.label}
+                  {t(group.labelKey)}
                 </span>
                 <ChevronDown
                   className={cn(
@@ -298,7 +301,7 @@ function SidebarContent({
                             onClick={onNavigate}
                           >
                             <SidebarItemGlow active={active} />
-                            <span className="relative z-10">{item.label}</span>
+                            <span className="relative z-10">{t(item.labelKey)}</span>
                           </Link>
                         );
                       })}
@@ -314,11 +317,11 @@ function SidebarContent({
       <div className="space-y-2 border-t border-white/10 pt-4">
         {bottomLinks.map((item) => {
           const active = isRouteActive(pathname, item.href);
-          const Icon = item.label === "AJUSTES" ? Settings : UserCircle;
+          const Icon = item.labelKey === "workspace.sidebar.settings" ? Settings : UserCircle;
 
           return (
             <Link
-              key={item.label}
+              key={item.labelKey}
               className={cn(
                 "group relative flex items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 text-sm font-semibold tracking-[0.04em] outline-none transition-all duration-300 focus-visible:ring-2 focus-visible:ring-cyan-300/50",
                 active ? "text-white" : "text-slate-300 hover:text-white"
@@ -328,7 +331,7 @@ function SidebarContent({
             >
               <SidebarItemGlow active={active} />
               <Icon className="relative z-10 h-4 w-4 text-cyan-200" />
-              <span className="relative z-10">{item.label}</span>
+              <span className="relative z-10">{t(item.labelKey)}</span>
             </Link>
           );
         })}

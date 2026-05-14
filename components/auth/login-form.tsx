@@ -8,6 +8,7 @@ import { useState } from "react";
 
 import { AdminAccessForm } from "@/components/auth/admin-access-modal";
 import { PasswordField } from "@/components/auth/password-field";
+import { useLanguage } from "@/components/i18n/language-provider";
 import {
   orbitInfoPanelClassName,
   orbitInputClassName,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/ui/orbit-form-styles";
 
 export default function LoginForm() {
+  const { t } = useLanguage();
   const router = useRouter();
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +36,7 @@ export default function LoginForm() {
     const accessCode = code.trim();
 
     if (!accessCode || !password.trim()) {
-      setError("Completa tu código único y tu contraseña.");
+      setError(t("auth.login.missing"));
       return;
     }
 
@@ -55,14 +57,20 @@ export default function LoginForm() {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(payload?.message ?? "No fue posible iniciar sesión.");
+        setError(
+          response.status === 401
+            ? t("auth.login.invalid")
+            : typeof payload?.message === "string" && payload.message.trim().length > 0
+              ? payload.message
+              : t("auth.login.server")
+        );
         return;
       }
 
       router.replace("/workspace");
       router.refresh();
     } catch {
-      setError("Ocurrió un error inesperado al iniciar sesión.");
+      setError(t("auth.login.server"));
     } finally {
       setIsSubmitting(false);
     }
@@ -76,17 +84,16 @@ export default function LoginForm() {
     <form className="space-y-7" noValidate onSubmit={handleSubmit}>
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-white">
-          Accede a tu CEO Operating System
+          {t("auth.login.title")}
         </h2>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Accede con tu código único empresarial para administrar operación, usuarios, proyectos,
-          métricas, finanzas y MAIA desde un solo entorno seguro.
+          {t("auth.login.description")}
         </p>
       </div>
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-slate-200" htmlFor="accessCode">
-          Código único
+          {t("auth.login.code")}
         </label>
         <input
           autoComplete="username"
@@ -103,14 +110,14 @@ export default function LoginForm() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-slate-200" htmlFor="password">
-            Contraseña
+            {t("auth.login.password")}
           </label>
 
           <Link
             className="text-xs font-semibold tracking-[0.08em] text-cyan-200 transition hover:text-cyan-100 hover:underline"
             href={"/auth/recover-access" as Route}
           >
-            Recuperar acceso
+            {t("auth.login.recover")}
           </Link>
         </div>
 
@@ -119,7 +126,7 @@ export default function LoginForm() {
           className={`${orbitInputClassName} pr-11`}
           id="password"
           name="password"
-          placeholder="Ingresa tu contraseña"
+          placeholder={t("auth.login.password")}
           value={password}
           onChange={setPassword}
         />
@@ -135,26 +142,26 @@ export default function LoginForm() {
         {isSubmitting ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Ingresando...
+            {t("auth.login.submitting")}
           </>
         ) : (
-          "Iniciar sesión"
+          t("auth.login.submit")
         )}
       </button>
 
       <div className={orbitInfoPanelClassName}>
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-300">
-          ENTORNO PROTEGIDO
+          {t("auth.login.protectedTitle")}
         </p>
         <p className="mt-2 text-sm leading-6 text-slate-300">
-          Tu sesión opera bajo autenticación empresarial, permisos internos y validación segura.
+          {t("auth.login.protectedText")}
         </p>
       </div>
 
       <p className="text-center text-sm text-slate-400">
-        ¿Aún no tienes una empresa activa?{" "}
+        {t("auth.login.noCompany")}{" "}
         <Link className="font-semibold text-cyan-300 hover:text-cyan-200 hover:underline" href="/register">
-          Activar empresa
+          {t("common.activateCompany")}
         </Link>
       </p>
 
@@ -163,7 +170,7 @@ export default function LoginForm() {
         type="button"
         onClick={() => setIsAdminMode(true)}
       >
-        ¿Eres administrador?
+        {t("auth.login.admin")}
       </button>
     </form>
   );

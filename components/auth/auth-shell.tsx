@@ -5,6 +5,8 @@ import { KeyRound, LockKeyhole, Orbit, Radar, Shield, Sparkles, Waves } from "lu
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 
+import { LanguageSelector } from "@/components/i18n/language-selector";
+import { useLanguage } from "@/components/i18n/language-provider";
 import { LiveDateTime } from "@/components/auth/live-date-time";
 import { OrbitBackgroundVideo } from "@/components/ui/orbit-background-video";
 
@@ -100,7 +102,11 @@ export function AuthShell({
   children,
   mode = "login"
 }: AuthShellProps) {
+  const { t } = useLanguage();
   const features = mode === "login" ? loginFeatures : registerFeatures;
+  const shellTitle = mode === "login" ? t("auth.login.title") : t("auth.register.title");
+  const shellDescription =
+    mode === "login" ? t("auth.login.description") : t("auth.register.description");
 
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-6 md:px-6 md:py-8">
@@ -110,7 +116,11 @@ export function AuthShell({
         videoClassName="saturate-[1.06] contrast-[1.03]"
       />
 
-      <section className="main-content relative z-[2] mx-auto grid min-h-[calc(100vh-3rem)] max-w-7xl items-center gap-6 lg:grid-cols-[1.02fr_0.86fr]">
+      <div className="relative z-[3] mx-auto flex max-w-7xl justify-end pb-4">
+        <LanguageSelector />
+      </div>
+
+      <section className="main-content relative z-[2] mx-auto grid min-h-[calc(100vh-6rem)] max-w-7xl items-center gap-6 lg:grid-cols-[1.02fr_0.86fr]">
         <motion.div
           animate="visible"
           className={`relative overflow-hidden rounded-[2.4rem] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.26)] md:p-10 ${panelClassName()}`}
@@ -142,11 +152,11 @@ export function AuthShell({
 
           <div className="relative z-10 mt-8 space-y-5">
             <h1 className="max-w-3xl text-3xl font-semibold leading-[1.1] tracking-[-0.02em] text-white md:text-4xl xl:text-5xl">
-              {title}
+              {shellTitle || title}
             </h1>
 
             <p className="max-w-2xl text-[1.05rem] leading-8 text-slate-300 md:text-[1.12rem]">
-              {description}
+              {shellDescription || description}
             </p>
           </div>
 

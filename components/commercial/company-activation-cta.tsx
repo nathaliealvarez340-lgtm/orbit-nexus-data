@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   Check,
@@ -14,16 +14,15 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/components/i18n/language-provider";
 import { OrbitBackgroundVideo } from "@/components/ui/orbit-background-video";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   CORE_BASE_MXN,
-  CORE_EXTRA_USER_MXN,
   CORE_INCLUDED_USERS,
   GROWTH_MAX_USERS,
   GROWTH_MONTHLY_MXN,
-  CORE_MAX_EXTRA_USERS,
   buildQuoteSummary
 } from "@/lib/commercial/plans";
 import {
@@ -33,11 +32,15 @@ import {
 } from "@/lib/ui/orbit-form-styles";
 
 type CompanyPlan = "CORE" | "GROWTH" | "ENTERPRISE";
-type ActivationStep = "hero" | "plans" | "billing";
+type ActivationStep = "intro" | "hero" | "plans" | "billing";
 type OrganizationAccessType = "COMPANY" | "OWN_BUSINESS";
+type CompanyActivationCtaProps = {
+  triggerClassName?: string;
+  triggerLabel?: string;
+  triggerVariant?: "default" | "outline";
+};
 
 const DISPLAY_CORE_BASE_MXN = CORE_BASE_MXN;
-const DISPLAY_CORE_EXTRA_USER_MXN = CORE_EXTRA_USER_MXN;
 const DISPLAY_CORE_INCLUDED_USERS = CORE_INCLUDED_USERS;
 const DISPLAY_GROWTH_BASE_MXN = GROWTH_MONTHLY_MXN;
 const DISPLAY_GROWTH_INCLUDED_USERS = GROWTH_MAX_USERS;
@@ -50,52 +53,132 @@ const planCards = [
     highlight: "Base operativa",
     subtitle: "Base operativa",
     price: "$1,799 MXN al mes",
-    secondaryPrice: "≈ $100 USD estimado",
-    microcopy: "Ideal para estructurar operaciones sin complejidad",
+    microcopy: "Base operativa para empresas que necesitan ordenar procesos, usuarios y control interno.",
     bullets: [
-      "Reduce hasta 30% el desorden operativo en las primeras semanas",
-      "Centraliza 100% de accesos, usuarios y proyectos en una sola plataforma",
-      "Visibilidad completa de actividad en tiempo real",
-      "Implementación funcional en menos de 7 días",
-      "Base estructurada lista para escalar sin rediseñar procesos"
+      "Command Center ejecutivo",
+      "Administración básica de usuarios",
+      "Proyectos y tareas",
+      "Reportes básicos",
+      "Alertas operativas",
+      "Seguimiento de actividad",
+      "Acceso seguro por código empresarial",
+      "MAIA por texto en modo básico"
     ]
   },
   {
     plan: "GROWTH" as const,
     label: "Growth",
     highlight: "Más elegido",
-    subtitle: "Impulsa tu crecimiento",
+    subtitle: "PyME operativa",
     price: "$3,999 MXN al mes",
-    secondaryPrice: "≈ $222 USD estimado",
-    microcopy: "Para equipos que buscan eficiencia real y control operativo",
+    microcopy: "Para PyMEs que necesitan operar, vender, cotizar y controlar finanzas con IA.",
     bullets: [
-      "Aumenta hasta 40% la eficiencia operativa entre equipos",
-      "Automatiza asignación de tareas según disponibilidad y carga de trabajo",
-      "Reduce cuellos de botella en procesos críticos hasta en 25%",
-      "Coordinación centralizada de múltiples áreas en tiempo real",
-      "Alertas inteligentes para prevenir retrasos antes de que escalen",
-      "Soporta operaciones de hasta 50 usuarios activos sin pérdida de control"
+      "Todo lo de Core",
+      "Hasta 10 facturas mensuales",
+      "Hasta 20 cotizaciones mensuales",
+      "Asistente IA por voz",
+      "MAIA por texto completa",
+      "Clientes / empresas",
+      "Datos fiscales",
+      "Reportes financieros básicos",
+      "Automatizaciones operativas iniciales",
+      "Inteligencia de prioridades",
+      "Soporte estándar"
     ]
   },
   {
     plan: "ENTERPRISE" as const,
-    label: "Implementación estratégica",
+    label: "Business",
     highlight: "Solución empresarial",
     subtitle: "Solución empresarial",
     price: "Cotización personalizada",
     secondaryPrice: "Implementaciones desde $549 USD al mes",
-    microcopy: "Para operaciones que requieren precisión, escalabilidad y control total",
+    microcopy:
+      "Solución empresarial para equipos que requieren mayor volumen, control avanzado e integraciones.",
     bullets: [
-      "Incrementa la eficiencia global de la operación hasta en 60%",
-      "Reasignación automática de recursos ante riesgos o bajo rendimiento",
-      "Integración con sistemas internos (ERP, CRM, herramientas propias)",
-      "Dashboard ejecutivo con métricas clave en tiempo real",
-      "Arquitectura diseñada específicamente para tu operación",
-      "Soporte dedicado en implementación, evolución y escalabilidad"
+      "Todo lo de Growth",
+      "Hasta 100 facturas mensuales",
+      "Hasta 140 cotizaciones mensuales",
+      "Asistente de voz con IA",
+      "Automatizaciones avanzadas",
+      "Integraciones con correo",
+      "Reportes ejecutivos avanzados",
+      "Permisos personalizados",
+      "Soporte prioritario",
+      "Onboarding asistido",
+      "Preparación para integraciones ERP/CRM",
+      "Arquitectura escalable multiárea",
+      "Implementación estratégica"
     ]
   }
 ];
 
+const planCardsEn: typeof planCards = [
+  {
+    plan: "CORE",
+    label: "Core",
+    highlight: "Operating base",
+    subtitle: "Operating base",
+    price: "$1,799 MXN per month",
+    microcopy: "Operating foundation for companies that need to organize processes, users and internal control.",
+    bullets: [
+      "Executive Command Center",
+      "Basic user administration",
+      "Projects and tasks",
+      "Basic reports",
+      "Operational alerts",
+      "Activity tracking",
+      "Secure access by company code",
+      "MAIA text assistant in basic mode"
+    ]
+  },
+  {
+    plan: "GROWTH",
+    label: "Growth",
+    highlight: "Most chosen",
+    subtitle: "SMB operations",
+    price: "$3,999 MXN per month",
+    microcopy: "For SMBs that need to operate, sell, quote and control finance with AI.",
+    bullets: [
+      "Everything in Core",
+      "Up to 10 monthly invoices",
+      "Up to 20 monthly quotes",
+      "AI voice assistant",
+      "Full MAIA text assistant",
+      "Clients / companies",
+      "Tax profile",
+      "Basic financial reports",
+      "Initial operational automations",
+      "Priority intelligence",
+      "Standard support"
+    ]
+  },
+  {
+    plan: "ENTERPRISE",
+    label: "Business",
+    highlight: "Enterprise solution",
+    subtitle: "Enterprise solution",
+    price: "Custom quote",
+    secondaryPrice: "Implementations from $549 USD per month",
+    microcopy:
+      "Enterprise solution for teams that require higher volume, advanced control and integrations.",
+    bullets: [
+      "Everything in Growth",
+      "Up to 100 monthly invoices",
+      "Up to 140 monthly quotes",
+      "AI voice assistant",
+      "Advanced automations",
+      "Email integrations",
+      "Advanced executive reports",
+      "Custom permissions",
+      "Priority support",
+      "Assisted onboarding",
+      "Preparation for ERP/CRM integrations",
+      "Scalable multi-area architecture",
+      "Strategic implementation"
+    ]
+  }
+];
 const planIcons = {
   CORE: Zap,
   GROWTH: TrendingUp,
@@ -151,20 +234,6 @@ const initialFormState: FormState = {
   extraUsers: 0
 };
 
-const sectorOptions = [
-  "Tecnología / Software",
-  "Consultoría",
-  "Marketing / Publicidad",
-  "Finanzas",
-  "Educación",
-  "Salud",
-  "Retail / Comercio",
-  "Logística",
-  "Manufactura",
-  "Servicios profesionales",
-  "Otro"
-] as const;
-
 const sectorOptionsList = [
   "Tecnología / SaaS",
   "Consultoría",
@@ -216,7 +285,12 @@ function isValidCorporateDomain(value: string) {
   return /^[a-z0-9]+([.-]?[a-z0-9]+)*\.[a-z]{2,}$/i.test(value);
 }
 
-export function CompanyActivationCta() {
+export function CompanyActivationCta({
+  triggerClassName,
+  triggerLabel,
+  triggerVariant = "default"
+}: CompanyActivationCtaProps = {}) {
+  const { language, t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<ActivationStep>("hero");
   const [countdownComplete, setCountdownComplete] = useState(false);
@@ -242,31 +316,29 @@ export function CompanyActivationCta() {
     () =>
       buildQuoteSummary({
         plan: form.plan,
-        extraUsers: form.plan === "CORE" || form.plan === "GROWTH" ? form.extraUsers : 0
+        extraUsers: 0
       }),
-    [form.extraUsers, form.plan]
+    [form.plan]
   );
 
   const displayQuote = useMemo(() => {
     if (form.plan === "CORE") {
-      const extraAmountMxn = form.extraUsers * DISPLAY_CORE_EXTRA_USER_MXN;
       return {
         baseAmountMxn: DISPLAY_CORE_BASE_MXN,
-        extraAmountMxn,
-        totalAmountMxn: DISPLAY_CORE_BASE_MXN + extraAmountMxn,
+        extraAmountMxn: 0,
+        totalAmountMxn: DISPLAY_CORE_BASE_MXN,
         includedUsers: DISPLAY_CORE_INCLUDED_USERS,
-        totalUsers: DISPLAY_CORE_INCLUDED_USERS + form.extraUsers
+        totalUsers: DISPLAY_CORE_INCLUDED_USERS
       };
     }
 
     if (form.plan === "GROWTH") {
-      const extraAmountMxn = form.extraUsers * DISPLAY_CORE_EXTRA_USER_MXN;
       return {
         baseAmountMxn: DISPLAY_GROWTH_BASE_MXN,
-        extraAmountMxn,
-        totalAmountMxn: DISPLAY_GROWTH_BASE_MXN + extraAmountMxn,
+        extraAmountMxn: 0,
+        totalAmountMxn: DISPLAY_GROWTH_BASE_MXN,
         includedUsers: DISPLAY_GROWTH_INCLUDED_USERS,
-        totalUsers: DISPLAY_GROWTH_INCLUDED_USERS + form.extraUsers
+        totalUsers: DISPLAY_GROWTH_INCLUDED_USERS
       };
     }
 
@@ -277,11 +349,12 @@ export function CompanyActivationCta() {
       includedUsers: null,
       totalUsers: null
     };
-  }, [form.extraUsers, form.plan]);
+  }, [form.plan]);
 
+  const localizedPlanCards = language === "en" ? planCardsEn : planCards;
   const selectedPlan = useMemo(
-    () => planCards.find((card) => card.plan === form.plan) ?? planCards[0],
-    [form.plan]
+    () => localizedPlanCards.find((card) => card.plan === form.plan) ?? localizedPlanCards[0],
+    [form.plan, localizedPlanCards]
   );
 
   function getPlanUsdReference(plan: CompanyPlan) {
@@ -399,7 +472,7 @@ export function CompanyActivationCta() {
 
   function openActivation() {
     setOpen(true);
-    setStep("hero");
+    setStep("intro");
     setCountdownComplete(false);
     setSecondsLeft(4);
     setError(null);
@@ -411,7 +484,7 @@ export function CompanyActivationCta() {
 
   function closeActivation() {
     setOpen(false);
-    setStep("hero");
+    setStep("intro");
     setCountdownComplete(false);
     setSecondsLeft(4);
     setError(null);
@@ -484,6 +557,12 @@ export function CompanyActivationCta() {
     setStep("plans");
   }
 
+  function handleStartCountdown() {
+    setCountdownComplete(false);
+    setSecondsLeft(4);
+    setStep("hero");
+  }
+
   function handleContinueFromPlans() {
     setIsSectorMenuOpen(false);
     setStep("billing");
@@ -534,7 +613,7 @@ export function CompanyActivationCta() {
               : undefined,
           includedUsers: quote.includedUsers,
           totalUsers: quote.totalUsers,
-          extraUsers: form.plan === "CORE" || form.plan === "GROWTH" ? form.extraUsers : 0,
+          extraUsers: 0,
           monthlyAmount: quote.baseAmountMxn
         })
       });
@@ -581,12 +660,16 @@ export function CompanyActivationCta() {
   return (
     <>
       <Button
-        className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] hover:opacity-95"
+        className={
+          triggerClassName ??
+          "bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] hover:opacity-95"
+        }
         size="lg"
         type="button"
+        variant={triggerVariant}
         onClick={openActivation}
       >
-        Activa tu empresa
+        {triggerLabel ?? t("activation.trigger")}
       </Button>
 
       {open ? (
@@ -614,7 +697,7 @@ export function CompanyActivationCta() {
               <div className="relative z-10 flex items-center justify-between px-6 py-5 md:px-8 md:py-6">
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Activación comercial
+                  {t("activation.intro.badge")}
                 </div>
 
                 <button
@@ -628,6 +711,93 @@ export function CompanyActivationCta() {
 
               <section className="px-6 pb-10 pt-2 md:px-8 md:pb-12">
                 <div className="mx-auto max-w-6xl space-y-8">
+                  {step === "intro" ? (
+                    <div className="grid min-h-[720px] items-center gap-8 py-4 lg:grid-cols-[1.1fr_0.9fr]">
+                      <div className="space-y-8">
+                        <button
+                          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
+                          type="button"
+                          onClick={closeActivation}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          {t("common.back")}
+                        </button>
+
+                        <div className="space-y-5">
+                          <p className="text-xs font-semibold uppercase tracking-[0.32em] text-cyan-300">
+                            {t("activation.intro.badge")}
+                          </p>
+                          <h2 className="max-w-3xl text-4xl font-semibold leading-[1.05] tracking-[-0.04em] text-white md:text-5xl xl:text-6xl">
+                            {t("activation.intro.title")}
+                          </h2>
+                          <p className="whitespace-pre-line text-2xl font-semibold leading-tight text-cyan-200 md:text-3xl">
+                            {t("activation.intro.subtitle")}
+                          </p>
+                          <p className="max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
+                            {t("activation.intro.body")}
+                          </p>
+                        </div>
+
+                        <div className="grid gap-3 md:grid-cols-2">
+                          {[
+                            ["activation.card.guided.title", "activation.card.guided.text"],
+                            ["activation.card.rbac.title", "activation.card.rbac.text"],
+                            ["activation.card.system.title", "activation.card.system.text"],
+                            ["activation.card.fluid.title", "activation.card.fluid.text"]
+                          ].map(([titleKey, textKey]) => (
+                            <div
+                              key={titleKey}
+                              className="group relative overflow-hidden rounded-[1.55rem] border border-white/12 bg-white/[0.055] p-5 shadow-[0_16px_40px_rgba(2,6,23,0.18)] backdrop-blur-[18px] transition hover:-translate-y-0.5 hover:border-cyan-300/30 hover:bg-white/[0.08]"
+                            >
+                              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(93,224,230,0.10),transparent_45%,rgba(0,74,173,0.08))] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                              <div className="relative z-10">
+                                <h3 className="text-base font-semibold text-white">
+                                  {t(titleKey as Parameters<typeof t>[0])}
+                                </h3>
+                                <p className="mt-2 text-sm leading-6 text-slate-300">
+                                  {t(textKey as Parameters<typeof t>[0])}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="relative overflow-hidden rounded-[2.15rem] border border-cyan-300/20 bg-[linear-gradient(135deg,rgba(9,25,48,0.9),rgba(7,37,70,0.68))] p-7 shadow-[0_30px_85px_rgba(0,74,173,0.24)] backdrop-blur-[22px]">
+                        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),transparent_38%,rgba(93,224,230,0.10))]" />
+                        <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-cyan-300/15 blur-3xl" />
+                        <div className="relative z-10 space-y-7">
+                          <div className="space-y-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200">
+                              {t("activation.intro.panelTitle")}
+                            </p>
+                            <p className="text-base leading-7 text-slate-200">
+                              {t("activation.intro.panelText")}
+                            </p>
+                          </div>
+
+                          <Button
+                            className="h-12 w-full rounded-full bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_22px_52px_rgba(0,74,173,0.42)]"
+                            type="button"
+                            onClick={handleStartCountdown}
+                          >
+                            {t("activation.intro.viewPlans")}
+                          </Button>
+
+                          <p className="text-center text-sm text-slate-400">
+                            {t("activation.intro.loginPrompt")}{" "}
+                            <a
+                              className="font-semibold text-cyan-300 transition hover:text-cyan-200 hover:underline"
+                              href="/login"
+                            >
+                              {t("activation.intro.loginLink")}
+                            </a>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
                   {step === "hero" ? (
                     <div className="flex min-h-[720px] items-center justify-center">
                       <div className="mx-auto max-w-5xl space-y-10 text-center">
@@ -702,15 +872,15 @@ export function CompanyActivationCta() {
                     <div ref={plansRef} className="space-y-8 pt-4">
                       <div className="space-y-3 text-center">
                         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
-                          Paso 2 · Selección de plan
+                          {t("activation.plans.step")}
                         </p>
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white md:text-4xl">
-                          Elige la capacidad operativa que mejor encaja con tu empresa.
+                          {t("activation.plans.title")}
                         </h2>
                       </div>
 
                       <div className="grid gap-5 xl:grid-cols-3">
-                        {planCards.map((card) => {
+                        {localizedPlanCards.map((card) => {
                           const selected = form.plan === card.plan;
                           const isCore = card.plan === "CORE";
                           const PlanIcon = planIcons[card.plan];
@@ -729,10 +899,7 @@ export function CompanyActivationCta() {
                                 setForm((current) => ({
                                   ...current,
                                   plan: card.plan,
-                                  extraUsers:
-                                    card.plan === "CORE" || card.plan === "GROWTH"
-                                      ? current.extraUsers
-                                      : 0
+                                  extraUsers: 0
                                 }))
                               }
                             >
@@ -770,7 +937,7 @@ export function CompanyActivationCta() {
                         <div className="rounded-[2rem] border border-cyan-400/20 bg-[linear-gradient(135deg,rgba(9,25,48,0.88),rgba(6,31,57,0.74))] p-6 shadow-[0_26px_60px_rgba(8,145,178,0.12)] backdrop-blur-[18px]">
                           <div className="space-y-3">
                             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
-                              Plan seleccionado
+                              {t("activation.plans.selected")}
                             </p>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                               <h3 className="text-3xl font-semibold tracking-[-0.03em] text-white">
@@ -800,43 +967,23 @@ export function CompanyActivationCta() {
                         <div className="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 shadow-[0_18px_50px_rgba(2,6,23,0.18)] backdrop-blur-[18px]">
                           <div className="space-y-4">
                             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
-                              Capacidad seleccionada
+                              {t("activation.plans.includes")}
                             </p>
 
-                            {form.plan === "CORE" || form.plan === "GROWTH" ? (
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between text-sm text-slate-300">
-                                  <span>Usuarios extra</span>
-                                  <span className="font-semibold text-white">
-                                    {form.extraUsers} ·{" "}
-                                    {formatCurrency(form.extraUsers * DISPLAY_CORE_EXTRA_USER_MXN)}
-                                  </span>
+                            <div className="space-y-3 text-sm leading-6 text-slate-300">
+                              {selectedPlan.bullets.slice(0, 5).map((bullet) => (
+                                <div key={bullet} className="flex items-start gap-3">
+                                  <span className="mt-2 h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                                  <span>{bullet}</span>
                                 </div>
-                                <input
-                                  className="h-11 w-full rounded-2xl border border-white/12 bg-white/[0.05] px-4 text-white transition-all duration-300 ease-in-out hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/30"
-                                  max={CORE_MAX_EXTRA_USERS}
-                                  min={0}
-                                  type="range"
-                                  value={form.extraUsers}
-                                  onChange={(event) =>
-                                    setForm((current) => ({
-                                      ...current,
-                                      extraUsers: Number(event.target.value)
-                                    }))
-                                  }
-                                />
-                                <p className="text-xs leading-6 text-slate-400">
-                                  {form.plan === "CORE"
-                                    ? "Core incluye hasta 15 usuarios y permite sumar hasta 10 adicionales."
-                                    : "Growth incluye hasta 40 usuarios y permite sumar hasta 10 adicionales."}
-                                </p>
-                              </div>
-                            ) : (
-                              <p className="text-sm leading-7 text-slate-300">
-                                Enterprise requiere acompañamiento comercial. Al continuar,
-                                prepararemos la solicitud personalizada con el flujo existente.
-                              </p>
-                            )}
+                              ))}
+                            </div>
+
+                            <p className="rounded-[1.35rem] border border-cyan-400/14 bg-slate-950/56 px-4 py-4 text-xs leading-6 text-slate-400">
+                              {form.plan === "ENTERPRISE"
+                                ? "Business requiere acompañamiento comercial. Al continuar, prepararemos la solicitud personalizada con el flujo existente."
+                                : "El precio del plan es fijo. No se agregan costos variables en este flujo."}
+                            </p>
 
                             <div className="flex flex-wrap items-center gap-3 pt-3">
                               <button
@@ -845,7 +992,7 @@ export function CompanyActivationCta() {
                                 onClick={() => setStep("hero")}
                               >
                                 <ChevronLeft className="h-4 w-4" />
-                                Volver
+                                {t("common.back")}
                               </button>
 
                               <Button
@@ -853,7 +1000,9 @@ export function CompanyActivationCta() {
                                 type="button"
                                 onClick={handleContinueFromPlans}
                               >
-                                {form.plan === "ENTERPRISE" ? "Contactar" : "Siguiente"}
+                                {form.plan === "ENTERPRISE"
+                                  ? t("activation.plans.contact")
+                                  : t("activation.plans.continue")}
                               </Button>
                             </div>
                           </div>
@@ -866,10 +1015,10 @@ export function CompanyActivationCta() {
                     <div ref={billingRef} className="space-y-8 pt-4">
                       <div className="space-y-3 text-center">
                         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">
-                          Paso 3 · Configuración mensual
+                          {t("activation.billing.step")}
                         </p>
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white md:text-4xl">
-                          Configura la activación mensual
+                          {t("activation.billing.title")}
                         </h2>
                       </div>
 
@@ -881,7 +1030,7 @@ export function CompanyActivationCta() {
                               <div className="flex flex-wrap items-center justify-between gap-4">
                                 <div>
                                   <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">
-                                    Resumen de activación
+                                    {t("activation.billing.summary")}
                                   </p>
                                   {form.plan === "ENTERPRISE" ? (
                                     <div className="mt-2 space-y-2">
@@ -911,12 +1060,10 @@ export function CompanyActivationCta() {
                                 </div>
                                 <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/72 px-5 py-4 text-right">
                                   <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                                    Usuarios
+                                    Modalidad
                                   </p>
                                   <p className="mt-2 text-xl font-semibold text-white">
-                                    {form.plan === "ENTERPRISE"
-                                      ? "A medida"
-                                      : displayQuote.totalUsers}
+                                    {form.plan === "ENTERPRISE" ? "A medida" : "Mensual"}
                                   </p>
                                 </div>
                               </div>
@@ -932,29 +1079,7 @@ export function CompanyActivationCta() {
                                 </div>
                                 <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
                                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                                    Incluidos
-                                  </p>
-                                  <p className="mt-2 text-lg font-semibold text-white">
-                                    {form.plan === "ENTERPRISE"
-                                      ? "A medida"
-                                      : displayQuote.includedUsers}
-                                  </p>
-                                </div>
-                                <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
-                                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                                    Extras
-                                  </p>
-                                  <p className="mt-2 text-lg font-semibold text-white">
-                                    {form.plan === "ENTERPRISE"
-                                      ? "Personalizado"
-                                      : `${form.extraUsers} · ${formatCurrency(
-                                          displayQuote.extraAmountMxn ?? 0
-                                        )}`}
-                                  </p>
-                                </div>
-                                <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
-                                  <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                                    Precio base
+                                    {t("activation.billing.base")}
                                   </p>
                                   <p className="mt-2 text-lg font-semibold text-white">
                                     {form.plan === "ENTERPRISE"
@@ -964,7 +1089,7 @@ export function CompanyActivationCta() {
                                 </div>
                                 <div className="rounded-[1.35rem] border border-white/10 bg-slate-950/72 px-4 py-4">
                                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                                    Total mensual
+                                    {t("activation.billing.total")}
                                   </p>
                                   <p className="mt-2 text-lg font-semibold text-white">
                                     {form.plan === "ENTERPRISE"
@@ -976,7 +1101,7 @@ export function CompanyActivationCta() {
 
                               <div className="rounded-[1.6rem] border border-cyan-400/14 bg-slate-950/56 px-5 py-5">
                                 <p className="text-sm font-medium text-white">
-                                  Tu entorno se activará automáticamente después de la confirmación.
+                                  {t("activation.billing.autoNote")}
                                 </p>
                                 <ol className="mt-4 space-y-3 text-sm leading-7 text-slate-300">
                                   <li className="flex items-start gap-3">
@@ -1320,48 +1445,10 @@ export function CompanyActivationCta() {
                                   )}
                                 </div>
 
-                                <div className="grid gap-4 md:grid-cols-2">
-                                  <div className="space-y-2">
-                                    <Label className="text-slate-200">Usuarios incluidos</Label>
-                                    <div className="flex h-12 items-center rounded-2xl border border-white/15 bg-white/[0.08] px-4 text-sm font-medium text-white">
-                                      {form.plan === "ENTERPRISE"
-                                        ? "A medida"
-                                        : form.plan === "GROWTH"
-                                          ? DISPLAY_GROWTH_INCLUDED_USERS
-                                          : DISPLAY_CORE_INCLUDED_USERS}
-                                    </div>
-                                  </div>
-
-                                  <div className="space-y-2">
-                                    <Label
-                                      className="text-slate-200"
-                                      htmlFor="activation-extra-users"
-                                    >
-                                      Usuarios extra
-                                    </Label>
-                                    <input
-                                      id="activation-extra-users"
-                                      className="h-12 w-full rounded-2xl border border-white/15 bg-white/[0.08] px-4 text-white transition-all duration-300 ease-in-out hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-[#38BDF8]/30 disabled:cursor-not-allowed disabled:opacity-60"
-                                      disabled={form.plan === "ENTERPRISE"}
-                                      max={CORE_MAX_EXTRA_USERS}
-                                      min={0}
-                                      type="range"
-                                      value={form.plan === "ENTERPRISE" ? 0 : form.extraUsers}
-                                      onChange={(event) =>
-                                        setForm((current) => ({
-                                          ...current,
-                                          extraUsers: Number(event.target.value)
-                                        }))
-                                      }
-                                    />
-                                    <p className="text-xs text-slate-400">
-                                      {form.plan === "ENTERPRISE"
-                                        ? "Enterprise se cotiza de forma personalizada."
-                                        : `${form.extraUsers} usuarios extra · ${formatCurrency(
-                                            form.extraUsers * DISPLAY_CORE_EXTRA_USER_MXN
-                                          )}`}
-                                    </p>
-                                  </div>
+                                <div className="rounded-[1.35rem] border border-cyan-400/14 bg-slate-950/56 px-4 py-4 text-sm leading-6 text-slate-300">
+                                  {form.plan === "ENTERPRISE"
+                                    ? "Business se cotiza de forma personalizada y no abre checkout automático."
+                                    : "El plan seleccionado se activa con precio mensual fijo, sin cargos variables dentro de este flujo."}
                                 </div>
                               </div>
                             </div>
@@ -1427,3 +1514,6 @@ export function CompanyActivationCta() {
     </>
   );
 }
+
+
+

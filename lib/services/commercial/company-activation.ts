@@ -200,14 +200,14 @@ function buildProductDescription(input: {
   extraUsers: number;
 }) {
   if (input.plan === "CORE") {
-    return `Plan Core con ${input.includedUsers} usuarios incluidos y ${input.extraUsers} usuarios adicionales.`;
+    return "Plan Core para base operativa, proyectos, tareas, reportes basicos y acceso seguro empresarial.";
   }
 
   if (input.plan === "GROWTH") {
-    return `Plan Growth con ${input.includedUsers} usuarios incluidos y ${input.extraUsers} usuarios adicionales.`;
+    return "Plan Growth para operar, cotizar, controlar finanzas y usar MAIA con capacidades avanzadas.";
   }
 
-  return "Plan Enterprise con activacion guiada y precio personalizado.";
+  return "Plan Business con activacion guiada, integraciones y precio personalizado.";
 }
 
 function resolveCheckoutAppUrl(requestOrigin?: string) {

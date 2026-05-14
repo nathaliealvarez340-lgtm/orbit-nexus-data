@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { useLanguage } from "@/components/i18n/language-provider";
 import { Input } from "@/components/ui/input";
 import type { DashboardSearchItem } from "@/lib/dashboard/mock-data";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ const itemTypePills: Record<DashboardSearchItem["type"], string> = {
 const orderedGroups: DashboardSearchItem["type"][] = ["project", "action", "activity", "user"];
 
 export function SearchBar({ items, className, variant = "default" }: SearchBarProps) {
+  const { t } = useLanguage();
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -131,7 +133,7 @@ export function SearchBar({ items, className, variant = "default" }: SearchBarPr
             : "border-white/80 bg-white/88",
           isCompact ? "h-11 rounded-[1.15rem] text-sm" : !isDark ? "h-12 rounded-2xl" : ""
         )}
-        placeholder="Buscar módulos, cotizaciones, facturas, clientes o actividad..."
+        placeholder={t("workspace.search.placeholder")}
         value={query}
         onChange={(event) => {
           const nextValue = event.target.value;

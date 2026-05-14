@@ -4,36 +4,38 @@ import Link from "next/link";
 import { BadgeCheck, KeyRound, ShieldCheck, Sparkles, type LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { useState } from "react";
 
 import { CompanyActivationCta } from "@/components/commercial/company-activation-cta";
+import { LanguageSelector } from "@/components/i18n/language-selector";
+import { useLanguage } from "@/components/i18n/language-provider";
 import { Button } from "@/components/ui/button";
 import { OrbitBackgroundVideo } from "@/components/ui/orbit-background-video";
+import type { TranslationKey } from "@/lib/i18n/dictionary";
 
 const highlights: Array<{
   icon: LucideIcon;
-  title: string;
-  description: string;
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
 }> = [
   {
     icon: Sparkles,
-    title: "Command Center Ejecutivo",
-    description: "Visualiza prioridades, riesgos y métricas clave desde un solo entorno operativo."
+    titleKey: "home.card.command.title",
+    descriptionKey: "home.card.command.description"
   },
   {
     icon: KeyRound,
-    title: "MAIA Assistant",
-    description: "Ejecuta tareas, responde con contexto y guía decisiones estratégicas en tiempo real."
+    titleKey: "home.card.maia.title",
+    descriptionKey: "home.card.maia.description"
   },
   {
     icon: BadgeCheck,
-    title: "Finanzas & Control",
-    description: "Gestiona cotizaciones, facturas y datos fiscales dentro de una arquitectura empresarial."
+    titleKey: "home.card.finance.title",
+    descriptionKey: "home.card.finance.description"
   },
   {
     icon: ShieldCheck,
-    title: "Operación en tiempo real",
-    description: "Monitorea proyectos, tareas, alertas y actividad operativa sin perder trazabilidad."
+    titleKey: "home.card.operation.title",
+    descriptionKey: "home.card.operation.description"
   }
 ];
 
@@ -71,30 +73,9 @@ const cardVariants: Variants = {
   }
 };
 
-function LanguageToggle() {
-  const [language, setLanguage] = useState<"ES" | "EN">("ES");
-
-  return (
-    <div className="inline-flex rounded-2xl border border-white/15 bg-slate-950/42 p-1 text-xs font-semibold tracking-[0.16em] text-slate-300 shadow-[0_14px_34px_rgba(2,6,23,0.26)] backdrop-blur-xl">
-      {(["ES", "EN"] as const).map((option) => (
-        <button
-          key={option}
-          className={`rounded-xl px-3 py-2 transition-all duration-300 ease-in-out ${
-            language === option
-              ? "bg-cyan-400/16 text-cyan-100 shadow-[0_0_22px_rgba(93,224,230,0.18)]"
-              : "hover:bg-white/[0.07] hover:text-white"
-          }`}
-          type="button"
-          onClick={() => setLanguage(option)}
-        >
-          {option}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export default function HomePage() {
+  const { t } = useLanguage();
+
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-6 md:px-6 md:py-8">
       <OrbitBackgroundVideo
@@ -105,8 +86,7 @@ export default function HomePage() {
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-3rem)] max-w-[1500px] flex-col gap-8">
         <div className="flex items-center justify-end gap-3">
-          <LanguageToggle />
-          <CompanyActivationCta />
+          <LanguageSelector />
         </div>
 
         <section className="grid flex-1 items-center gap-8 lg:min-h-[calc(100vh-10rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
@@ -119,18 +99,17 @@ export default function HomePage() {
             <div className="relative z-10 flex h-full flex-col justify-center">
               <div className="max-w-[32rem] space-y-8 md:space-y-10">
                 <h1 className="max-w-[30rem] text-[clamp(38px,4.4vw,60px)] leading-[1.1] tracking-[-0.03em] text-white">
-                  <span className="block font-black text-white leading-[1.04]">
+                  <span className="block font-black leading-[1.04] text-white">
                     Orbit <span className="text-[#5de0e6]">Nexus</span>
                   </span>
                   <span className="mt-4 block font-semibold leading-[1.1] text-white">
-                    Opera tu empresa como CEO.
+                    {t("home.hero.title")}
                   </span>
                 </h1>
 
                 <div className="space-y-6 md:space-y-7">
                   <p className="max-w-[30rem] text-base leading-7 text-slate-300 md:text-[1.05rem] md:leading-8">
-                    Centraliza operación, finanzas, clientes, equipo y decisiones en un solo
-                    sistema ejecutivo impulsado por IA.
+                    {t("home.hero.subtitle")}
                   </p>
 
                   <div className="flex flex-wrap gap-3 pt-1 md:pt-2">
@@ -139,16 +118,13 @@ export default function HomePage() {
                       className="bg-gradient-to-r from-[#5de0e6] to-[#004aad] text-white shadow-[0_18px_42px_rgba(0,74,173,0.34)] transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-[0_22px_50px_rgba(0,74,173,0.42)]"
                       size="lg"
                     >
-                      <Link href="/login">Iniciar sesión</Link>
+                      <Link href="/login">{t("common.login")}</Link>
                     </Button>
-                    <Button
-                      asChild
-                      className="border-white/15 bg-white/[0.06] text-white transition-all duration-300 ease-in-out hover:border-white/25 hover:bg-white/[0.1] hover:shadow-[0_14px_36px_rgba(15,23,42,0.22)]"
-                      size="lg"
-                      variant="outline"
-                    >
-                      <Link href="/register">Activar empresa</Link>
-                    </Button>
+                    <CompanyActivationCta
+                      triggerClassName="border-white/15 bg-white/[0.06] text-white transition-all duration-300 ease-in-out hover:border-white/25 hover:bg-white/[0.1] hover:shadow-[0_14px_36px_rgba(15,23,42,0.22)]"
+                      triggerLabel={t("common.activateCompany")}
+                      triggerVariant="outline"
+                    />
                   </div>
                 </div>
               </div>
@@ -163,10 +139,11 @@ export default function HomePage() {
           >
             {highlights.map((item) => {
               const Icon = item.icon;
+              const title = t(item.titleKey);
 
               return (
                 <motion.div
-                  key={item.title}
+                  key={item.titleKey}
                   className="group relative overflow-hidden rounded-[1.8rem] border border-white/[0.16] bg-slate-950/42 p-5 shadow-[0_16px_42px_rgba(2,6,23,0.22)] backdrop-blur-[20px] transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-cyan-400/35 hover:bg-slate-950/52 hover:shadow-[0_24px_60px_rgba(0,74,173,0.2)] md:p-6"
                   variants={cardVariants}
                 >
@@ -181,10 +158,10 @@ export default function HomePage() {
 
                     <div className="space-y-1.5">
                       <h2 className="text-[1rem] font-semibold text-white md:text-[1.08rem]">
-                        {item.title}
+                        {title}
                       </h2>
                       <p className="text-[0.84rem] leading-[1.5] text-slate-300/95 md:text-[0.88rem]">
-                        {item.description}
+                        {t(item.descriptionKey)}
                       </p>
                     </div>
                   </div>

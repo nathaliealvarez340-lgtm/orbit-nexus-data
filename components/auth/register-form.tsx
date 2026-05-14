@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Check, ChevronDown, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { PasswordField } from "@/components/auth/password-field";
 import { PasswordRequirements } from "@/components/auth/password-requirements";
+import { useLanguage } from "@/components/i18n/language-provider";
 import {
   buildInternationalPhone,
   isPhoneNumberComplete,
@@ -17,7 +18,6 @@ import {
   orbitInfoPanelClassName,
   orbitInputClassName,
   orbitPrimaryButtonClassName,
-  orbitSecondaryButtonClassName,
   orbitSelectClassName
 } from "@/lib/ui/orbit-form-styles";
 
@@ -47,6 +47,7 @@ const initialFormState: RegisterFormState = {
 };
 
 export default function RegisterForm() {
+  const { t } = useLanguage();
   const [form, setForm] = useState(initialFormState);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<RegistrationSuccessState | null>(null);
@@ -205,56 +206,61 @@ export default function RegisterForm() {
 
   if (success) {
     return (
-      <div className="space-y-7">
+      <div className="space-y-7 text-center">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-white">Empresa activada</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-300">
-            {success.companyName} ya tiene un entorno operativo en Orbit Nexus. Guarda este
-            código único para iniciar sesión.
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-300">
+            {success.companyName}
+          </p>
+          <h2 className="mt-3 text-4xl font-semibold tracking-tight text-white">
+            {t("auth.success.title")}
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-slate-300">
+            {t("auth.success.text")}
+          </p>
+          <p className="mt-3 text-sm leading-7 text-slate-400">
+            {t("auth.success.instructions")}
           </p>
         </div>
 
-        <div className="rounded-[1.7rem] border border-emerald-500/20 bg-emerald-500/10 p-5 shadow-[0_18px_42px_rgba(4,120,87,0.14)]">
+        <button
+          className="w-full rounded-[1.7rem] border border-emerald-500/20 bg-emerald-500/10 p-5 text-left shadow-[0_18px_42px_rgba(4,120,87,0.14)] transition hover:border-cyan-300/35 hover:bg-cyan-500/10"
+          type="button"
+          onClick={handleCopyCode}
+        >
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
-            Tu código único es
+            {t("auth.success.codeLabel")}
           </p>
           <p className="mt-3 text-3xl font-semibold tracking-tight text-white">
             {success.code}
           </p>
-          <p className="mt-2 text-sm leading-6 text-slate-300">
-            Guárdalo para iniciar sesión y administrar tu sistema operativo ejecutivo.
-          </p>
-        </div>
+          {copied ? (
+            <p className="mt-3 text-sm font-semibold text-cyan-200">
+              {t("auth.success.copied")}
+            </p>
+          ) : null}
+        </button>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <button className={orbitSecondaryButtonClassName} type="button" onClick={handleCopyCode}>
-            {copied ? "Código copiado" : "Copiar código"}
-          </button>
-
-          <Link className={`${orbitPrimaryButtonClassName} sm:flex-1`} href="/login">
-            Ir a login
-          </Link>
-        </div>
+        <Link className={orbitPrimaryButtonClassName} href="/login">
+          {t("auth.success.login")}
+        </Link>
       </div>
     );
   }
-
   return (
     <form className="space-y-7" noValidate onSubmit={handleSubmit}>
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-white">
-          Activa tu empresa en Orbit Nexus
+          {t("auth.register.title")}
         </h2>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Crea la organización, el primer owner y el código único para entrar al entorno
-          operativo.
+          {t("auth.register.description")}
         </p>
       </div>
 
       <div className="space-y-5">
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-200" htmlFor="companyName">
-            Nombre de empresa
+            {t("auth.register.company")}
           </label>
           <input
             className={orbitInputClassName}
@@ -268,7 +274,7 @@ export default function RegisterForm() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-200" htmlFor="fullName">
-            Nombre completo del owner/admin
+            {t("auth.register.owner")}
           </label>
           <input
             className={orbitInputClassName}
@@ -282,7 +288,7 @@ export default function RegisterForm() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-200" htmlFor="email">
-            Correo empresarial
+            {t("auth.register.email")}
           </label>
           <input
             autoComplete="email"
@@ -296,7 +302,7 @@ export default function RegisterForm() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-200">Celular opcional</label>
+          <label className="text-sm font-medium text-slate-200">{t("auth.register.phone")}</label>
 
           <div className="flex gap-2">
             <div ref={countryMenuRef} className="relative w-[132px] shrink-0 sm:w-[148px]">
@@ -365,7 +371,7 @@ export default function RegisterForm() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-200" htmlFor="password">
-            Contraseña
+            {t("auth.register.password")}
           </label>
           <PasswordField
             autoComplete="new-password"
@@ -379,7 +385,7 @@ export default function RegisterForm() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-200" htmlFor="confirmPassword">
-            Confirmar contraseña
+            {t("auth.register.confirmPassword")}
           </label>
           <PasswordField
             autoComplete="new-password"
@@ -411,19 +417,20 @@ export default function RegisterForm() {
         {isSubmitting ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Activando empresa...
+            {t("auth.register.submitting")}
           </>
         ) : (
-          "Activar empresa"
+          t("auth.register.submit")
         )}
       </button>
 
       <p className="text-center text-sm text-slate-400">
-        ¿Ya tienes código único?{" "}
+        {t("activation.intro.loginPrompt")}{" "}
         <Link className="font-semibold text-cyan-300 hover:text-cyan-200 hover:underline" href="/login">
-          Ir a login
+          {t("activation.intro.loginLink")}
         </Link>
       </p>
     </form>
   );
 }
+

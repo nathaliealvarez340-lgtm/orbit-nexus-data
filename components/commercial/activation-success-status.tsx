@@ -23,6 +23,7 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
   const [status, setStatus] = useState<ActivationStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -77,6 +78,19 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
     };
   }, [sessionId]);
 
+  async function handleCopyCode() {
+    if (!status?.registrationCode) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(status.registrationCode);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   return (
     <div className="w-full rounded-[2rem] border border-white/12 bg-slate-950/80 p-8 shadow-[0_28px_80px_rgba(2,6,23,0.42)] backdrop-blur-2xl">
       <div className="space-y-3">
@@ -84,13 +98,20 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
           Activación comercial
         </p>
         <h1 className="text-4xl font-semibold tracking-tight text-white">
-          {status?.companyReady ? "Empresa activada correctamente" : "Estamos confirmando tu pago"}
+          {status?.companyReady ? "¡FELICIDADES!" : "Estamos confirmando tu pago"}
         </h1>
         <p className="max-w-2xl text-sm leading-7 text-slate-300">
           {status?.companyReady
-            ? "Tu empresa ya existe dentro de Orbit Nexus y el código maestro ya está listo para registrar a tus líderes."
+            ? "Tu empresa se activó correctamente. Ahora podrás disfrutar de los beneficios exclusivos que tenemos para ti."
             : "El pago ya regresó correctamente. Estamos esperando la confirmación final de Stripe para terminar la activación automática."}
         </p>
+        {status?.companyReady ? (
+          <p className="max-w-2xl text-sm leading-7 text-slate-400">
+            Para poder ingresar a tu cuenta copia el siguiente código único de autenticación.
+            Es importante que lo guardes en un lugar seguro, ya que es tu clave de acceso a
+            ORBIT NEXUS.
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -114,15 +135,21 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
         </div>
       </div>
 
-      <div className="mt-6 rounded-[1.65rem] border border-white/10 bg-gradient-to-br from-cyan-500/12 via-slate-950/70 to-blue-500/14 px-6 py-6">
-        <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">Código maestro</p>
+      <button
+        className="mt-6 w-full rounded-[1.65rem] border border-white/10 bg-gradient-to-br from-cyan-500/12 via-slate-950/70 to-blue-500/14 px-6 py-6 text-left transition hover:border-cyan-300/35 hover:from-cyan-500/16"
+        type="button"
+        onClick={handleCopyCode}
+      >
+        <p className="text-xs uppercase tracking-[0.22em] text-cyan-300">
+          Código único de autenticación
+        </p>
         <p className="mt-3 text-3xl font-semibold tracking-[0.04em] text-white">
           {status?.registrationCode ?? "Generando..."}
         </p>
-        <p className="mt-3 text-sm leading-7 text-slate-300">
-          Este código es privado y sirve para registrar líderes dentro de tu empresa. Comparte el código solo con usuarios previamente autorizados.
-        </p>
-      </div>
+        {copied ? (
+          <p className="mt-3 text-sm font-semibold text-cyan-200">Código copiado correctamente</p>
+        ) : null}
+      </button>
 
       {error ? (
         <div className="mt-6 rounded-[1.35rem] border border-rose-500/20 bg-rose-500/10 px-5 py-4 text-sm text-rose-200">
@@ -132,7 +159,7 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Button asChild>
-          <a href="/login">Ir a iniciar sesión</a>
+          <a href="/login">INICIAR SESIÓN</a>
         </Button>
         {!status?.companyReady || isLoading ? (
           <Button
