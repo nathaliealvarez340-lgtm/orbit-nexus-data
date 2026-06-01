@@ -142,7 +142,7 @@ export function AuthShell({
 
             <div>
               <p className="text-[1.7rem] font-black leading-none tracking-[-0.05em] text-white">
-                Orbit <span className="text-[#5de0e6]">Nexus</span>
+                Mikaelson <span className="text-[#5de0e6]">OS</span>
               </p>
               <p className="mt-1 text-sm text-slate-300">
                 CEO Operating System con inteligencia operativa.

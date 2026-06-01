@@ -46,7 +46,7 @@ function buildContractBody(input: {
     "",
     "El consultor acepta participar en el proyecto asignado, cumplir con entregables, tiempos, confidencialidad, lineamientos internos, condiciones operativas y buenas practicas profesionales establecidas por la empresa contratante.",
     "",
-    "La firma digital interna mediante el boton correspondiente deja constancia de aceptacion de terminos, condiciones y compromiso operativo dentro de ORBIT NEXUS."
+    "La firma digital interna mediante el boton correspondiente deja constancia de aceptacion de terminos, condiciones y compromiso operativo dentro de Mikaelson OS."
   ].join("\n");
 }
 

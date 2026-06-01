@@ -250,7 +250,7 @@ export function ExecutiveCommandCenter({
           title="Inteligencia ejecutiva"
         >
           <OperationsFeed
-            emptyDescription="Carga KPI y metricas para que Orbit Nexus sintetice insights ejecutivos utiles."
+            emptyDescription="Carga KPI y metricas para que Mikaelson OS sintetice insights ejecutivos utiles."
             emptyTitle="Sin insights disponibles"
             items={data.keyInsights}
           />

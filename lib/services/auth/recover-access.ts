@@ -46,7 +46,7 @@ ${accessCodeLine}
 
 No olvides guardar estos datos.
 
-Gracias por ponerte en contacto con Orbit Nexus.`;
+Gracias por ponerte en contacto con Mikaelson OS.`;
 }
 
 export async function recoverAccess(input: RecoverAccessInput) {
@@ -89,8 +89,8 @@ export async function recoverAccess(input: RecoverAccessInput) {
     to: user.email,
     subject:
       input.kind === "PASSWORD"
-        ? "Orbit Nexus | Recuperacion de contrasena"
-        : "Orbit Nexus | Recuperacion de codigo unico",
+        ? "Mikaelson OS | Recuperacion de contrasena"
+        : "Mikaelson OS | Recuperacion de codigo unico",
     text: buildRecoveryMessage({
       kind: input.kind,
       temporaryPassword,
@@ -105,4 +105,3 @@ export async function recoverAccess(input: RecoverAccessInput) {
     accessCode: input.kind === "CODE" ? user.accessCode : undefined
   };
 }
-

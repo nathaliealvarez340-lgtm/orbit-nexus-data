@@ -368,7 +368,7 @@ const dashboardProjectSeeds: BaseProjectSeed[] = [
         title: "Consultores asignados",
         description: "Se confirmaron 4 consultores para cubrir operaciones, PMO y calidad.",
         timestamp: "19 Mar 2026 | 11:30",
-        actor: "Coordinacion Orbit Nexus"
+        actor: "Coordinacion Mikaelson OS"
       },
       {
         id: "expansion-operativa-norte-progress",
@@ -1789,7 +1789,7 @@ export function createProjectRecord(
         title: "Proyecto aprobado para arranque",
         description: "El proyecto quedo disponible para coordinacion operativa y seguimiento del equipo.",
         timestamp: "Ahora",
-        actor: "Orbit Nexus",
+        actor: "Mikaelson OS",
         href: `/workspace/projects/${slug}#assignment`
       }
     ]

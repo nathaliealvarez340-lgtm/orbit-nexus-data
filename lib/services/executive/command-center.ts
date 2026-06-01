@@ -162,7 +162,7 @@ function summarizeRole(session: SessionUser) {
 
 function createFallbackData(session: SessionUser): ExecutiveCommandCenterData {
   return {
-    organizationName: "Orbit Nexus",
+    organizationName: "Mikaelson OS",
     organizationSector: null,
     welcomeTitle: `Hola, ${getFirstName(session.fullName)}.`,
     welcomeSubtitle:
@@ -535,7 +535,7 @@ export async function getExecutiveCommandCenterData(
     organizationSector: organization.sector ?? null,
     welcomeTitle: `Hola, ${getFirstName(session.fullName)}.`,
     welcomeSubtitle:
-      "Organiza, analiza y decide con inteligencia operativa. Orbit Nexus funciona como CEO Operating System para convertir datos dispersos en decisiones claras.",
+      "Organiza, analiza y decide con inteligencia operativa. Mikaelson OS funciona como CEO Operating System para convertir datos dispersos en decisiones claras.",
     metrics,
     operationalStatus,
     activeProjects: activeProjectItems,

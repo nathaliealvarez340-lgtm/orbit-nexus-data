@@ -82,7 +82,7 @@ export const translations = {
       "Tu sesión opera bajo autenticación empresarial, permisos internos y validación segura.",
     "auth.login.noCompany": "¿Aún no tienes una empresa activa?",
     "auth.login.admin": "¿Eres administrador?",
-    "auth.register.title": "Activa tu empresa en Orbit Nexus",
+    "auth.register.title": "Activa tu empresa en Mikaelson OS",
     "auth.register.description":
       "Crea la organización, el primer owner y el código único para entrar al entorno operativo.",
     "auth.register.company": "Nombre de la empresa",
@@ -97,7 +97,7 @@ export const translations = {
     "auth.success.text":
       "Tu empresa se activó correctamente. Ahora podrás disfrutar de los beneficios exclusivos que tenemos para ti.",
     "auth.success.instructions":
-      "Para poder ingresar a tu cuenta copia el siguiente código único de autenticación. Es importante que lo guardes en un lugar seguro, ya que es tu clave de acceso a ORBIT NEXUS.",
+      "Para poder ingresar a tu cuenta copia el siguiente código único de autenticación. Es importante que lo guardes en un lugar seguro, ya que es tu clave de acceso a Mikaelson OS.",
     "auth.success.codeLabel": "Código único de autenticación",
     "auth.success.copied": "Código copiado correctamente",
     "auth.success.login": "INICIAR SESIÓN",
@@ -108,7 +108,7 @@ export const translations = {
     "workspace.sidebar.dashboard": "DASHBOARD",
     "workspace.sidebar.notifications": "NOTIFICACIONES",
     "workspace.sidebar.gmail": "Gmail",
-    "workspace.sidebar.orbit": "Orbit",
+    "workspace.sidebar.orbit": "Mikaelson",
     "workspace.sidebar.quotes": "COTIZACIONES",
     "workspace.sidebar.newQuote": "Crear nueva cotización",
     "workspace.sidebar.completedQuotes": "Cotizaciones realizadas",
@@ -204,7 +204,7 @@ export const translations = {
       "Your session runs under enterprise authentication, internal permissions and secure validation.",
     "auth.login.noCompany": "No active company yet?",
     "auth.login.admin": "Are you an administrator?",
-    "auth.register.title": "Activate your company in Orbit Nexus",
+    "auth.register.title": "Activate your company in Mikaelson OS",
     "auth.register.description":
       "Create the organization, first owner and unique code to enter the operating environment.",
     "auth.register.company": "Company name",
@@ -219,7 +219,7 @@ export const translations = {
     "auth.success.text":
       "Your company was activated successfully. You can now enjoy the exclusive benefits we have for you.",
     "auth.success.instructions":
-      "To access your account, copy the following unique authentication code. Keep it somewhere safe, as it is your access key to ORBIT NEXUS.",
+      "To access your account, copy the following unique authentication code. Keep it somewhere safe, as it is your access key to Mikaelson OS.",
     "auth.success.codeLabel": "Unique authentication code",
     "auth.success.copied": "Code copied successfully",
     "auth.success.login": "SIGN IN",
@@ -230,7 +230,7 @@ export const translations = {
     "workspace.sidebar.dashboard": "DASHBOARD",
     "workspace.sidebar.notifications": "NOTIFICATIONS",
     "workspace.sidebar.gmail": "Gmail",
-    "workspace.sidebar.orbit": "Orbit",
+    "workspace.sidebar.orbit": "Mikaelson",
     "workspace.sidebar.quotes": "QUOTES",
     "workspace.sidebar.newQuote": "Create new quote",
     "workspace.sidebar.completedQuotes": "Completed quotes",

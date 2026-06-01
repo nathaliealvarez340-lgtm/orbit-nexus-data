@@ -6,7 +6,7 @@ export default function RegisterPage() {
     <AuthShell
       mode="register"
       title="Activa tu empresa dentro de un sistema operativo ejecutivo."
-      description="Crea una organización, habilita el primer owner y entra a una capa premium para administrar usuarios, proyectos, métricas, finanzas y Orbit AI."
+      description="Crea una organización, habilita el primer owner y entra a una capa premium para administrar usuarios, proyectos, métricas, finanzas y MAIA Executive Agent."
     >
       <RegisterForm />
     </AuthShell>

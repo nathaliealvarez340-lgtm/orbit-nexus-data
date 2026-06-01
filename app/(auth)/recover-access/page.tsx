@@ -15,7 +15,7 @@ export default async function RecoverAccessPage() {
     <AuthShell
       mode="login"
       title="Recupera tu acceso con una verificación clara, segura y consistente."
-      description="Selecciona si necesitas restablecer tu contraseña temporal o recuperar tu código único sin salir de la experiencia premium de Orbit Nexus."
+      description="Selecciona si necesitas restablecer tu contraseña temporal o recuperar tu código único sin salir de la experiencia premium de Mikaelson OS."
     >
       <AccessRecoveryForm />
     </AuthShell>

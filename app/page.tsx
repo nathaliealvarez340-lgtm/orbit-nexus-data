@@ -100,7 +100,7 @@ export default function HomePage() {
               <div className="max-w-[32rem] space-y-8 md:space-y-10">
                 <h1 className="max-w-[30rem] text-[clamp(38px,4.4vw,60px)] leading-[1.1] tracking-[-0.03em] text-white">
                   <span className="block font-black leading-[1.04] text-white">
-                    Orbit <span className="text-[#5de0e6]">Nexus</span>
+                    Mikaelson <span className="text-[#5de0e6]">OS</span>
                   </span>
                   <span className="mt-4 block font-semibold leading-[1.1] text-white">
                     {t("home.hero.title")}

@@ -199,7 +199,7 @@ export function TaxProfileView({ session, initialProfile }: TaxProfileViewProps)
           <div className="rounded-[1.5rem] border border-cyan-400/15 bg-cyan-500/10 px-4 py-4">
             <p className="text-sm font-semibold text-cyan-100">CFDI oficial no conectado</p>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              Orbit Nexus no timbra ni genera XML fiscal valido hasta integrar un PAC autorizado como Facturama,
+              Mikaelson OS no timbra ni genera XML fiscal valido hasta integrar un PAC autorizado como Facturama,
               Facturapi, SW sapien u otro proveedor CFDI.
             </p>
           </div>
@@ -212,4 +212,3 @@ export function TaxProfileView({ session, initialProfile }: TaxProfileViewProps)
     </OperationsShell>
   );
 }
-

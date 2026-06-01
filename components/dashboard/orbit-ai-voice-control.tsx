@@ -140,7 +140,7 @@ export function OrbitAiVoiceControl({
       changeStatus("speaking");
       window.setTimeout(() => changeStatus("idle"), 700);
     } catch {
-      setErrorMessage("No pude enviar la transcripcion a Orbit AI.");
+      setErrorMessage("No pude enviar la transcripcion a MAIA Executive Agent.");
       changeStatus("error");
     }
   }
@@ -170,7 +170,7 @@ export function OrbitAiVoiceControl({
     recognition.onerror = (event) => {
       setErrorMessage(
         event.error === "not-allowed"
-          ? "Activa el permiso de microfono para usar Orbit AI Voice."
+          ? "Activa el permiso de microfono para usar MAIA Executive Agent."
           : "No pude capturar audio. Intenta de nuevo."
       );
       changeStatus("error");
@@ -222,7 +222,7 @@ export function OrbitAiVoiceControl({
   if (compact) {
     return (
       <Button
-        aria-label={status === "listening" ? "Detener escucha de Orbit AI" : "Activar microfono de Orbit AI"}
+        aria-label={status === "listening" ? "Detener escucha de MAIA Executive Agent" : "Activar microfono de MAIA Executive Agent"}
         className={cn(
           "h-11 shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-slate-100 hover:bg-white/[0.08]",
           status === "listening" && "border-cyan-400/35 bg-cyan-500/15",
@@ -243,7 +243,7 @@ export function OrbitAiVoiceControl({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
-            Orbit AI Voice
+            MAIA Executive Agent
           </p>
           <p className="mt-2 text-sm leading-6 text-slate-300">
             {isSupported

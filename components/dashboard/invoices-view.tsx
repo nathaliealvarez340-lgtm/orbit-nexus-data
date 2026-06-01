@@ -184,7 +184,7 @@ export function InvoicesView({ session, initialData }: InvoicesViewProps) {
         { label: "Command Center", href: "/workspace" },
         { label: "Cotizaciones", href: "/workspace/quotes" },
         { label: "Facturas", href: "/workspace/invoices", active: true },
-        { label: "Orbit AI", href: "/workspace/orbit-ai" }
+        { label: "MAIA Executive Agent", href: "/workspace/orbit-ai" }
       ]}
       searchItems={searchItems}
       showHero={false}
@@ -198,7 +198,7 @@ export function InvoicesView({ session, initialData }: InvoicesViewProps) {
           title="Comprobante interno no fiscal"
         >
           <p className="text-sm leading-7 text-amber-100">
-            Orbit Nexus puede preparar datos, importes y trazabilidad para la factura, pero no simula
+            Mikaelson OS puede preparar datos, importes y trazabilidad para la factura, pero no simula
             timbrado SAT. La integracion recomendada es con Facturama, SW sapien, Alegra, Bind ERP API
             u otro proveedor CFDI.
           </p>

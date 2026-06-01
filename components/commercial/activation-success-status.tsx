@@ -109,7 +109,7 @@ export function ActivationSuccessStatus({ sessionId }: ActivationSuccessStatusPr
           <p className="max-w-2xl text-sm leading-7 text-slate-400">
             Para poder ingresar a tu cuenta copia el siguiente código único de autenticación.
             Es importante que lo guardes en un lugar seguro, ya que es tu clave de acceso a
-            ORBIT NEXUS.
+            Mikaelson OS.
           </p>
         ) : null}
       </div>

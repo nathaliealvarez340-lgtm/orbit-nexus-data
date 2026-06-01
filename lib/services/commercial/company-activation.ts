@@ -379,7 +379,7 @@ export async function startCompanyActivation(
               interval: "month"
             },
             product_data: {
-              name: `Orbit Nexus ${getPlanDisplayName(input.plan)}`,
+              name: `Mikaelson OS ${getPlanDisplayName(input.plan)}`,
               description: buildProductDescription({
                 plan: input.plan,
                 includedUsers: quote.includedUsers,

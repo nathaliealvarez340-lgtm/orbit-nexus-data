@@ -38,7 +38,7 @@ export function DashboardShell({
           <div className="max-w-3xl space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-3">
-                <Badge>Workspace Orbit Nexus</Badge>
+                <Badge>Mikaelson Command Center</Badge>
                 <Badge variant="secondary">{ROLE_LABELS[session.role]}</Badge>
               </div>
 

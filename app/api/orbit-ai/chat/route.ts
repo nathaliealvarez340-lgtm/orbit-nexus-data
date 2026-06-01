@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json({
-      message: "Historial de Orbit AI listo.",
+      message: "Historial de MAIA Executive Agent listo.",
       data: history
     });
   } catch (error) {
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     const reply = await runOrbitAi(session, input);
 
     return NextResponse.json({
-      message: "Orbit AI respondio correctamente.",
+      message: "MAIA Executive Agent respondio correctamente.",
       data: reply
     });
   } catch (error) {

@@ -800,7 +800,7 @@ export function WorkspaceAssistant({ session, embeddedLauncher = false }: Worksp
                 </div>
                 <p className="text-sm leading-6 text-slate-400">
                   Asistente operativo para navegar, crear borradores, revisar datos y convertir
-                  instrucciones en acciones controladas dentro de Orbit Nexus.
+                  instrucciones en acciones controladas dentro de Mikaelson OS.
                 </p>
               </div>
               <Button

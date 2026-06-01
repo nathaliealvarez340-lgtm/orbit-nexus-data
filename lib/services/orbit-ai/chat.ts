@@ -168,7 +168,7 @@ function deriveContextLabel(routePath?: string, provided?: string) {
   }
 
   if (routePath.includes("/workspace/orbit-ai")) {
-    return "Orbit AI";
+    return "MAIA Executive Agent";
   }
 
   if (routePath.includes("/workspace/projects/create")) {
@@ -442,7 +442,7 @@ function buildReplyText(intent: OrbitAiIntent, results: SafeToolResult[]) {
   }
 
   if (intent === "help") {
-    return "Orbit AI trabaja como copiloto ejecutivo interno: consulta datos por organizacion, resume operacion, recomienda acciones y puede preparar borradores de reportes. No puede borrar usuarios, emitir facturas, cambiar permisos ni enviar informacion externa sin una capa de confirmacion futura.";
+    return "MAIA Executive Agent trabaja como copiloto ejecutivo interno: consulta datos por organizacion, resume operacion, recomienda acciones y puede preparar borradores de reportes. No puede borrar usuarios, emitir facturas, cambiar permisos ni enviar informacion externa sin una capa de confirmacion futura.";
   }
 
   if (intent === "unknown") {
@@ -559,7 +559,7 @@ async function ensureConversation(params: {
     data: {
       companyId,
       userId,
-      title: `Orbit AI | ${contextLabel}`,
+      title: `MAIA Executive Agent | ${contextLabel}`,
       status: AIConversationStatus.ACTIVE,
       contextLabel,
       routePath,
@@ -637,7 +637,7 @@ async function recordActivity(params: {
       companyId,
       userId,
       type: ActivityLogType.AI,
-      title: "Orbit AI uso herramientas internas",
+      title: "MAIA Executive Agent uso herramientas internas",
       description: `Consulta registrada: ${question}`,
       routePath,
       metadata: asJson({
@@ -814,7 +814,7 @@ export async function runOrbitAi(session: SessionUser, input: OrbitAiInput): Pro
   const question = input.question.trim();
 
   if (!question) {
-    throw new ServiceError("Escribe una consulta valida para Orbit AI.", 400);
+    throw new ServiceError("Escribe una consulta valida para MAIA Executive Agent.", 400);
   }
 
   const companyId = session.companyId ?? session.tenantId;
@@ -846,7 +846,7 @@ export async function runOrbitAi(session: SessionUser, input: OrbitAiInput): Pro
 
   if (!companyId) {
     const text =
-      "No encuentro una organizacion activa asociada a esta sesion. Orbit AI necesita organizationId para consultar datos de forma segura.";
+      "No encuentro una organizacion activa asociada a esta sesion. MAIA Executive Agent necesita organizationId para consultar datos de forma segura.";
 
     await persistMessage({
       conversationId: conversation.id,

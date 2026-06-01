@@ -403,7 +403,7 @@ export default function RegisterForm() {
         </p>
         <p className="mt-2 text-sm leading-6 text-slate-300">
           El primer usuario se crea como owner con acceso al workspace, usuarios, cotizaciones,
-          facturas, Orbit AI y configuracion.
+          facturas, MAIA Executive Agent y configuracion.
         </p>
       </div>
 

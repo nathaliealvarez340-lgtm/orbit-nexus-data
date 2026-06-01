@@ -396,7 +396,7 @@ export function createSeedQuotesWorkspace(tenantId: string | null): LeaderQuotes
   quotes.push(
     createQuoteRecord({
       tenantId,
-      ownerName: "Orbit Nexus",
+      ownerName: "Mikaelson OS",
       status: "SENT",
       settings,
       existingQuotes: quotes,
@@ -442,7 +442,7 @@ export function createSeedQuotesWorkspace(tenantId: string | null): LeaderQuotes
   quotes.push(
     createQuoteRecord({
       tenantId,
-      ownerName: "Orbit Nexus",
+      ownerName: "Mikaelson OS",
       status: "REQUIRES_APPROVAL",
       settings,
       existingQuotes: quotes,
@@ -477,7 +477,7 @@ export function createSeedQuotesWorkspace(tenantId: string | null): LeaderQuotes
   quotes.push(
     createQuoteRecord({
       tenantId,
-      ownerName: "Orbit Nexus",
+      ownerName: "Mikaelson OS",
       status: "ACCEPTED",
       settings,
       existingQuotes: quotes,

@@ -186,7 +186,7 @@ function SidebarContent({
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       <div className="space-y-4">
-        <Badge className="bg-white/10 text-slate-100 hover:bg-white/10">Orbit Nexus</Badge>
+        <Badge className="bg-white/10 text-slate-100 hover:bg-white/10">Mikaelson OS</Badge>
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-400">
             {t("workspace.sidebar.system")}

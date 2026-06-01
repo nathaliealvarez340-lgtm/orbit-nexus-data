@@ -66,7 +66,7 @@ function getCompanyId(session: SessionUser) {
   const companyId = session.companyId ?? session.tenantId;
 
   if (!companyId) {
-    throw new ServiceError("Orbit AI necesita una organizacion activa para consultar datos.", 403);
+    throw new ServiceError("MAIA Executive Agent necesita una organizacion activa para consultar datos.", 403);
   }
 
   return companyId;
@@ -74,7 +74,7 @@ function getCompanyId(session: SessionUser) {
 
 function createToolContext(session: SessionUser, allowedRoles: AppRoleKey[]): ToolContext {
   if (!allowedRoles.includes(session.role)) {
-    throw new ServiceError("No tienes permisos para usar esta herramienta de Orbit AI.", 403);
+    throw new ServiceError("No tienes permisos para usar esta herramienta de MAIA Executive Agent.", 403);
   }
 
   return {
@@ -636,7 +636,7 @@ export async function createDraftExecutiveReportTool(session: SessionUser): Prom
     getLowKpisTool(session)
   ]);
   const now = new Date();
-  const title = `Borrador ejecutivo Orbit AI | ${formatDate(now)}`;
+  const title = `Borrador ejecutivo MAIA Executive Agent | ${formatDate(now)}`;
   const summaryText = [
     ...summary.findings.slice(0, 4),
     ...risks.findings.slice(0, 2),
@@ -648,12 +648,12 @@ export async function createDraftExecutiveReportTool(session: SessionUser): Prom
       companyId,
       generatedById: userId,
       title,
-      summary: summaryText || "Borrador ejecutivo generado por Orbit AI.",
+      summary: summaryText || "Borrador ejecutivo generado por MAIA Executive Agent.",
       reportType: ReportType.DAILY,
       periodLabel: "Borrador diario",
       body: asJson({
         draft: true,
-        generatedBy: "Orbit AI",
+        generatedBy: "MAIA Executive Agent",
         findings: {
           summary: summary.findings,
           risks: risks.findings,
@@ -676,7 +676,7 @@ export async function createDraftExecutiveReportTool(session: SessionUser): Prom
       userId,
       reportId: report.id,
       type: ActivityLogType.AI,
-      title: "Orbit AI creo un borrador de reporte",
+      title: "MAIA Executive Agent creo un borrador de reporte",
       description: `${report.title} quedo preparado para revision humana.`,
       routePath: "/workspace/orbit-ai",
       metadata: asJson({
@@ -731,6 +731,6 @@ export async function runOrbitAiTool(
     case "suggest_tasks":
       return suggestTasksTool(session);
     default:
-      throw new ServiceError("Herramienta de Orbit AI no disponible.", 400);
+      throw new ServiceError("Herramienta de MAIA Executive Agent no disponible.", 400);
   }
 }

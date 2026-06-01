@@ -70,7 +70,7 @@ export const leaderIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Riesgo,
     ctaText: "Ver analisis",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-04-29T09:00:00.000Z",
     confidence: 92,
     actionableInsight:
@@ -87,7 +87,7 @@ export const leaderIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Productividad,
     ctaText: "Aplicar recomendacion",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-04-29T09:20:00.000Z",
     confidence: 88,
     actionableInsight:
@@ -104,7 +104,7 @@ export const leaderIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Talento,
     ctaText: "Ver analisis",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-04-29T09:40:00.000Z",
     confidence: 86,
     actionableInsight:
@@ -138,7 +138,7 @@ export const leaderIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Operacion,
     ctaText: "Aplicar recomendacion",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-04-29T10:18:00.000Z",
     confidence: 90,
     actionableInsight:
@@ -158,7 +158,7 @@ export const executiveIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Riesgo,
     ctaText: "Ver analisis",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-05-12T08:00:00.000Z",
     confidence: 93,
     actionableInsight:
@@ -175,7 +175,7 @@ export const executiveIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Productividad,
     ctaText: "Aplicar recomendacion",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-05-12T08:20:00.000Z",
     confidence: 89,
     actionableInsight:
@@ -192,7 +192,7 @@ export const executiveIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Talento,
     ctaText: "Ver analisis",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-05-12T08:40:00.000Z",
     confidence: 87,
     actionableInsight:
@@ -226,7 +226,7 @@ export const executiveIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Operacion,
     ctaText: "Aplicar recomendacion",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-05-12T09:18:00.000Z",
     confidence: 91,
     actionableInsight:
@@ -246,7 +246,7 @@ export const consultantIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Productividad,
     ctaText: "Aplicar recomendacion",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-04-29T09:10:00.000Z",
     confidence: 89,
     actionableInsight:
@@ -263,7 +263,7 @@ export const consultantIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Riesgo,
     ctaText: "Ver analisis",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-04-29T09:32:00.000Z",
     confidence: 84,
     actionableInsight:
@@ -280,7 +280,7 @@ export const consultantIntelligenceFeedItems: NexusIntelligenceFeedItem[] = [
     image: baseImages.Talento,
     ctaText: "Ver analisis",
     sourceType: "internal",
-    sourceName: "Orbit Nexus Intelligence",
+    sourceName: "Mikaelson Intelligence",
     publishedAt: "2026-04-29T09:54:00.000Z",
     confidence: 87,
     actionableInsight:

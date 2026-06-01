@@ -249,7 +249,7 @@ const sectorOptionsList = [
 ] as const;
 
 const activationSupportHref =
-  "mailto:soporte@orbitne.com?subject=Soporte%20activacion%20Orbit%20Nexus";
+  "mailto:soporte@orbitne.com?subject=Soporte%20activacion%20Mikaelson%20OS";
 const PUBLIC_EMAIL_DOMAINS = new Set([
   "gmail.com",
   "outlook.com",
@@ -1227,7 +1227,7 @@ export function CompanyActivationCta({
                                     >
                                       <p className="text-sm font-semibold text-white">Empresa</p>
                                       <p className="mt-2 text-sm leading-6 text-slate-400">
-                                        Acceso para un equipo con dominio corporativo reconocido por Orbit Nexus.
+                                        Acceso para un equipo con dominio corporativo reconocido por Mikaelson OS.
                                       </p>
                                     </button>
 

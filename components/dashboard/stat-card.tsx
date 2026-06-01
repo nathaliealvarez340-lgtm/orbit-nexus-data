@@ -47,7 +47,7 @@ export function StatCard({ label, value, detail, tone = "blue" }: StatCardProps)
               palette.chip
             )}
           >
-            Orbit KPI
+            Mikaelson KPI
           </div>
         </div>
 

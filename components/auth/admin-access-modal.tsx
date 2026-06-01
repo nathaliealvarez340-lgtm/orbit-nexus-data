@@ -73,7 +73,7 @@ export function AdminAccessForm({ onBack }: AdminAccessFormProps) {
         </h2>
         <p className="mt-3 text-sm leading-6 text-slate-300">
           Valida tu identidad con nombre, correo y código maestro para entrar al panel
-          global de Orbit Nexus.
+          global de Mikaelson OS.
         </p>
       </div>
 

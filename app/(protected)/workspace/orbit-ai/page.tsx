@@ -15,11 +15,11 @@ export default async function WorkspaceOrbitAiPage() {
     <OperationsShell
       session={session}
       portalLabel="Executive OS"
-      portalTitle="Orbit AI"
+      portalTitle="MAIA Executive Agent"
       subtitle="Asistente ejecutivo interno para administrar, organizar, analizar y resumir la operacion de tu organizacion."
       navItems={[
         { label: "Command Center", href: "/workspace" },
-        { label: "Orbit AI", href: "/workspace/orbit-ai", active: true },
+        { label: "MAIA Executive Agent", href: "/workspace/orbit-ai", active: true },
         { label: "Cotizaciones", href: "/workspace/quotes" },
         { label: "Facturas", href: "/workspace/invoices" }
       ]}

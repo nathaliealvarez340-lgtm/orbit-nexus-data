@@ -1,6 +1,6 @@
 import type { AppRoleKey, RegistrableRoleKey } from "@/types/auth";
 
-export const APP_NAME = "Orbit Nexus";
+export const APP_NAME = "Mikaelson OS";
 export const AUTH_COOKIE_NAME = "orbit_nexus_session";
 
 export const ROLE_LABELS: Record<AppRoleKey, string> = {

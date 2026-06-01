@@ -62,7 +62,7 @@ export function OperationsStatCard({
             palette.chip
           )}
         >
-          Orbit KPI
+          Mikaelson KPI
         </span>
       </div>
 

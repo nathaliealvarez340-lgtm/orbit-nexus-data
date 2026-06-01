@@ -7,7 +7,7 @@ export default async function WorkspaceAlertsPage() {
   return (
     <WorkspaceModulePage
       description="Da seguimiento a riesgos operativos, incidencias y desviaciones detectadas por el sistema."
-      emptyDescription="No hay alertas abiertas. Cuando Orbit Nexus detecte retrasos, carga critica o eventos relevantes, se mostraran aqui."
+      emptyDescription="No hay alertas abiertas. Cuando Mikaelson OS detecte retrasos, carga critica o eventos relevantes, se mostraran aqui."
       emptyTitle="Operacion sin alertas abiertas"
       eyebrow="Riesgos"
       href="/workspace/alerts"
@@ -17,4 +17,3 @@ export default async function WorkspaceAlertsPage() {
     />
   );
 }
-

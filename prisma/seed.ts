@@ -1370,7 +1370,7 @@ async function seedExecutiveWorkspace(params: {
       objective: "Consolidar lectura ejecutiva de ingresos, riesgos y throughput.",
       clientProfile: {
         name: "Direccion financiera",
-        company: "Orbit Nexus",
+        company: "Mikaelson OS",
         email: "finanzas@orbitne.com",
         phone: "+52 55 5100 1200",
         sector: "Servicios",
@@ -1397,7 +1397,7 @@ async function seedExecutiveWorkspace(params: {
       objective: "Abrir operacion regional sin perder control ni trazabilidad.",
       clientProfile: {
         name: "Direccion general",
-        company: "Orbit Nexus",
+        company: "Mikaelson OS",
         email: "direccion@orbitne.com",
         phone: "+52 55 5100 1299",
         sector: "Servicios",
@@ -1424,7 +1424,7 @@ async function seedExecutiveWorkspace(params: {
       objective: "Reducir tiempos muertos y dependencias manuales en aprobaciones clave.",
       clientProfile: {
         name: "People & Operations",
-        company: "Orbit Nexus",
+        company: "Mikaelson OS",
         email: "ops@orbitne.com",
         phone: "+52 55 5100 1222",
         sector: "Servicios",
@@ -1648,7 +1648,7 @@ async function seedExecutiveWorkspace(params: {
     projectId: expansionProject.id,
     taskId: blockedTask.id,
     alertId: approvalAlert.id,
-    title: "Orbit Nexus detecto un bloqueo critico",
+    title: "Mikaelson OS detecto un bloqueo critico",
     description:
       "La aprobacion regional quedo marcada como riesgo prioritario y ya forma parte del Command Center.",
     routePath: "/workspace",

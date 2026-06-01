@@ -215,7 +215,7 @@ function buildPrintableQuoteHtml(quote: QuoteRecord) {
     <html lang="es">
       <head>
         <meta charset="utf-8" />
-        <title>${escapeHtml(quote.quoteNumber)} | Orbit Nexus</title>
+        <title>${escapeHtml(quote.quoteNumber)} | Mikaelson OS</title>
         <style>
           body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 40px; color: #0f172a; }
           h1, h2, h3, p { margin: 0; }
@@ -236,7 +236,7 @@ function buildPrintableQuoteHtml(quote: QuoteRecord) {
       <body>
         <div class="header">
           <div>
-            <div class="brand">Orbit Nexus</div>
+            <div class="brand">Mikaelson OS</div>
             <div class="hero">
               <h1>Cotizacion operativa</h1>
               <p>${escapeHtml(quote.quoteNumber)} | ${escapeHtml(QUOTE_STATUS_LABELS[quote.status])}</p>
@@ -858,7 +858,7 @@ export function LeaderQuotesView({ session }: LeaderQuotesViewProps) {
         { label: "Resumen", href: "/workspace" },
         { label: "Cotizaciones", href: "/workspace/quotes", active: true, badge: String(workspaceState.quotes.length) },
         { label: "Facturas", href: "/workspace/invoices" },
-        { label: "Orbit AI", href: "/workspace/orbit-ai" },
+        { label: "MAIA Executive Agent", href: "/workspace/orbit-ai" },
         { label: "Clientes", href: "#quote-clients", badge: String(workspaceState.clients.length) },
         { label: "Catalogo", href: "#quote-catalog", badge: String(workspaceState.catalog.length) }
       ]}
@@ -1803,7 +1803,7 @@ export function LeaderQuotesView({ session }: LeaderQuotesViewProps) {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-400">
-                        Orbit Nexus
+                        Mikaelson OS
                       </p>
                       <h3 className="mt-3 text-2xl font-semibold text-white">
                         {selectedQuote.quoteNumber}

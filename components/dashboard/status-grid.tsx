@@ -35,7 +35,7 @@ export function StatusGrid({ items, className }: StatusGridProps) {
                 toneClasses[item.tone ?? "blue"]
               )}
             >
-              Orbit status
+              Mikaelson status
             </div>
           </div>
 

@@ -45,9 +45,9 @@ const manrope = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Orbit Nexus",
+  title: "Mikaelson OS | Executive Operating System",
   description:
-    "CEO Operating System para administrar, analizar y decidir con inteligencia operativa."
+    "An executive operating system designed to centralize intelligence, operations, finance, clients, projects and strategic decisions for modern companies."
 };
 
 export default function RootLayout({
