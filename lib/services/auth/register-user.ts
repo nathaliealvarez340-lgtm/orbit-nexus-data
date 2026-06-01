@@ -42,7 +42,7 @@ function buildCompanyPrefix(value: string) {
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
 
-  return (sanitized.slice(0, 6) || "ORBIT").slice(0, 6);
+  return (sanitized.slice(0, 6) || "MIKAELSON").slice(0, 6);
 }
 
 async function buildUniqueSlug(companyName: string) {

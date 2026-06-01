@@ -1,6 +1,6 @@
-# Orbit Nexus
+# Mikaelson OS
 
-Base de Fase 1 para Orbit Nexus construida con:
+Base de Fase 1 para Mikaelson OS construida con:
 
 - Next.js App Router
 - TypeScript

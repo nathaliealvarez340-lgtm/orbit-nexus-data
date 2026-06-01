@@ -1,8 +1,8 @@
-# Orbit Nexus Deployment Guide
+# Mikaelson OS Deployment Guide
 
 ## Audit Summary
 
-Orbit Nexus is **not compatible with static export**.
+Mikaelson OS is **not compatible with static export**.
 
 This project depends on:
 
@@ -15,7 +15,7 @@ This project depends on:
   - [C:\Users\Nathalie_Gar\OneDrive\Documentos\orbit-nexus-data\app\activation\success\page.tsx](C:\Users\Nathalie_Gar\OneDrive\Documentos\orbit-nexus-data\app\activation\success\page.tsx)
 - Stripe checkout + webhook processing
 
-Because of that, deploy Orbit Nexus as a **Node.js server app**, not as a static site.
+Because of that, deploy Mikaelson OS as a **Node.js server app**, not as a static site.
 
 ## Recommended Option
 
@@ -42,7 +42,7 @@ Set these variables before the first public deployment.
   - Production must point to PostgreSQL, not `file:...`
 - `JWT_SECRET`
 - `APP_URL`
-  - Production value for Orbit Nexus: `https://orbitne.com`
+  - Production value for Mikaelson OS: `https://orbitne.com`
 - `SUPERADMIN_MASTER_CODE`
 
 ### Required for full commercial checkout
@@ -246,7 +246,7 @@ If Hostinger does **not** properly detect this repo as a server-side Next.js app
 
 ## Recommendation
 
-For Orbit Nexus, **Vercel is the recommended production target**.
+For Mikaelson OS, **Vercel is the recommended production target**.
 
 It is the cleanest fit for:
 
